@@ -20,7 +20,7 @@ def run():
 
     vector_field = Vector_Field(rows, columns)
 
-    particles = [Particle(0.8, 5, vector_field) for _ in range(100)]
+    particles = [Particle(0.8, 5, vector_field) for _ in range(noOfParticles)]
 
 
 
@@ -56,6 +56,7 @@ def run():
 
         for particle in particles:
             particle.update(screen)
+
             pygame.draw.circle(screen, (123,12,90), particle.get_position(), particle.radius)
 
 

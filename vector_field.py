@@ -4,7 +4,7 @@ import math
 import numpy as np
 from random import randrange
 
-screen_width, screen_height = 512,768
+screen_width, screen_height = 1024,1024
 rows, columns = 128, 128
 box_width, box_height = screen_width / columns, screen_height / rows
 
@@ -12,6 +12,7 @@ clock = pygame.time.Clock()
 frame_rate = 75
 dt = 1 / frame_rate
 
+noOfParticles = 1000
 
 
 
