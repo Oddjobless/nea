@@ -1,37 +1,57 @@
 from vector_field import *
 
 class Particle:
-    def __init__(self, mass, radius, vector_field, damping=0.8):
+    def __init__(self, mass, radius, vector_field, damping=1.0):
         self.damping = damping
         self.radius = radius
         self.mass = mass
         self.vector_field = vector_field
 
         self.velocity = np.array([randrange(-1000,1000),randrange(-1000,1000)])
-        self.position = np.array([randrange(self.radius, screen_width - self.radius), randrange(self.radius, screen_height - self.radius)])
+        self.position = np.array([randrange(2 * self.radius, screen_width - 2 * self.radius), randrange(2 * self.radius, screen_height - 2 * self.radius)])
+        self.next_position = self.position.copy()
         # self.acceleration = np.array([0,9.8]) * self.mass # short term
+        vector_field.insert_particle(self)
+
 
     def update(self, screen):
-        new_position = self.position + self.velocity * dt
 
-        if new_position[0] > screen.get_width() - (self.radius + 1):
+        self.next_position = self.position + self.velocity * dt
+        if self.next_position[0] > screen.get_width() - (self.radius) or self.next_position[0] < self.radius:
             self.velocity[0] *= -1 * self.damping
-            new_position[0] = screen.get_width() - self.radius - 1
-        elif new_position[0] < self.radius:
+        if self.next_position[1] > screen.get_height() - self.radius or self.next_position[1] < self.radius:
+            self.velocity[1] *= -1 * self.damping
+        self.next_position = np.clip(self.next_position, (self.radius, self.radius), (screen.get_width() - self.radius, screen.get_height() - self.radius))
+
+
+        """if self.next_position[0] > screen.get_width() - (self.radius + 1):
             self.velocity[0] *= -1 * self.damping
-            new_position[0] = self.radius + 1
+            self.next_position[0] = screen.get_width() - self.radius - 1
+        elif self.next_position[0] < self.radius:
+            self.velocity[0] *= -1 * self.damping
+            self.next_position[0] = self.radius + 1
 
-        if new_position[1] > screen.get_height() - self.radius:
+        if self.next_position[1] > screen.get_height() - self.radius:
             self.velocity[1] *= -1 * self.damping
-            new_position[1] = screen.get_height() - self.radius # - 1
+            self.next_position[1] = screen.get_height() - self.radius # - 1
 
-        elif new_position[1] < self.radius:
+        elif self.next_position[1] < self.radius:
             self.velocity[1] *= -1 * self.damping
-            new_position[1] = self.radius
+            self.next_position[1] = self.radius"""
 
-        self.position = new_position
+
+
+
+
+
+
+        self.vector_field.remove_particle(self)
+        self.position = self.next_position
+        self.vector_field.insert_particle(self)
+        print(self.vector_field.hash)
+
         # self.velocity = self.velocity + self.acceleration * self.mass
 
 
     def get_position(self):
-        return int(self.position[0]), int(self.position[1])
+        return int(self.next_position[0]), int(self.next_position[1])

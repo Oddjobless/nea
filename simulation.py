@@ -1,17 +1,30 @@
 import pygame.draw
 from particle import *
 
+
+"""
+TODO: 
+display vector
+create a spatial hash
+dynamically calculate which particles are in which box
+attempt to have the vector field influence the velocity of the particles
+calculate density of each particle
+look into the smoothing curves, kernels etc.
+each little box will represent the fluid, ie the density. the 3x3 bit of each thing will influence its density. would 
+like to have "motion blur" where it split the grid further and do a kernel convolution.
+look into pressure
+"""
+
+
+
+
+
+
+
+
 pygame.init()
 
-
-
-
-
 drawGrid = True
-
-
-
-
 
 
 def run():
@@ -20,7 +33,7 @@ def run():
 
     vector_field = Vector_Field(rows, columns)
 
-    particles = [Particle(0.8, 5, vector_field) for _ in range(noOfParticles)]
+    particles = [Particle(0.8, 3, vector_field) for _ in range(noOfParticles)]
 
 
 
@@ -31,20 +44,18 @@ def run():
                 return
 
 
-        ### drawing grid
+        ### drawing vectorField
         screen.fill((0, 69, 180))
         if drawGrid:
 
-            for x in vector_field.get_x_list():
+            for x in vector_field.get_grid_coords(x=True):
                 pygame.draw.line(screen, "#353252", (x, 0), (x, screen_height), 1)
 
-            for y in vector_field.get_y_list():
+            for y in vector_field.get_grid_coords(y=True):
                 pygame.draw.line(screen, "#353252", (0, y), (screen_width, y), 1)
 
 
             for coord, vector in zip(vector_field.get_grid_coords(), vector_field.get_normalised_grid()):
-
-
                 boxCentre = (coord[0] + box_width/2, coord[1] + box_height/2)
                 lineRadius = vector
                 #pygame.draw.circle(screen, "#ff3542", (boxCentre), 4, 4)
@@ -57,12 +68,13 @@ def run():
         for particle in particles:
             particle.update(screen)
 
-            pygame.draw.circle(screen, (123,12,90), particle.get_position(), particle.radius)
+            pygame.draw.circle(screen, (123,12,90), particle.get_position(), radius)
 
 
         # Update display
 
         pygame.display.update()
+
 
         clock.tick(frame_rate)
 
