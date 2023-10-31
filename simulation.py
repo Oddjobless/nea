@@ -6,6 +6,7 @@ from particle import *
 TODO: 
 display vector
 create a spatial hash
+reduce refresh rate of spatial hash
 dynamically calculate which particles are in which box
 attempt to have the vector field influence the velocity of the particles
 calculate density of each particle
