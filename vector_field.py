@@ -4,15 +4,15 @@ import math
 import numpy as np
 from random import randrange
 
-screen_width, screen_height = 512,768
-rows, columns =  16,16
+screen_width, screen_height = 768,512
+rows, columns = 16, 16
 box_width, box_height = screen_width / columns, screen_height / rows
 
 clock = pygame.time.Clock()
-frame_rate = 150
+frame_rate = 75
 dt = 1 / frame_rate
-radius = 5
-noOfParticles = 20
+radius = 4
+noOfParticles = 40
 
 class Spatial_Hash:
     def __init__(self, noOfRows, noOfCols): # may reshape into 2d array rather than 1d

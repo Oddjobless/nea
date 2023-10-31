@@ -6,7 +6,8 @@ from particle import *
 TODO: 
 display vector
 create a spatial hash
-dynamically calculate which particles are in which box
+reduce refresh rate of spatial hash
+dynamically calculate which particles are in which box, so if i have slower particles, refresh hash list less often
 attempt to have the vector field influence the velocity of the particles
 calculate density of each particle
 look into the smoothing curves, kernels etc.
@@ -14,11 +15,6 @@ each little box will represent the fluid, ie the density. the 3x3 bit of each th
 like to have "motion blur" where it split the grid further and do a kernel convolution.
 look into pressure
 """
-
-
-
-
-
 
 
 
