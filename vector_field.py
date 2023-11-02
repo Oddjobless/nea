@@ -14,9 +14,25 @@ dt = 1 / frame_rate
 radius = 4
 noOfParticles = 40
 
-class Spatial_Hash:
+
+# The fixed-radius near neighbour problem. naive approach = O(n^2)
+# width should be equal to smoothing radius, do 2 * radius
+# dense spatial hash table
+# https://www.youtube.com/watch?v=D2M8jTtKi44
+
+"""def near_neighbour(x, y, width):
+    for i in range(x - width, x + width + 1):
+        for j in range(y - width, y + width + 1):
+            if i == x and j == y:
+                continue
+            yield i, j"""
+def hash_coordinates(x, y, width):
+    hash = x
+
+class Spatial_Map:
     def __init__(self, noOfRows, noOfCols): # may reshape into 2d array rather than 1d
-        self.hash = [[[] for _ in range(noOfRows)] for _ in range(noOfCols)] # numpy not useful here because it's constantly changing size??
+        self.hash = [[set() for _ in range(noOfRows)] for _ in range(noOfCols)] # numpy not useful here because it's constantly changing size??
+        # I WANT TO MAKE SELF.HASH INTO A 1D ARRAY
         # self.hash = np.empty((noOfRows, noOfCols))
         # self.hash.fill([]) # would like to test speed difference
 
@@ -34,7 +50,7 @@ class Spatial_Hash:
 
     def remove_particle(self, particle):
         cell = self.hash_position(particle.position)
-        self.hash[cell[0]][cell[1]].remove(particle)
+        self.hash[cell[0]][cell[1]].discard(particle)
         # np.delete(self.hash[int(cell[0]), int(cell[1])], particle)
 
 
@@ -43,7 +59,7 @@ class Spatial_Hash:
 
 
 
-        self.hash[new_cell[0]][new_cell[1]].append(particle)
+        self.hash[new_cell[0]][new_cell[1]].add(particle)
 
         # np.append(self.hash[new_cell[0], new_cell[1]], particle)
 
@@ -51,7 +67,7 @@ class Spatial_Hash:
 
 
 
-class Vector_Field(Spatial_Hash):
+class Vector_Field(Spatial_Map):
     def __init__(self, noOfRows, noOfCols):
         super().__init__(noOfRows, noOfCols)
 
