@@ -1,9 +1,9 @@
 from vector_field import *
 
 class Particle:
-    def __init__(self, mass, radius, vector_field, damping=1.0):
+    def __init__(self, mass, radius, vector_field, damping):
         self.damping = damping
-        self.radius = radius
+        self.radius = radius # visual only
         self.mass = mass
         self.vector_field = vector_field
 
@@ -11,7 +11,14 @@ class Particle:
         self.position = np.array([randrange(2 * self.radius, screen_width - 2 * self.radius), randrange(2 * self.radius, screen_height - 2 * self.radius)])
         self.next_position = self.position.copy()
         # self.acceleration = np.array([0,9.8]) * self.mass # short term
-        vector_field.insert_particle(self)
+        self.vector_field.insert_particle(self)
+        self.smoothing_radius = 2 * self.radius
+
+
+
+
+        """self.spatial_map_update_frequency = 4  # 1 / 4 frames update the spatial map
+        self.spatial_map_update_counter = 0"""
 
 
     def update(self, screen):
@@ -44,13 +51,35 @@ class Particle:
 
 
 
+        """if self.spatial_map_update_counter == self.spatial_map_update_frequency:
+            self.vector_field.remove_particle(self)
+            self.position = self.next_position
+            self.vector_field.insert_particle(self)
+            self.spatial_map_update_counter = 0
+            print(self.vector_field.hash)
+        else:
+            self.position = self.next_position
+            self.spatial_map_update_counter += 1"""
 
         self.vector_field.remove_particle(self)
         self.position = self.next_position
         self.vector_field.insert_particle(self)
-        print(self.vector_field.hash)
+
+        #print(self.vector_field.hash)
 
         # self.velocity = self.velocity + self.acceleration * self.mass
+
+
+    def calculate_density(self, particle):
+        density = 0
+        neighbouring_particles = self.vector_field.get_neighbouring_particles(self, particle)
+        for neighbour_particle in neighbouring_particles:
+            if self.vector_field.get_magnitude(neighbour_particle.position - particle.position):
+                pass
+
+            # density += self.mass / (self.get_magnitude(self.velocity) ** 2)
+        # self.density = self.mass / (self.get_magnitude(self.velocity) *)
+
 
 
     def get_position(self):

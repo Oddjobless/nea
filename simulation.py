@@ -20,7 +20,7 @@ look into pressure
 
 pygame.init()
 
-drawGrid = True
+
 
 
 def run():
@@ -29,7 +29,7 @@ def run():
 
     vector_field = Vector_Field(rows, columns)
 
-    particles = [Particle(0.8, 3, vector_field) for _ in range(noOfParticles)]
+    particles = [Particle(0.8, 3, vector_field, damping) for _ in range(noOfParticles)]
 
 
 
@@ -58,12 +58,14 @@ def run():
 
 
         # logic goes here
+        for particle in particles:
+            particle.update(screen)
+
 
         # Drawing code goes here
 
         for particle in particles:
-            particle.update(screen)
-
+            vector_field.get_neighbouring_particles(particle)
             pygame.draw.circle(screen, (123,12,90), particle.get_position(), radius)
 
 

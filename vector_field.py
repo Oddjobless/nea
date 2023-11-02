@@ -4,16 +4,18 @@ import math
 import numpy as np
 from random import randrange
 
-screen_width, screen_height = 768,512
-rows, columns = 16, 16
+screen_width, screen_height = 768,768
+rows, columns = 16,32
 box_width, box_height = screen_width / columns, screen_height / rows
 
 clock = pygame.time.Clock()
-frame_rate = 75
-dt = 1 / frame_rate
-radius = 4
-noOfParticles = 40
-
+frame_rate = 75 # frames per second
+dt = 1 / frame_rate # time elapsed between frames
+radius = 4 # radius of particles, purely for visualisation
+noOfParticles = 100 # number of particles
+damping = 0.99 # what percentage of energy the particles keep on collision with boundary
+drawGrid = True # draw the grid lines on the screen
+smoothing_radius = 13 # used to choose which neighbours to include in the density calculation
 
 # The fixed-radius near neighbour problem. naive approach = O(n^2)
 # width should be equal to smoothing radius, do 2 * radius
@@ -26,22 +28,48 @@ noOfParticles = 40
             if i == x and j == y:
                 continue
             yield i, j"""
-def hash_coordinates(x, y, width):
-    hash = x
 
-class Spatial_Map:
+
+class Spatial_Map: # put into class because it's not used anywhere else
     def __init__(self, noOfRows, noOfCols): # may reshape into 2d array rather than 1d
-        self.hash = [[set() for _ in range(noOfRows)] for _ in range(noOfCols)] # numpy not useful here because it's constantly changing size??
+        self.noOfRows = noOfRows
+        self.noOfCols = noOfCols
+        self.hash = [set() for _ in range(noOfRows * noOfCols)] # numpy not useful here because it's constantly changing size??
         # I WANT TO MAKE SELF.HASH INTO A 1D ARRAY
         # self.hash = np.empty((noOfRows, noOfCols))
-        # self.hash.fill([]) # would like to test speed difference
+        # self.hash.fill(set()) # would like to test speed difference
+
+
 
     def hash_position(self, position):
-        return (int(position[0] / box_width), int(position[1] / box_height))
+        return self.coord_to_index(int(position[0] / box_width), int(position[1] / box_height))
+
+    def coord_to_index(self, x, y):
+        print(x, y, x + (y * self.noOfCols))
+        return x + y * self.noOfCols
+
+
+
+
 
     def update_particle(self, particle):
         self.remove_particle(particle)
         self.insert_particle(particle)
+
+    def get_neighbouring_particles(self, particle):
+        cell_row, cell_col = divmod(self.hash_position(particle.position), self.noOfCols)
+        neighbouring_particles = []
+        for i in range(-1, 2):
+            for j in range(-1, 2):
+                neighbour_row, neighbour_col = cell_row + i, cell_col + j
+                if 0 <= neighbour_row < self.noOfRows and 0 <= neighbour_col < self.noOfCols:
+                    neighbouring_particles.extend(self.hash[self.coord_to_index(neighbour_col, neighbour_row)])
+
+        neighbouring_particles.remove(particle)
+        print( neighbouring_particles)
+        return neighbouring_particles
+
+
 
 
 
@@ -50,16 +78,13 @@ class Spatial_Map:
 
     def remove_particle(self, particle):
         cell = self.hash_position(particle.position)
-        self.hash[cell[0]][cell[1]].discard(particle)
+        self.hash[cell].discard(particle)
         # np.delete(self.hash[int(cell[0]), int(cell[1])], particle)
 
 
     def insert_particle(self, particle):
         new_cell = self.hash_position(particle.next_position)
-
-
-
-        self.hash[new_cell[0]][new_cell[1]].add(particle)
+        self.hash[new_cell].add(particle)
 
         # np.append(self.hash[new_cell[0], new_cell[1]], particle)
 
