@@ -2,7 +2,7 @@
 import pygame
 import numpy as np
 from random import randrange
-
+#
 screen_width, screen_height = 768, 768
 rows, columns = 2,2
 box_width, box_height = screen_width / columns, screen_height / rows

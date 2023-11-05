@@ -1,7 +1,7 @@
 import numpy as np
 
 from vector_field import *
-
+#
 
 class Particle:
     def __init__(self, mass, radius, vector_field, damping):
