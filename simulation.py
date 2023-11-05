@@ -1,20 +1,33 @@
-import pygame.draw
+import pygame
 from particle import *
 
 
-"""
-TODO: 
-display vector
-create a spatial hash
-reduce refresh rate of spatial hash
-dynamically calculate which particles are in which box, so if i have slower particles, refresh hash list less often
-attempt to have the vector field influence the velocity of the particles
-calculate density of each particle
-look into the smoothing curves, kernels etc.
-each little box will represent the fluid, ie the density. the 3x3 bit of each thing will influence its density. would 
-like to have "motion blur" where it split the grid further and do a kernel convolution.
-look into pressure
-"""
+
+# todo:
+# display vector
+# create a spatial hash
+# reduce refresh rate of spatial hash
+# dynamically calculate which particles are in which box, so if i have slower particles, refresh hash list less often
+# attempt to have the vector field influence the velocity of the particles
+# estimate density of each particle
+# the smoothing curves, kernels etc. gaussian
+# smooth the particles
+# add a pressure system
+# calculate pressure forces of each particle.
+# P_i = k (p_i - p_0) | where p_i is the density of particle, p_0 is rest density, P_i is pressure
+
+# then, complete navier-stokes function
+# pressure force = sum_with_neighbours(m_j/p_j * mean pressure * kernel
+# viscosity force
+# external force, ie gravity
+# and acceleration is the sum of these three forces.
+# and repeat.
+
+
+
+# like to have blur where it split the grid further and do a kernel convolution.
+
+
 
 
 
@@ -65,7 +78,8 @@ def run():
         # Drawing code goes here
 
         for particle in particles:
-            vector_field.get_neighbouring_particles(particle)
+
+            particle.calculate_density(particle)
             pygame.draw.circle(screen, (123,12,90), particle.get_position(), radius)
 
 

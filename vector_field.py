@@ -1,56 +1,83 @@
 # Programming and drawing vector field
 import pygame
-import math
 import numpy as np
 from random import randrange
 
-screen_width, screen_height = 768,768
-rows, columns = 16,32
+screen_width, screen_height = 768, 768
+rows, columns = 2,2
 box_width, box_height = screen_width / columns, screen_height / rows
 
 clock = pygame.time.Clock()
-frame_rate = 75 # frames per second
-dt = 1 / frame_rate # time elapsed between frames
-radius = 4 # radius of particles, purely for visualisation
-noOfParticles = 100 # number of particles
-damping = 0.99 # what percentage of energy the particles keep on collision with boundary
-drawGrid = True # draw the grid lines on the screen
-smoothing_radius = 13 # used to choose which neighbours to include in the density calculation
+
+frame_rate = 75  # frames per second
+dt = 1 / frame_rate  # time elapsed between frames
+radius = 7  # radius of particles, purely for visualisation
+noOfParticles = 10  # number of particles
+damping = 0.99  # what percentage of energy the particles keep on collision with boundary
+drawGrid = True  # draw the grid lines on the screen
+smoothing_radius = min(box_height, box_width)  # used to choose which neighbours to include in the density calculation
+
 
 # The fixed-radius near neighbour problem. naive approach = O(n^2)
 # width should be equal to smoothing radius, do 2 * radius
 # dense spatial hash table
 # https://www.youtube.com/watch?v=D2M8jTtKi44
 
-"""def near_neighbour(x, y, width):
-    for i in range(x - width, x + width + 1):
-        for j in range(y - width, y + width + 1):
-            if i == x and j == y:
-                continue
-            yield i, j"""
+class SmoothingKernel:
+    def __init__(self, smoothing_length, poly_6=False, gaussian=False):
+        self.h = smoothing_length  # the radius within which a neighbouring particle will have an impact
+        self.poly_6 = poly_6
+        self.gaussian = gaussian
+        if poly_6:
+            self.normalisation_constant = 315 / (64 * np.pi * self.h**9)
+        elif gaussian:
+            self.normalisation_constant = 1 / (np.sqrt(2 * np.pi) * self.h)
 
 
-class Spatial_Map: # put into class because it's not used anywhere else
-    def __init__(self, noOfRows, noOfCols): # may reshape into 2d array rather than 1d
+    def calculate_density_contribution(self, particle_radius):
+        if particle_radius <= self.h:
+            if self.poly_6:
+                return abs(((self.h ** 2 - particle_radius ** 2) ** 3))
+            elif self.gaussian:
+                return 0 # todo
+        return 0
+
+    def get_normalised_constant(self):
+        return self.normalisation_constant
+
+
+class Vector_Field:
+    def __init__(self, noOfRows, noOfCols):
         self.noOfRows = noOfRows
         self.noOfCols = noOfCols
-        self.hash = [set() for _ in range(noOfRows * noOfCols)] # numpy not useful here because it's constantly changing size??
+        self.hash = [set() for _ in
+                     range(noOfRows * noOfCols)]  # numpy not useful here because it's constantly changing size??
         # I WANT TO MAKE SELF.HASH INTO A 1D ARRAY
         # self.hash = np.empty((noOfRows, noOfCols))
         # self.hash.fill(set()) # would like to test speed difference
 
+        ### creating vector field
+        self.vectorField = list(map(self.normalise_vector, np.random.rand(self.noOfRows * self.noOfCols, 2)))
 
+    def get_grid_coords(self, x=False, y=False):
+        xCoords = np.linspace(0, screen_width, self.noOfCols, endpoint=False)
+        if x:
+            return xCoords
+
+        yCoords = np.linspace(0, screen_height, self.noOfRows, endpoint=False)
+        if y:
+            return yCoords
+
+        xValues, yValues = np.array(np.meshgrid(xCoords, yCoords))
+        coords = np.column_stack((xValues.ravel(), yValues.ravel()))
+        return coords
 
     def hash_position(self, position):
         return self.coord_to_index(int(position[0] / box_width), int(position[1] / box_height))
 
     def coord_to_index(self, x, y):
-        print(x, y, x + (y * self.noOfCols))
+        # print(x, y, x + (y * self.noOfCols))
         return x + y * self.noOfCols
-
-
-
-
 
     def update_particle(self, particle):
         self.remove_particle(particle)
@@ -66,13 +93,8 @@ class Spatial_Map: # put into class because it's not used anywhere else
                     neighbouring_particles.extend(self.hash[self.coord_to_index(neighbour_col, neighbour_row)])
 
         neighbouring_particles.remove(particle)
-        print( neighbouring_particles)
+        # print(neighbouring_particles)
         return neighbouring_particles
-
-
-
-
-
 
         # feels inefficient, ought to compare with linear search.
 
@@ -81,56 +103,22 @@ class Spatial_Map: # put into class because it's not used anywhere else
         self.hash[cell].discard(particle)
         # np.delete(self.hash[int(cell[0]), int(cell[1])], particle)
 
-
     def insert_particle(self, particle):
         new_cell = self.hash_position(particle.next_position)
         self.hash[new_cell].add(particle)
 
         # np.append(self.hash[new_cell[0], new_cell[1]], particle)
 
-
-
-
-
-class Vector_Field(Spatial_Map):
-    def __init__(self, noOfRows, noOfCols):
-        super().__init__(noOfRows, noOfCols)
-
-        self.noOfRows = noOfRows
-        self.noOfCols = noOfCols
-
-        ### creating vector field
-        self.vectorField = list(map(self.normalise_vector, np.random.rand(self.noOfRows * self.noOfCols, 2)))
-
-
-    def get_grid_coords(self, x=False, y=False):
-        xCoords = np.linspace(0, screen_width, self.noOfCols, endpoint=False)
-        if x:
-            return xCoords
-
-        yCoords = np.linspace(0, screen_height, self.noOfRows, endpoint=False)
-        if y:
-            return yCoords
-
-        xValues, yValues = np.array(np.meshgrid(xCoords, yCoords))
-        coords = np.column_stack((xValues.ravel(), yValues.ravel()))
-        return coords
-
-
-
-
     def get_normalised_grid(self):
         return list(map(self.normalise_vector, self.vectorField))
 
-
     def get_magnitude(self, vector):
-        return math.hypot(vector[0], vector[1])
+        return np.hypot(vector[0], vector[1])
 
     def normalise_vector(self, vector):
         return vector / self.get_magnitude(vector)
 
+
 if __name__ == "__main__":
     field = Vector_Field(rows, columns)
-    print(field.get_grid_coords())
-
 
