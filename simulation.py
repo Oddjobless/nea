@@ -5,9 +5,9 @@ from particle import *
 
 # todo:
 # display vector
-# create a spatial hash
-# reduce refresh rate of spatial hash
-# dynamically calculate which particles are in which box, so if i have slower particles, refresh hash list less often
+# create a spatial grid
+# reduce refresh rate of spatial grid
+# dynamically calculate which particles are in which box, so if i have slower particles, refresh grid list less often
 # attempt to have the vector field influence the velocity of the particles
 # estimate density of each particle
 # the smoothing curves, kernels etc. gaussian
@@ -40,7 +40,7 @@ def run():
     screen = pygame.display.set_mode((screen_width, screen_height))
     pygame.display.set_caption("Pygame Boilerplate")
 
-    vector_field = Vector_Field(rows, columns)
+    vector_field = SpatialMap(rows, columns)
 
     particles = [Particle(0.8, 3, vector_field, damping) for _ in range(noOfParticles)]
 
@@ -80,6 +80,7 @@ def run():
         for particle in particles:
 
             particle.calculate_density(particle)
+            print(particle.density)
             pygame.draw.circle(screen, (123,12,90), particle.get_position(), radius)
 
 
@@ -94,3 +95,15 @@ def run():
 
 if __name__ == "__main__":
     run()
+
+
+"""def brute_force(particle, particleList):
+    neighbouring_particles = []
+    for neighbour in particleList:
+        distance = (particle.position - neighbour.position).magnitude()
+        if distance < smoothing_radius:  # The smoothing radius is predefined
+            neighbouring_particles.append(neighbour)
+
+    return neighbouring_particles"""
+
+

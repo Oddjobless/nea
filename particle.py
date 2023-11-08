@@ -1,6 +1,6 @@
 import numpy as np
 
-from vector_field import *
+from spatialmap import *
 #
 
 class Particle:
@@ -52,7 +52,7 @@ class Particle:
             self.position = self.next_position
             self.vector_field.insert_particle(self)
             self.spatial_map_update_counter = 0
-            print(self.vector_field.hash)
+            print(self.vector_field.grid)
         else:
             self.position = self.next_position
             self.spatial_map_update_counter += 1"""
@@ -61,7 +61,7 @@ class Particle:
         self.position = self.next_position
         self.vector_field.insert_particle(self)
 
-        # print(self.vector_field.hash)
+        # print(self.vector_field.grid)
 
         # self.velocity = self.velocity + self.acceleration * self.mass
 
@@ -73,7 +73,7 @@ class Particle:
             distance = self.vector_field.get_magnitude(neighbour_particle.position - particle.position)
             density += self.kernel.calculate_density_contribution(distance)
         density *= self.kernel.get_normalised_constant()
-        print(self.kernel.get_normalised_constant())
+
         self.density = density
         # (self.density)
 

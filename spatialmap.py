@@ -3,24 +3,24 @@ import pygame
 import numpy as np
 from random import randrange
 #
-screen_width, screen_height = 768, 768
-rows, columns = 2,2
+screen_width, screen_height = 940, 940
+rows, columns = 24, 24
 box_width, box_height = screen_width / columns, screen_height / rows
 
 clock = pygame.time.Clock()
 
 frame_rate = 75  # frames per second
 dt = 1 / frame_rate  # time elapsed between frames
-radius = 7  # radius of particles, purely for visualisation
-noOfParticles = 10  # number of particles
+radius = 3  # radius of particles, purely for visualisation
+noOfParticles = 300  # number of particles
 damping = 0.99  # what percentage of energy the particles keep on collision with boundary
 drawGrid = True  # draw the grid lines on the screen
-smoothing_radius = min(box_height, box_width)  # used to choose which neighbours to include in the density calculation
+smoothing_radius = min(box_height, box_width)   # used to choose which neighbours to include in the density calculation
 
 
 # The fixed-radius near neighbour problem. naive approach = O(n^2)
 # width should be equal to smoothing radius, do 2 * radius
-# dense spatial hash table
+# dense spatial grid table
 # https://www.youtube.com/watch?v=D2M8jTtKi44
 
 class SmoothingKernel:
@@ -46,15 +46,15 @@ class SmoothingKernel:
         return self.normalisation_constant
 
 
-class Vector_Field:
+class SpatialMap:
     def __init__(self, noOfRows, noOfCols):
         self.noOfRows = noOfRows
         self.noOfCols = noOfCols
-        self.hash = [set() for _ in
+        self.grid = [set() for _ in
                      range(noOfRows * noOfCols)]  # numpy not useful here because it's constantly changing size??
         # I WANT TO MAKE SELF.HASH INTO A 1D ARRAY
-        # self.hash = np.empty((noOfRows, noOfCols))
-        # self.hash.fill(set()) # would like to test speed difference
+        # self.grid = np.empty((noOfRows, noOfCols))
+        # self.grid.fill(set()) # would like to test speed difference
 
         ### creating vector field
         self.vectorField = list(map(self.normalise_vector, np.random.rand(self.noOfRows * self.noOfCols, 2)))
@@ -90,7 +90,7 @@ class Vector_Field:
             for j in range(-1, 2):
                 neighbour_row, neighbour_col = cell_row + i, cell_col + j
                 if 0 <= neighbour_row < self.noOfRows and 0 <= neighbour_col < self.noOfCols:
-                    neighbouring_particles.extend(self.hash[self.coord_to_index(neighbour_col, neighbour_row)])
+                    neighbouring_particles.extend(self.grid[self.coord_to_index(neighbour_col, neighbour_row)])
 
         neighbouring_particles.remove(particle)
         # print(neighbouring_particles)
@@ -100,14 +100,14 @@ class Vector_Field:
 
     def remove_particle(self, particle):
         cell = self.hash_position(particle.position)
-        self.hash[cell].discard(particle)
-        # np.delete(self.hash[int(cell[0]), int(cell[1])], particle)
+        self.grid[cell].discard(particle)
+        # np.delete(self.grid[int(cell[0]), int(cell[1])], particle)
 
     def insert_particle(self, particle):
         new_cell = self.hash_position(particle.next_position)
-        self.hash[new_cell].add(particle)
+        self.grid[new_cell].add(particle)
 
-        # np.append(self.hash[new_cell[0], new_cell[1]], particle)
+        # np.append(self.grid[new_cell[0], new_cell[1]], particle)
 
     def get_normalised_grid(self):
         return list(map(self.normalise_vector, self.vectorField))
@@ -120,5 +120,5 @@ class Vector_Field:
 
 
 if __name__ == "__main__":
-    field = Vector_Field(rows, columns)
+    field = SpatialMap(rows, columns)
 
