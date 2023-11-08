@@ -37,7 +37,7 @@ class SmoothingKernel:
     def calculate_density_contribution(self, particle_radius):
         if particle_radius <= self.h:
             if self.poly_6:
-                return abs(((self.h ** 2 - particle_radius ** 2) ** 3))
+                return abs((self.h ** 2 - particle_radius ** 2) ** 3)
             elif self.gaussian:
                 return 0 # todo
         return 0
