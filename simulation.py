@@ -44,7 +44,7 @@ def run():
     vector_field = SpatialMap(rows, columns)
 
     particles = [Particle(0.8, 3, vector_field, damping) for _ in range(noOfParticles)]
-
+    vector_field.calculate_rest_density()
 
 
     while True:
@@ -75,15 +75,15 @@ def run():
         for particle in particles:
             particle.update(screen)
 
-
         # Drawing code goes here
-
+        total_density = 0
         for particle in particles:
 
             particle.calculate_density(particle)
-            print(particle.density)
+            # print(particle.density)
+            total_density += particle.density
             pygame.draw.circle(screen, (123,12,90), particle.get_position(), radius)
-
+        print("Total density: ", total_density)
 
         # Update display
 

@@ -4,7 +4,7 @@ import numpy as np
 from random import randrange
 #
 screen_width, screen_height = 940, 940
-rows, columns = 24, 24
+rows, columns = 16,16
 box_width, box_height = screen_width / columns, screen_height / rows
 
 clock = pygame.time.Clock()
@@ -12,7 +12,7 @@ clock = pygame.time.Clock()
 frame_rate = 75  # frames per second
 dt = 1 / frame_rate  # time elapsed between frames
 radius = 3  # radius of particles, purely for visualisation
-noOfParticles = 300  # number of particles
+noOfParticles = 10  # number of particles
 damping = 0.99  # what percentage of energy the particles keep on collision with boundary
 drawGrid = True  # draw the grid lines on the screen
 using_poly_6 = True  #
@@ -121,12 +121,14 @@ class SpatialMap:
                 if 0 <= neighbour_row < self.noOfRows and 0 <= neighbour_col < self.noOfCols:
                     neighbouring_particles.extend(self.grid[self.coord_to_index(neighbour_col, neighbour_row)])
 
-        neighbouring_particles.remove(particle)
+        # neighbouring_particles.remove(particle)
         # print(neighbouring_particles)
         return neighbouring_particles
 
         # feels inefficient, ought to compare with linear search.
 
+    def calculate_rest_density(self):
+        pass
     def remove_particle(self, particle):
         cell = self.hash_position(particle.position)
         self.grid[cell].discard(particle)
