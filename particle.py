@@ -17,7 +17,7 @@ class Particle:
         # self.acceleration = np.array([0,9.8]) * self.mass # short term
         self.vector_field.insert_particle(self)
         self.smoothing_radius = 2 * self.radius
-        self.kernel = SmoothingKernel(smoothing_radius, poly_6=True)
+        self.kernel = SmoothingKernel(smoothing_radius, cubic_spline=True)
 
         """self.spatial_map_update_frequency = 4  # 1 / 4 frames update the spatial map
         self.spatial_map_update_counter = 0"""
@@ -72,9 +72,8 @@ class Particle:
         for neighbour_particle in neighbouring_particles:
             distance = self.vector_field.get_magnitude(neighbour_particle.position - particle.position)
             density += self.kernel.calculate_density_contribution(distance)
-        density *= self.kernel.get_normalised_constant()
+        self.density = self.kernel.get_normalised_density(density)
 
-        self.density = density
         # (self.density)
 
         # density += self.mass / (self.get_magnitude(self.velocity) ** 2)
@@ -82,3 +81,7 @@ class Particle:
 
     def get_position(self):
         return int(self.next_position[0]), int(self.next_position[1])
+
+class Heavy_Particle(Particle):
+    def __init__(self, mass, radius, vector_field, damping):
+        super().__init__(mass, radius, vector_field, damping) # idea. test buoyancy

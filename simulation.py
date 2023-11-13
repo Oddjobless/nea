@@ -9,6 +9,7 @@ from particle import *
 # reduce refresh rate of spatial grid
 # dynamically calculate which particles are in which box, so if i have slower particles, refresh grid list less often
 # attempt to have the vector field influence the velocity of the particles
+# integrate all the random variables into program.
 # estimate density of each particle
 # the smoothing curves, kernels etc. gaussian
 # smooth the particles

@@ -15,7 +15,10 @@ radius = 3  # radius of particles, purely for visualisation
 noOfParticles = 300  # number of particles
 damping = 0.99  # what percentage of energy the particles keep on collision with boundary
 drawGrid = True  # draw the grid lines on the screen
-smoothing_radius = min(box_height, box_width)   # used to choose which neighbours to include in the density calculation
+using_poly_6 = True  #
+using_cubic_spline_kernel = True
+smoothing_radius = min(box_height, box_width) # will integrate this into program.
+
 
 
 # The fixed-radius near neighbour problem. naive approach = O(n^2)
@@ -24,27 +27,53 @@ smoothing_radius = min(box_height, box_width)   # used to choose which neighbour
 # https://www.youtube.com/watch?v=D2M8jTtKi44
 
 class SmoothingKernel:
-    def __init__(self, smoothing_length, poly_6=False, gaussian=False):
-        self.h = smoothing_length  # the radius within which a neighbouring particle will have an impact
+    def __init__(self, smoothing_length, poly_6=False, gaussian=False, cubic_spline=False):
+        self.h = smoothing_length / 2 if cubic_spline else smoothing_length  # the radius within which a neighbouring particle will have an impact
+
+        self.cubic_spline = cubic_spline
         self.poly_6 = poly_6
         self.gaussian = gaussian
         if poly_6:
             self.normalisation_constant = 315 / (64 * np.pi * self.h**9)
         elif gaussian:
             self.normalisation_constant = 1 / (np.sqrt(2 * np.pi) * self.h)
-
+        elif cubic_spline:
+            self.normalisation_constant = 10 / (7 * np.pi * self.h**2)
+        # im uneased by this normalisation constant, tempted to just use total mass instead
 
     def calculate_density_contribution(self, particle_radius):
+
+        if self.poly_6:
+            return self.poly_6_kernel(particle_radius)
+
+        elif self.cubic_spline:
+            return self.cubic_spline_kernel(particle_radius)
+
+        elif self.gaussian:
+            return self.gaussian_kernel(particle_radius)
+
+
+        raise ValueError("Unknown kernel type")
+
+    def get_normalised_density(self, density):
+        return self.normalisation_constant * density
+
+    def cubic_spline_kernel(self, particle_radius): # Article. Numerical Model of Oil Film Diffusion in Water Based on SPH Method
+        ratio = particle_radius / self.h
+        if 0 <= ratio < 1:
+            return (1 - (1.5 * ratio ** 2) + (0.75 * ratio ** 3))
+        elif 1 <= ratio < 2:
+            return 0.25 * ((2 - ratio) ** 3)
+        else:
+            return 0
+
+    def poly_6_kernel(self, particle_radius):
         if particle_radius <= self.h:
-            if self.poly_6:
-                return abs((self.h ** 2 - particle_radius ** 2) ** 3)
-            elif self.gaussian:
-                return 0 # todo
+            return abs((self.h ** 2 - particle_radius ** 2) ** 3)
         return 0
 
-    def get_normalised_constant(self):
-        return self.normalisation_constant
-
+    def gaussian_kernel(self, particle_radius):
+        return 0 # :(
 
 class SpatialMap:
     def __init__(self, noOfRows, noOfCols):
