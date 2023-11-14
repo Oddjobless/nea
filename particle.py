@@ -18,7 +18,7 @@ class Particle:
         self.vector_field.insert_particle(self)
         self.smoothing_radius = 2 * self.radius
         self.kernel = SmoothingKernel(smoothing_radius, cubic_spline=True)
-
+        self.density = self.calculate_density()
         """self.spatial_map_update_frequency = 4  # 1 / 4 frames update the spatial map
         self.spatial_map_update_counter = 0"""
 
@@ -65,14 +65,14 @@ class Particle:
 
         # self.velocity = self.velocity + self.acceleration * self.mass
 
-    def calculate_density(self, particle):
+    def calculate_density(self): # can i use self instead?
         density = 0
-        neighbouring_particles = self.vector_field.get_neighbouring_particles(particle)
+        neighbouring_particles = self.vector_field.get_neighbouring_particles(self)
 
         for neighbour_particle in neighbouring_particles:
-            distance = self.vector_field.get_magnitude(neighbour_particle.position - particle.position)
+            distance = self.vector_field.get_magnitude(neighbour_particle.position - self.position)
             density += self.kernel.calculate_density_contribution(distance)
-        self.density = self.kernel.get_normalised_density(density)
+        return self.kernel.get_normalised_density(density)
 
         # (self.density)
 

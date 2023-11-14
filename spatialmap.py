@@ -4,7 +4,7 @@ import numpy as np
 from random import randrange
 #
 screen_width, screen_height = 940, 940
-rows, columns = 16,16
+rows, columns = 3,3
 box_width, box_height = screen_width / columns, screen_height / rows
 
 clock = pygame.time.Clock()
@@ -12,7 +12,7 @@ clock = pygame.time.Clock()
 frame_rate = 75  # frames per second
 dt = 1 / frame_rate  # time elapsed between frames
 radius = 3  # radius of particles, purely for visualisation
-noOfParticles = 10  # number of particles
+noOfParticles = 250  # number of particles.
 damping = 0.99  # what percentage of energy the particles keep on collision with boundary
 drawGrid = True  # draw the grid lines on the screen
 using_poly_6 = True  #
@@ -39,6 +39,8 @@ class SmoothingKernel:
             self.normalisation_constant = 1 / (np.sqrt(2 * np.pi) * self.h)
         elif cubic_spline:
             self.normalisation_constant = 10 / (7 * np.pi * self.h**2)
+
+
         # im uneased by this normalisation constant, tempted to just use total mass instead
 
     def calculate_density_contribution(self, particle_radius):
@@ -60,6 +62,7 @@ class SmoothingKernel:
 
     def cubic_spline_kernel(self, particle_radius): # Article. Numerical Model of Oil Film Diffusion in Water Based on SPH Method
         ratio = particle_radius / self.h
+
         if 0 <= ratio < 1:
             return (1 - (1.5 * ratio ** 2) + (0.75 * ratio ** 3))
         elif 1 <= ratio < 2:
@@ -87,6 +90,8 @@ class SpatialMap:
 
         ### creating vector field
         self.vectorField = list(map(self.normalise_vector, np.random.rand(self.noOfRows * self.noOfCols, 2)))
+        self.rest_density = -1 # A ROUGH ESTIMATE BASED ON INTIAL POS OF PARTICLES
+        # USER SHOULD ADJUST AS PER NEEDED
 
     def get_grid_coords(self, x=False, y=False):
         xCoords = np.linspace(0, screen_width, self.noOfCols, endpoint=False)
@@ -127,8 +132,16 @@ class SpatialMap:
 
         # feels inefficient, ought to compare with linear search.
 
-    def calculate_rest_density(self):
-        pass
+    def calculate_rest_density(self, particle_list):
+        total_density = 0
+        for particle in particle_list:
+            total_density += particle.density
+            print(total_density, "\n\n==")
+        self.set_rest_density(total_density / noOfParticles)  # rest density
+
+    def set_rest_density(self, rest_density):
+        self.rest_density = rest_density
+
     def remove_particle(self, particle):
         cell = self.hash_position(particle.position)
         self.grid[cell].discard(particle)
