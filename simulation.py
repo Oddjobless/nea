@@ -43,7 +43,7 @@ def run():
 
     vector_field = SpatialMap(rows, columns)
 
-    particles = [Particle(0.8, 3, vector_field, damping) for _ in range(noOfParticles)]
+    particles = [Particle(1, 3, vector_field, damping) for _ in range(noOfParticles)]
     print("high")
     vector_field.calculate_rest_density(particles) # integrate into __init
 
@@ -81,8 +81,9 @@ def run():
         # total_density = 0
         for particle in particles:
 
-            # particle.calculate_density()  # todo i want it to do this less often
-            print(particle.density)
+            particle.calculate_density()  # todo i want it to do this less often
+            # print(particle.get_pressure_force())
+            # print(particle.density)
             # total_density += particle.density
             pygame.draw.circle(screen, (123,12,90), particle.get_position(), radius)
         # print("Total density: ", total_density)

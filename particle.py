@@ -1,4 +1,4 @@
-import numpy as np
+# import numpy as np
 
 from spatialmap import *
 #
@@ -18,7 +18,10 @@ class Particle:
         self.vector_field.insert_particle(self)
         self.smoothing_radius = 2 * self.radius
         self.kernel = SmoothingKernel(smoothing_radius, cubic_spline=True)
-        self.density = self.calculate_density()
+
+        self.calculate_density()
+        print(self.density)
+
         """self.spatial_map_update_frequency = 4  # 1 / 4 frames update the spatial map
         self.spatial_map_update_counter = 0"""
 
@@ -72,16 +75,28 @@ class Particle:
         for neighbour_particle in neighbouring_particles:
             distance = self.vector_field.get_magnitude(neighbour_particle.position - self.position)
             density += self.kernel.calculate_density_contribution(distance)
-        return self.kernel.get_normalised_density(density)
+
+
+        # print(self.density == density)
+        self.density = self.kernel.get_normalised_density(density)
+
+        # self.calculate_pressure()
+
 
         # (self.density)
 
         # density += self.mass / (self.get_magnitude(self.velocity) ** 2)
         # self.density = self.mass / (self.get_magnitude(self.velocity) *)
 
-    def calculate_pressure_force(self):
-        return stiffness_constant * (self.density - self.rest_density)
+    def get_pressure_force(self): # interpolate pressure force
+        return self.pressure
 
+    def calculate_pressure(self): # ideal gas law
+        self.pressure = stiffness_constant * (self.density - self.vector_field.rest_density)
+
+
+    def get_density(self):
+        return self.density
 
     def get_position(self):
         return int(self.next_position[0]), int(self.next_position[1])
