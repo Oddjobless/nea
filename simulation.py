@@ -81,8 +81,8 @@ def run():
         # total_density = 0
         for particle in particles:
 
-            particle.calculate_density()
-            # print(particle.density)
+            # particle.calculate_density()  # todo i want it to do this less often
+            print(particle.density)
             # total_density += particle.density
             pygame.draw.circle(screen, (123,12,90), particle.get_position(), radius)
         # print("Total density: ", total_density)

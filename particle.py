@@ -79,8 +79,14 @@ class Particle:
         # density += self.mass / (self.get_magnitude(self.velocity) ** 2)
         # self.density = self.mass / (self.get_magnitude(self.velocity) *)
 
+    def calculate_pressure_force(self):
+        return stiffness_constant * (self.density - self.rest_density)
+
+
     def get_position(self):
         return int(self.next_position[0]), int(self.next_position[1])
+
+
 
 class Heavy_Particle(Particle):
     def __init__(self, mass, radius, vector_field, damping):

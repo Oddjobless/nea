@@ -4,7 +4,7 @@ import numpy as np
 from random import randrange
 #
 screen_width, screen_height = 940, 940
-rows, columns = 3,3
+rows, columns = 9,9
 box_width, box_height = screen_width / columns, screen_height / rows
 
 clock = pygame.time.Clock()
@@ -18,7 +18,7 @@ drawGrid = True  # draw the grid lines on the screen
 using_poly_6 = True  #
 using_cubic_spline_kernel = True
 smoothing_radius = min(box_height, box_width) # will integrate this into program.
-
+stiffness_constant = 3
 
 
 # The fixed-radius near neighbour problem. naive approach = O(n^2)
