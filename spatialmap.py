@@ -4,15 +4,15 @@ import numpy as np
 from random import randrange
 #
 screen_width, screen_height = 940, 940
-rows, columns = 10,10
+rows, columns = 8,8
 box_width, box_height = screen_width / columns, screen_height / rows
 
 clock = pygame.time.Clock()
 
 frame_rate = 75  # frames per second
 dt = 1 / frame_rate  # time elapsed between frames
-radius = 3  # radius of particles, purely for visualisation
-noOfParticles = 200  # number of particles.
+radius = 8  # radius of particles, purely for visualisation
+noOfParticles = 2  # number of particles.
 damping = 0.99  # what percentage of energy the particles keep on collision with boundary
 drawGrid = True  # draw the grid lines on the screen
 using_poly_6 = True  #
@@ -76,7 +76,10 @@ class SmoothingKernel:
         return 0
 
     def gaussian_kernel(self, particle_radius):
-        return 0 # :(
+        return 0 # explain why bad
+
+    def calculate_pressure_contribution(self, particle_radius):
+        pass
 
 class SpatialMap:
     def __init__(self, noOfRows, noOfCols):
@@ -91,7 +94,7 @@ class SpatialMap:
         ### creating vector field
         self.vectorField = list(map(self.normalise_vector, np.random.rand(self.noOfRows * self.noOfCols, 2)))
         self.rest_density = -1 # A ROUGH ESTIMATE BASED ON INTIAL POS OF PARTICLES
-        # USER SHOULD ADJUST AS PER NEEDED
+        #  CAN CALCULATE ACCURATE REST DENSITY BY SPACING OUT PARTICLES AND CALCULATING DENSITIES
 
     def get_grid_coords(self, x=False, y=False):
         xCoords = np.linspace(0, screen_width, self.noOfCols, endpoint=False)

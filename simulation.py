@@ -75,13 +75,15 @@ def run():
 #
         # logic goes here
         for particle in particles:
-            particle.update(screen)
+            particle.update(screen) # updates position of particles
 
         # Drawing code goes here
         # total_density = 0
         for particle in particles:
 
             particle.calculate_density()  # todo i want it to do this less often
+            particle.calculate_pressure()  # todo ditto
+
             # print(particle.get_pressure_force())
             # print(particle.density)
             # total_density += particle.density

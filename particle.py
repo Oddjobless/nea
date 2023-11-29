@@ -74,7 +74,7 @@ class Particle:
 
         for neighbour_particle in neighbouring_particles:
             distance = self.vector_field.get_magnitude(neighbour_particle.position - self.position)
-            density += self.kernel.calculate_density_contribution(distance)
+            density += self.kernel.calculate_density_contribution(distance) # self.density
 
 
         # print(self.density == density)
@@ -88,12 +88,15 @@ class Particle:
         # density += self.mass / (self.get_magnitude(self.velocity) ** 2)
         # self.density = self.mass / (self.get_magnitude(self.velocity) *)
 
-    def get_pressure_force(self): # interpolate pressure force
+    def get_pressure(self): #
         return self.pressure
 
     def calculate_pressure(self): # ideal gas law
         self.pressure = stiffness_constant * (self.density - self.vector_field.rest_density)
 
+
+    def calculate_pressure_force(self): #pressure force
+        pass
 
     def get_density(self):
         return self.density
