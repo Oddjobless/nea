@@ -14,10 +14,9 @@ class Particle:
         self.position = np.array([randrange(2 * self.radius, screen_width - 2 * self.radius),
                                   randrange(2 * self.radius, screen_height - 2 * self.radius)])
         self.next_position = self.position.copy()
-        # self.acceleration = np.array([0,9.8]) * self.mass # short term
+        #  * self.mass # short term
         self.vector_field.insert_particle(self)
-        self.smoothing_radius = 2 * self.radius
-        self.kernel = SmoothingKernel(smoothing_radius, cubic_spline=True)
+
 
         self.calculate_density()
         print(self.density)
@@ -68,80 +67,11 @@ class Particle:
 
         # self.velocity = self.velocity + self.acceleration * self.mass
 
-    def calculate_density(self): # can i use self instead?
-        density = 0
-        neighbouring_particles = self.vector_field.get_neighbouring_particles(self)
-
-        for neighbour_particle in neighbouring_particles:
-            distance = self.vector_field.get_magnitude(neighbour_particle.position - self.position)
-            density += self.kernel.calculate_density_contribution(distance) # self.density
-
-
-        # print(self.density == density)
-        self.density = self.kernel.get_normalised_density(density)
-
-        # self.calculate_pressure()
-
-
-        # (self.density)
-
-        # density += self.mass / (self.get_magnitude(self.velocity) ** 2)
-        # self.density = self.mass / (self.get_magnitude(self.velocity) *)
-
-    def get_pressure(self): #
-        return self.pressure
-
-    def calculate_pressure(self): # ideal gas law
-        self.pressure = stiffness_constant * (self.density - self.vector_field.rest_density)
-
-
-    def calculate_pressure_force(self): #pressure force
-        pass
-
-    def get_density(self):
-        return self.density
-
     def get_position(self):
         return int(self.next_position[0]), int(self.next_position[1])
 
 
 
-class Pathfinder(Particle):
+class Heavy_Particle(Particle):
     def __init__(self, mass, radius, vector_field, damping):
-        super().__init__(mass, radius, vector_field, damping)
-        self.acceleration = np.array([0, 9.8])
-        self.smoothing_radius = 2 * self.radius
-        self.kernel = SmoothingKernel(smoothing_radius, cubic_spline=True)
-
-    def calculate_density(self): # can i use self instead?
-        density = 0
-        neighbouring_particles = self.vector_field.get_neighbouring_particles(self)
-
-        for neighbour_particle in neighbouring_particles:
-            distance = self.vector_field.get_magnitude(neighbour_particle.position - self.position)
-            density += self.kernel.calculate_density_contribution(distance) # self.density
-
-
-        # print(self.density == density)
-        self.density = self.kernel.get_normalised_density(density)
-
-        # self.calculate_pressure()
-
-
-        # (self.density)
-
-        # density += self.mass / (self.get_magnitude(self.velocity) ** 2)
-        # self.density = self.mass / (self.get_magnitude(self.velocity) *)
-
-    def get_pressure(self): #
-        return self.pressure
-
-    def calculate_pressure(self): # ideal gas law
-        self.pressure = stiffness_constant * (self.density - self.vector_field.rest_density)
-
-
-    def calculate_pressure_force(self): #pressure force
-        pass
-
-    def get_density(self):
-        return self.density
+        super().__init__(mass, radius, vector_field, damping) # idea. test buoyancy
