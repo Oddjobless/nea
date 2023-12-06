@@ -1,9 +1,9 @@
 import sys
 import simulation
 import time
-from PyQt6.QtGui import *
-from PyQt6.QtWidgets import *
-from PyQt6.QtCore import *
+# from PyQt6.QtGui import
+from PyQt6.QtWidgets import QMainWindow, QPushButton, QApplication
+from PyQt6.QtCore import QSize
 
 def print_hi(name):
     # Use a breakpoint in the code line below to debug your script.

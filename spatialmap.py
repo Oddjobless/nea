@@ -4,15 +4,15 @@ import numpy as np
 from random import randrange
 #
 screen_width, screen_height = 940, 940
-rows, columns = 8,8
+rows, columns = 12,12
 box_width, box_height = screen_width / columns, screen_height / rows
 
 clock = pygame.time.Clock()
 
-frame_rate = 75  # frames per second
+frame_rate = 48  # frames per second
 dt = 1 / frame_rate  # time elapsed between frames
 radius = 8  # radius of particles, purely for visualisation
-noOfParticles = 2  # number of particles.
+noOfParticles = 20  # number of particles.
 damping = 0.99  # what percentage of energy the particles keep on collision with boundary
 drawGrid = True  # draw the grid lines on the screen
 using_poly_6 = True  #

@@ -18,7 +18,7 @@ class Particle:
         self.vector_field.insert_particle(self)
         self.smoothing_radius = 2 * self.radius
         self.kernel = SmoothingKernel(smoothing_radius, cubic_spline=True)
-
+        self.pressure = -1
         self.calculate_density()
         print(self.density)
 
@@ -119,7 +119,7 @@ class Pathfinder(Particle):
 
         for neighbour_particle in neighbouring_particles:
             distance = self.vector_field.get_magnitude(neighbour_particle.position - self.position)
-            density += self.kernel.calculate_density_contribution(distance) # self.density
+            density += self.kernel.calculate_density_contribution(distance) * neighbour_particle.mass # self.density
 
 
         # print(self.density == density)
