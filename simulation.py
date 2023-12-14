@@ -1,5 +1,5 @@
 import pygame
-from particle import *
+from pathfinderClasses import *
 
 
 
