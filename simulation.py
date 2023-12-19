@@ -27,7 +27,7 @@ def run():
 
     vector_field = VelocityField(rows, columns)
 
-    particles = [Particle(1, 3, vector_field, damping) for _ in range(noOfParticles)]
+    particles = [Pathfinder(1, 3, vector_field, damping) for _ in range(noOfParticles)]
     print("high")
     # vector_field.calculate_rest_density(particles) # integrate into __init
 
@@ -60,6 +60,11 @@ def run():
         # logic goes here
         for particle in particles:
             particle.update(screen) # updates position of particles
+        vector_field.update()
+
+        """for i in vector_field.grid:
+            print(i.cellList, end="")"""
+
 
         # Drawing code goes here
         # total_density = 0
@@ -71,6 +76,7 @@ def run():
             # print(particle.get_pressure_force())
             # total_density += particle.density
             pygame.draw.circle(screen, (123,12,90), particle.get_position(), radius)
+
         # print("Total density: ", total_density)
 
         # Update display

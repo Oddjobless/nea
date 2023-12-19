@@ -8,9 +8,10 @@ class Particle:
         self.mass = mass
         self.vector_field = vector_field
 
-        self.velocity = np.array([randrange(-1000, 1000), randrange(-1000, 1000)])
+        # self.velocity = np.array([randrange(-100, 100), randrange(-100, 100)], dtype=float)
+        self.velocity = np.zeros(2, dtype=float)
         self.position = np.array([randrange(2 * self.radius, screen_width - 2 * self.radius),
-                                  randrange(2 * self.radius, screen_height - 2 * self.radius)])
+                                  randrange(2 * self.radius, screen_height - 2 * self.radius)], dtype=float)
         self.next_position = self.position.copy()
         # self.acceleration = np.array([0,9.8]) * self.mass # short term
         self.vector_field.insert_particle(self)
@@ -161,7 +162,7 @@ class SmoothingKernel:
 class Cell:
     def __init__(self):
         self.cellList = set()
-        self.velocity = np.random.rand(2)
+        self.velocity = np.array([randrange(-100,100), randrange(-100,100)])
 
 class SpatialMap:
     def __init__(self, noOfRows, noOfCols):
@@ -248,17 +249,17 @@ class SpatialMap:
 
 
 screen_width, screen_height = 940, 940
-rows, columns = 8,8
+rows, columns = 15,15
 box_width, box_height = screen_width / columns, screen_height / rows
 
 clock = pygame.time.Clock()
 
 frame_rate = 75  # frames per second
 dt = 1 / frame_rate  # time elapsed between frames
-radius = 2  # radius of particles, purely for visualisation
-noOfParticles = 0  # number of particles.
-damping = 0.99  # what percentage of energy the particles keep on collision with boundary
-drawGrid = True  # draw the grid lines on the screen
+radius = 3  # radius of particles, purely for visualisation
+noOfParticles = 2500  # number of particles.
+damping = 0.95  # what percentage of energy the particles keep on collision with boundary
+drawGrid = False  # draw the grid lines on the screen
 using_poly_6 = True  #
 using_cubic_spline_kernel = True
 smoothing_radius = min(box_height, box_width) # will integrate this into program.
