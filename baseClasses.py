@@ -15,10 +15,10 @@ class Particle:
         # self.acceleration = np.array([0,9.8]) * self.mass # short term
         self.vector_field.insert_particle(self)
         self.smoothing_radius = 2 * self.radius
-        self.kernel = SmoothingKernel(smoothing_radius, cubic_spline=True)
+        """self.kernel = SmoothingKernel(smoothing_radius, cubic_spline=True)"""
 
-        self.calculate_density()
-        print(self.density)
+        """self.calculate_density()
+        print(self.density)"""
 
         """self.spatial_map_update_frequency = 4  # 1 / 4 frames update the spatial map
         self.spatial_map_update_counter = 0"""
@@ -102,7 +102,7 @@ class Particle:
     def get_position(self):
         return int(self.next_position[0]), int(self.next_position[1])
 
-
+"""
 class SmoothingKernel:
     def __init__(self, smoothing_length, poly_6=False, gaussian=False, cubic_spline=False):
         self.h = smoothing_length / 2 if cubic_spline else smoothing_length  # the radius within which a neighbouring particle will have an impact
@@ -157,12 +157,17 @@ class SmoothingKernel:
 
     def calculate_pressure_contribution(self, particle_radius):
         pass
+"""
+class Cell:
+    def __init__(self):
+        self.cellList = set()
+        self.velocity = np.random.rand(2)
 
 class SpatialMap:
     def __init__(self, noOfRows, noOfCols):
         self.noOfRows = noOfRows
         self.noOfCols = noOfCols
-        self.grid = [set() for _ in
+        self.grid = [Cell() for _ in
                      range(noOfRows * noOfCols)]  # numpy not useful here because it's constantly changing size??
         # I WANT TO MAKE SELF.HASH INTO A 1D ARRAY
         # self.grid = np.empty((noOfRows, noOfCols))
@@ -224,12 +229,12 @@ class SpatialMap:
 
     def remove_particle(self, particle):
         cell = self.hash_position(particle.position)
-        self.grid[cell].discard(particle)
+        self.grid[cell].cellList.discard(particle)
         # np.delete(self.grid[int(cell[0]), int(cell[1])], particle)
 
     def insert_particle(self, particle):
         new_cell = self.hash_position(particle.next_position)
-        self.grid[new_cell].add(particle)
+        self.grid[new_cell].cellList.add(particle)
 
         # np.append(self.grid[new_cell[0], new_cell[1]], particle)
 
@@ -237,6 +242,8 @@ class SpatialMap:
     def get_magnitude(self, vector):
         return np.hypot(vector[0], vector[1])
 
+    def normalise_vector(self, vector):
+        return vector / self.get_magnitude(vector)
 
 
 
@@ -248,8 +255,8 @@ clock = pygame.time.Clock()
 
 frame_rate = 75  # frames per second
 dt = 1 / frame_rate  # time elapsed between frames
-radius = 8  # radius of particles, purely for visualisation
-noOfParticles = 125  # number of particles.
+radius = 2  # radius of particles, purely for visualisation
+noOfParticles = 0  # number of particles.
 damping = 0.99  # what percentage of energy the particles keep on collision with boundary
 drawGrid = True  # draw the grid lines on the screen
 using_poly_6 = True  #

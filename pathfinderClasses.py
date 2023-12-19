@@ -10,12 +10,14 @@ class VelocityField(SpatialMap):
     def __init__(self, noOfRows, noOfCols):
         super().__init__(noOfRows, noOfCols)
         print("\n\n\n\n")
-        self.vectorField = list(map(self.normalise_vector, np.random.rand(self.noOfRows * self.noOfCols, 2)))
+        for i in self.grid:
+            print(i.velocity)
+        # self.vectorField = list(map(self.normalise_vector, np.random.rand(self.noOfRows * self.noOfCols, 2)))
 
-    def get_normalised_grid(self):
-        return list(map(self.normalise_vector, self.vectorField))
+    """def get_normalised_grid(self):
+        return list(map(self.normalise_vector, self.grid))"""
 
-    def normalise_vector(self, vector):
-        return vector / self.get_magnitude(vector)
 
-    def get
+
+
+

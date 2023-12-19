@@ -3,32 +3,16 @@ from pathfinderClasses import *
 
 
 
-# todo:
-# display vector
-# create a spatial grid
-# reduce refresh rate of spatial grid
-# dynamically calculate which particles are in which box, so if i have slower particles, refresh grid list less often
-# attempt to have the vector field influence the velocity of the particles
-# integrate all the random variables into program.
-# estimate density of each particle
-# the smoothing curves, kernels etc. gaussian
-# smooth the particles
-# add a pressure system
-# calculate pressure forces of each particle.
-# P_i = k (p_i - p_0) | where p_i is the density of particle, p_0 is rest density, P_i is pressure
-
-# then, complete navier-stokes function
-# pressure force = sum_with_neighbours(m_j/p_j * mean pressure * kernel
-# viscosity force
-# external force, ie gravity
-# and acceleration is the sum of these three forces.
-# and repeat.
-
-
+# todo: heatmap generation (wavefront algo, euclidean), velocity field, complete, deal with fluid flow sim, back to this, kernel convolution, steering,
 
 # like to have blur where it split the grid further and do a kernel convolution.
 
+"""
+should I have a spatial map where each cell keeps track of the particles within its boundaries with a list and influence their velocities that way; or find which cell the particle resides and influence its velocity that way?
 
+WILL START WITH OPTION 1 COS I ALREADY HAVE IT SET UP FROM FLUID FLOW SIM
+OPTION 2 LIKELY BETTER THOUGH
+"""
 
 
 
@@ -41,11 +25,11 @@ def run():
     screen = pygame.display.set_mode((screen_width, screen_height))
     pygame.display.set_caption("Pygame Boilerplate")
 
-    vector_field = SpatialMap(rows, columns)
+    vector_field = VelocityField(rows, columns)
 
     particles = [Particle(1, 3, vector_field, damping) for _ in range(noOfParticles)]
     print("high")
-    vector_field.calculate_rest_density(particles) # integrate into __init
+    # vector_field.calculate_rest_density(particles) # integrate into __init
 
 
 
@@ -67,10 +51,10 @@ def run():
                 pygame.draw.line(screen, "#353252", (0, y), (screen_width, y), 1)
 
 
-            for coord, vector in zip(vector_field.get_grid_coords(), vector_field.get_normalised_grid()):
+            """for coord, vector in zip(vector_field.get_grid_coords(), vector_field.grid()):
                 boxCentre = (coord[0] + box_width/2, coord[1] + box_height/2)
                 lineRadius = vector
-                #pygame.draw.circle(screen, "#ff3542", (boxCentre), 4, 4)
+                pygame.draw.circle(screen, "#ff3542", (boxCentre), 4, 4)"""
 
 #
         # logic goes here
@@ -81,11 +65,10 @@ def run():
         # total_density = 0
         for particle in particles:
 
-            particle.calculate_density()  # todo i want it to do this less often
-            particle.calculate_pressure()  # todo ditto
+            # particle.calculate_density()  # todo i want it to do this less often
+            # particle.calculate_pressure()  # todo ditto
 
             # print(particle.get_pressure_force())
-            # print(particle.density)
             # total_density += particle.density
             pygame.draw.circle(screen, (123,12,90), particle.get_position(), radius)
         # print("Total density: ", total_density)
