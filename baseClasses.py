@@ -164,6 +164,7 @@ class Cell:
         self.cellList = set()
         self.velocity = np.array([randrange(-100,100), randrange(-100,100)])
         self.isBlocked = False
+        self.distance = -1
 
 class SpatialMap:
     def __init__(self, noOfRows, noOfCols):
@@ -206,18 +207,24 @@ class SpatialMap:
         self.remove_particle(particle)
         self.insert_particle(particle)
 
-    def get_neighbouring_cells(self, cell_row, cell_col, diagonal=False, include_self=False):
+    def get_neighbouring_coords(self, row, col, include_diagonal=False, include_self=False):
         directions = [[-1, 0], [0, -1], [0, 1], [1, 0]]
-        neighbouring_cells = []
-        if diagonal:
+        neighbouring_coords = []
+        if include_diagonal:
             directions.extend([[-1, -1], [1, -1], [-1, 1], [1, 1]])
         if include_self:
             directions.append([0, 0])
 
         for dir in directions:
-            neighbour_row, neighbour_col = cell_row + dir[0], cell_col + dir[1]
-            if 0 <= neighbour_row < self.noOfRows and 0 <= neighbour_col < self.noOfCols:
-                neighbouring_cells.append(self.grid[self.coord_to_index(neighbour_col, neighbour_row)])
+            neighbour_row, neighbour_col = row + dir[0], col + dir[1]
+            if 0 <= neighbour_row < self.noOfRows and 0 <= col < self.noOfCols:
+                neighbouring_coords.append((neighbour_row, neighbour_col))
+        return neighbouring_coords
+
+    def get_neighbouring_cells(self, cell_row, cell_col, diagonal=False, use_self=False):
+        neighbouring_cells = []
+        for coord in self.get_coordinates(cell_row, cell_col, include_diagonal=diagonal, include_self=use_self):
+            neighbouring_cells.append(self.grid[self.coord_to_index(coord[0], coord[1])])
         return neighbouring_cells
 
     def get_neighbouring_particles(self, particle):
@@ -273,7 +280,7 @@ dt = 1 / frame_rate  # time elapsed between frames
 radius = 3  # radius of particles, purely for visualisation
 noOfParticles = 2500  # number of particles.
 damping = 0.95  # what percentage of energy the particles keep on collision with boundary
-drawGrid = False  # draw the grid lines on the screen
+drawGrid = True  # draw the grid lines on the screen
 using_poly_6 = True  #
 using_cubic_spline_kernel = True
 smoothing_radius = min(box_height, box_width) # will integrate this into program.
