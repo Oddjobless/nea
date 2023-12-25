@@ -163,13 +163,14 @@ class Cell:
     def __init__(self):
         self.cellList = set()
         self.velocity = np.array([randrange(-100,100), randrange(-100,100)])
+        self.isBlocked = False
 
 class SpatialMap:
     def __init__(self, noOfRows, noOfCols):
         self.noOfRows = noOfRows
         self.noOfCols = noOfCols
-        self.grid = [Cell() for _ in
-                     range(noOfRows * noOfCols)]  # numpy not useful here because it's constantly changing size??
+        self.grid = np.array([Cell() for _ in
+                     range(noOfRows * noOfCols)])
         # I WANT TO MAKE SELF.HASH INTO A 1D ARRAY
         # self.grid = np.empty((noOfRows, noOfCols))
         # self.grid.fill(set()) # would like to test speed difference
@@ -196,24 +197,37 @@ class SpatialMap:
         return self.coord_to_index(int(position[0] / box_width), int(position[1] / box_height))
 
     def coord_to_index(self, x, y):
-        # print(x, y, x + (y * self.noOfCols))
         return x + y * self.noOfCols
+
+    def index_to_coord(self, index):
+        return (index % self.noOfCols, index // self.noOfCols)
 
     def update_particle(self, particle):
         self.remove_particle(particle)
         self.insert_particle(particle)
 
+    def get_neighbouring_cells(self, cell_row, cell_col, diagonal=False, include_self=False):
+        directions = [[-1, 0], [0, -1], [0, 1], [1, 0]]
+        neighbouring_cells = []
+        if diagonal:
+            directions.extend([[-1, -1], [1, -1], [-1, 1], [1, 1]])
+        if include_self:
+            directions.append([0, 0])
+
+        for dir in directions:
+            neighbour_row, neighbour_col = cell_row + dir[0], cell_col + dir[1]
+            if 0 <= neighbour_row < self.noOfRows and 0 <= neighbour_col < self.noOfCols:
+                neighbouring_cells.append(self.grid[self.coord_to_index(neighbour_col, neighbour_row)])
+        return neighbouring_cells
+
     def get_neighbouring_particles(self, particle):
         cell_row, cell_col = divmod(self.hash_position(particle.position), self.noOfCols)
-        neighbouring_particles = []
-        for i in range(-1, 2):
-            for j in range(-1, 2):
-                neighbour_row, neighbour_col = cell_row + i, cell_col + j
-                if 0 <= neighbour_row < self.noOfRows and 0 <= neighbour_col < self.noOfCols:
-                    neighbouring_particles.extend(self.grid[self.coord_to_index(neighbour_col, neighbour_row)])
+        neighbour_cells = self.get_neighbouring_cells(cell_row, cell_col, include_self=True, diagonal=True)
 
-        # neighbouring_particles.remove(particle)
-        # print(neighbouring_particles)
+        neighbouring_particles = []
+        for cell in neighbour_cells:
+            neighbouring_particles.extend(cell.cellList)
+
         return neighbouring_particles
 
         # feels inefficient, ought to compare with linear search.

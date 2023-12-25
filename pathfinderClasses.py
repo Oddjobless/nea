@@ -10,12 +10,20 @@ class Pathfinder(Particle):
 class VelocityField(SpatialMap):
     def __init__(self, noOfRows, noOfCols):
         super().__init__(noOfRows, noOfCols)
-        print("\n\n\n\n")
         for i in self.grid:
             print(i.velocity)
-        # self.vectorField = list(map(self.normalise_vector, np.random.rand(self.noOfRows * self.noOfCols, 2)))
-        self.STRENGTH = 10
-
+        self.STRENGTH = 3
+        self.heatmap = np.full_like(self.grid, np.inf, dtype=float) # distances from the cells to the goal
+        # todo: distance from a cell to its neighbouring diagonal is sqrt(2) or 2?
+    def generate_heatmap(self, goal_coords): # (x,y)
+        self.heatmap[self.coord_to_index(goal_coords)] = 0
+        queue = [(goal, 0)] # where the number is the distance from the cell to the goal
+        while len(queue) > 0:
+            cell, distance = queue.pop(0)
+            self.heatmap[cell] = distance
+            for neighbour in self.get_neighbours(cell):
+                if neighbour not in self.heatmap:
+                    queue.append((neighbour, distance + 1))
 
 
 
