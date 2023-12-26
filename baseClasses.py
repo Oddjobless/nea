@@ -1,6 +1,6 @@
 import pygame
 import numpy as np
-from random import randrange
+from random import randint
 class Particle:
     def __init__(self, mass, radius, vector_field, damping):
         self.damping = damping
@@ -8,10 +8,10 @@ class Particle:
         self.mass = mass
         self.vector_field = vector_field
 
-        # self.velocity = np.array([randrange(-100, 100), randrange(-100, 100)], dtype=float)
+        # self.velocity = np.array([randint(-100, 100), randint(-100, 100)], dtype=float)
         self.velocity = np.zeros(2, dtype=float)
-        self.position = np.array([randrange(2 * self.radius, screen_width - 2 * self.radius),
-                                  randrange(2 * self.radius, screen_height - 2 * self.radius)], dtype=float)
+        self.position = np.array([randint(2 * self.radius, screen_width - 2 * self.radius),
+                                  randint(2 * self.radius, screen_height - 2 * self.radius)], dtype=float)
         self.next_position = self.position.copy()
         # self.acceleration = np.array([0,9.8]) * self.mass # short term
         self.vector_field.insert_particle(self)
@@ -102,7 +102,7 @@ class Particle:
 
     def get_position(self):
         return int(self.next_position[0]), int(self.next_position[1])
-
+import time
 """
 class SmoothingKernel:
     def __init__(self, smoothing_length, poly_6=False, gaussian=False, cubic_spline=False):
@@ -162,7 +162,7 @@ class SmoothingKernel:
 class Cell:
     def __init__(self):
         self.cellList = set()
-        self.velocity = np.array([randrange(-100,100), randrange(-100,100)])
+        self.velocity = np.array([randint(-1,1), randint(-1,1)], dtype=float)
         self.isBlocked = False
         self.distance = -1
 
@@ -181,6 +181,8 @@ class SpatialMap:
         self.rest_density = -1 # A ROUGH ESTIMATE BASED ON INTIAL POS OF PARTICLES
         #  CAN CALCULATE ACCURATE REST DENSITY BY SPACING OUT PARTICLES AND CALCULATING DENSITIES
 
+
+
     def get_grid_coords(self, x=False, y=False):
         xCoords = np.linspace(0, screen_width, self.noOfCols, endpoint=False)
         if x:
@@ -194,11 +196,11 @@ class SpatialMap:
         coords = np.column_stack((xValues.ravel(), yValues.ravel()))
         return coords
 
-    def hash_position(self, position):
-        return self.coord_to_index(int(position[0] / box_width), int(position[1] / box_height))
+    def hash_position(self, position): # todo this
+        return self.coord_to_index((int(position[0] / box_width), int(position[1] / box_height)))
 
-    def coord_to_index(self, x, y):
-        return x + y * self.noOfCols
+    def coord_to_index(self, coord):
+        return coord[0] + coord[1] * self.noOfCols
 
     def index_to_coord(self, index):
         return (index % self.noOfCols, index // self.noOfCols)
@@ -207,24 +209,28 @@ class SpatialMap:
         self.remove_particle(particle)
         self.insert_particle(particle)
 
-    def get_neighbouring_coords(self, row, col, include_diagonal=False, include_self=False):
-        directions = [[-1, 0], [0, -1], [0, 1], [1, 0]]
+    def get_neighbouring_coords(self, coord, include_diagonal=False, include_self=False, placeholder_for_boundary=False):
+        row, col = coord
+        directions = [[-1, 0], [1, 0], [0, -1], [0, 1]] # left, right, up, down
         neighbouring_coords = []
         if include_diagonal:
-            directions.extend([[-1, -1], [1, -1], [-1, 1], [1, 1]])
+            directions.extend([[-1, -1], [1, -1], [-1, 1], [1, 1]]) # need to change if using euclidean distance
+
         if include_self:
             directions.append([0, 0])
 
         for dir in directions:
             neighbour_row, neighbour_col = row + dir[0], col + dir[1]
-            if 0 <= neighbour_row < self.noOfRows and 0 <= col < self.noOfCols:
+            if 0 <= neighbour_row < self.noOfRows and 0 <= neighbour_col < self.noOfCols:
                 neighbouring_coords.append((neighbour_row, neighbour_col))
+            elif placeholder_for_boundary:
+                neighbouring_coords.append(None)
         return neighbouring_coords
 
     def get_neighbouring_cells(self, cell_row, cell_col, diagonal=False, use_self=False):
         neighbouring_cells = []
         for coord in self.get_coordinates(cell_row, cell_col, include_diagonal=diagonal, include_self=use_self):
-            neighbouring_cells.append(self.grid[self.coord_to_index(coord[0], coord[1])])
+            neighbouring_cells.append(self.grid[self.coord_to_index(coord)])
         return neighbouring_cells
 
     def get_neighbouring_particles(self, particle):
@@ -255,7 +261,9 @@ class SpatialMap:
         # np.delete(self.grid[int(cell[0]), int(cell[1])], particle)
 
     def insert_particle(self, particle):
+        # print(particle, particle.position, particle.next_position)
         new_cell = self.hash_position(particle.next_position)
+
         self.grid[new_cell].cellList.add(particle)
 
         # np.append(self.grid[new_cell[0], new_cell[1]], particle)
@@ -265,17 +273,20 @@ class SpatialMap:
         return np.hypot(vector[0], vector[1])
 
     def normalise_vector(self, vector):
+        if vector[0] == 0 and vector[1] == 0:
+            print("WARNING: DIVIDE BY ZERO!!!\n\n\nWHEN NORMALISING VELOCITY FIELD, THERE WAS A VECTOR WITH ZERO MAGNITUDE")
+            return vector
         return vector / self.get_magnitude(vector)
 
 
 
 screen_width, screen_height = 940, 940
-rows, columns = 15,15
+rows, columns = 64,64
 box_width, box_height = screen_width / columns, screen_height / rows
 
 clock = pygame.time.Clock()
 
-frame_rate = 75  # frames per second
+frame_rate = 30  # frames per second
 dt = 1 / frame_rate  # time elapsed between frames
 radius = 3  # radius of particles, purely for visualisation
 noOfParticles = 2500  # number of particles.

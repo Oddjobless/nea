@@ -1,7 +1,7 @@
 """# Programming and drawing vector field
 import pygame
 import numpy as np
-from random import randrange
+from random import randint
 from baseClasses import SpatialMap
 
 
