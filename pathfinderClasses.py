@@ -19,9 +19,9 @@ class VelocityField(SpatialMap):
         for i in self.grid:
             print(i.velocity)
         self.blocked_cells = []
-        self.STRENGTH = 1
+        self.STRENGTH = 6
 
-        self.update_velocity_field((1,3))
+        self.update_velocity_field((32,32))
         self.print_visited()
 
         # todo: distance from a cell to its neighbouring diagonal is sqrt(2) or 2?
