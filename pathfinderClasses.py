@@ -5,7 +5,7 @@ import numpy as np
 from baseClasses import *
 # todo euclidean distance?? max(x_2-x_1,y_2-y_1) + (sqrt(2) - 1) * min(x_2-x_1,y_2-y_1): DONE
 # TODO deal with blocked cells no idea how to. maybe set particle velocity to zero upon hitting blocked cell? or cell has reverse velocity of neighbouring cell?
-# TODO  mouse interaction
+# TODO  mouse interaction...
 
 #
 class Pathfinder(Particle):
