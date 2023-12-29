@@ -199,6 +199,10 @@ class SpatialMap:
     def hash_position(self, position): # todo this
         return self.coord_to_index((int(position[0] / box_width), int(position[1] / box_height)))
 
+    def undo_hash_position(self, position):
+        return position * box_width
+
+
     def coord_to_index(self, coord):
         return coord[0] + coord[1] * self.noOfCols
 
@@ -281,7 +285,7 @@ class SpatialMap:
 
 
 screen_width, screen_height = 940, 940
-rows, columns = 64,64
+rows, columns = 32,32
 box_width, box_height = screen_width / columns, screen_height / rows
 
 clock = pygame.time.Clock()
@@ -290,7 +294,7 @@ frame_rate = 30  # frames per second
 dt = 1 / frame_rate  # time elapsed between frames
 radius = 3  # radius of particles, purely for visualisation
 noOfParticles = 2500  # number of particles.
-damping = 0.4  # what percentage of energy the particles keep on collision with boundary
+wall_damping = 0.4  # what percentage of energy the particles keep on collision with boundary
 drawGrid = True  # draw the grid lines on the screen
 using_poly_6 = True  #
 using_cubic_spline_kernel = True

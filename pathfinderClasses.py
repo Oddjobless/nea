@@ -19,10 +19,14 @@ class VelocityField(SpatialMap):
         for i in self.grid:
             print(i.velocity)
         self.blocked_cells = []
-        self.STRENGTH = 6
-
-        self.update_velocity_field((32,32))
+        goal = np.array([3,3])
+        self.field_strength = 80
+        self.goal_position = self.undo_hash_position(goal)
+        self.update_velocity_field(goal)
+        self.particle_max_velocity = 500
         self.print_visited()
+        # self.particle_damping = 0.996 # dont like this
+
 
         # todo: distance from a cell to its neighbouring diagonal is sqrt(2) or 2?
 
@@ -91,6 +95,10 @@ class VelocityField(SpatialMap):
         self.generate_heatmap(coords_of_goal)
         self.calculate_vectors()
 
+    def calculate_steering_force(self, particle):
+        pass
+
+
 
 
 
@@ -98,9 +106,14 @@ class VelocityField(SpatialMap):
 
         for eachCell in self.grid:
             # velChange = self.normalise_vector(eachCell.velocity) * self.STRENGTH
-            velChange = eachCell.velocity * self.STRENGTH
-            for eachParticle in eachCell.cellList:
-                eachParticle.velocity += velChange
+            desired_velocity = eachCell.velocity * self.particle_max_velocity
 
+            for eachParticle in eachCell.cellList:
+                steering_force = desired_velocity - eachParticle.velocity
+                eachParticle.velocity += steering_force / self.field_strength
+
+                # speed = self.get_magnitude(eachParticle.velocity) - 100000000
+                # if speed > self.particle_max_velocity:
+                #     eachParticle.velocity = (eachParticle.velocity / speed) * self.particle_max_velocity
     """def get_normalised_grid(self):
         return list(map(self.normalise_vector, self.grid))"""

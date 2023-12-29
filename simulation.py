@@ -27,7 +27,7 @@ def run():
 
     vector_field = VelocityField(rows, columns)
 
-    particles = [Pathfinder(1, 3, vector_field, damping) for _ in range(noOfParticles)]
+    particles = [Pathfinder(10, 3, vector_field, wall_damping) for _ in range(noOfParticles)]
     print("high")
     # vector_field.calculate_rest_density(particles) # integrate into __init
 
@@ -38,7 +38,9 @@ def run():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 return
-
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                pos_cell_index = vector_field.index_to_coord(vector_field.hash_position(pygame.mouse.get_pos()))
+                vector_field.update_velocity_field(pos_cell_index)
 
         ### drawing vectorField
         screen.fill((0, 69, 180))
@@ -86,7 +88,7 @@ def run():
 
         clock.tick(frame_rate)
 
-    return
+
 
 if __name__ == "__main__":
     run()
