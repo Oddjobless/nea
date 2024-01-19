@@ -27,7 +27,7 @@ class Particle:
     def update(self, screen):
 
         self.next_position = self.position + self.velocity * dt
-        if self.next_position[0] > screen.get_width() - (self.radius) or self.next_position[0] < self.radius:
+        if self.next_position[0] > screen.get_width() - (self.radius) or self.next_position[0] < self.radius: # or within blocked cell
             self.velocity[0] *= -1 * self.damping
         if self.next_position[1] > screen.get_height() - self.radius or self.next_position[1] < self.radius:
             self.velocity[1] *= -1 * self.damping
@@ -284,8 +284,8 @@ class SpatialMap:
 
 
 
-screen_width, screen_height = 940, 940
-rows, columns = 32,32
+screen_width, screen_height = 960, 960
+rows, columns = 8,8
 box_width, box_height = screen_width / columns, screen_height / rows
 
 clock = pygame.time.Clock()

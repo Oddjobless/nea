@@ -18,7 +18,7 @@ class VelocityField(SpatialMap):
         super().__init__(noOfRows, noOfCols)
         for i in self.grid:
             print(i.velocity)
-        self.blocked_cells = []
+        self.blocked_cells = set()
         goal = np.array([3,3])
         self.field_strength = 80
         self.goal_position = self.undo_hash_position(goal)
@@ -36,6 +36,15 @@ class VelocityField(SpatialMap):
                 print(self.grid[self.coord_to_index((i, j))].distance, end=" | ")
             print()
 
+    def toggle_blocked_cell(self, coord):
+        if not coord in self.blocked_cells:
+            self.blocked_cells.add(coord)
+        else:
+            self.blocked_cells.discard(coord)
+        print(self.blocked_cells)
+
+
+
 
 
     def generate_heatmap(self, goal_coords):  # todo: boundary problems idk why. ALSO WANT TO USE EUCLIDEAN DISTANCE COS THIS LOOKS RUBBISH
@@ -50,6 +59,7 @@ class VelocityField(SpatialMap):
             current_distance = self.grid[self.coord_to_index(current_coord)].distance
 
             neighbouring_coords = self.get_neighbouring_coords(current_coord, include_diagonal=True)
+            new_coords_for_queue = []
             for diag_tracker ,next_coord in enumerate(neighbouring_coords):
                 """print(neighbouring_coords)
                 print(next_coord, visited[self.coord_to_index(next_coord)])
@@ -59,7 +69,9 @@ class VelocityField(SpatialMap):
                 index = self.coord_to_index(next_coord)
                 if not visited[index]:
                     visited[index] = True
-                    queue.append(next_coord)
+                    if self.grid[index].isBlocked:
+                        continue
+                    new_coords_for_queue.append(next_coord)
                     if diag_tracker > 3:
                         path_cost = np.sqrt(2)
                     else:
@@ -67,16 +79,17 @@ class VelocityField(SpatialMap):
 
                     self.grid[index].distance = current_distance + path_cost
                     # self.grid[index].distance = np.hypot(next_coord[0] - goal_coords[0], next_coord[1] - goal_coords[1])
-        print("Adsfadfs")
+        neighbouring_coords.append(new_coords_for_queue)
 
 
     def calculate_vectors(self):
 
         for index, cell in enumerate(self.grid):
-
+            if self.index_to_coord(index) in self.blocked_cells:
+                cell.velocity = (0,0)
             coords = self.get_neighbouring_coords(self.index_to_coord(index), placeholder_for_boundary=True)
 
-            distances = [0, 0, 0, 0, 0, 0, 0, 0] # left, right, up , down etc
+            distances = [0, 0, 0, 0] # left, right, up , down etc
             for index, eachcoord in enumerate(coords):
                 if eachcoord and eachcoord not in self.blocked_cells:
                     distances[index] = self.grid[self.coord_to_index(eachcoord)].distance
@@ -89,7 +102,7 @@ class VelocityField(SpatialMap):
             y_vector = distances[2] - distances[3]
 
             cell.velocity = self.normalise_vector(np.array([x_vector, y_vector]))
-
+        self.print_visited()
 
     def update_velocity_field(self, coords_of_goal):
         self.generate_heatmap(coords_of_goal)

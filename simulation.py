@@ -3,7 +3,7 @@ from pathfinderClasses import *
 
 
 
-# todo: heatmap generation (wavefront algo, euclidean), velocity field, complete, deal with fluid flow sim, back to this, kernel convolution, steering,
+# todo: , euclidean), , deal with fluid flow sim, back to this, kernel convolution, steering,
 
 # like to have blur where it split the grid further and do a kernel convolution.
 
@@ -40,7 +40,10 @@ def run():
                 return
             if event.type == pygame.MOUSEBUTTONDOWN:
                 pos_cell_index = vector_field.index_to_coord(vector_field.hash_position(pygame.mouse.get_pos()))
-                vector_field.update_velocity_field(pos_cell_index)
+                if event.button == 1: # LEFT CLICK
+                    vector_field.update_velocity_field(pos_cell_index)
+                elif event.button == 3: # RIGHT CLICK
+                    vector_field.toggle_blocked_cell(pos_cell_index)
 
         ### drawing vectorField
         screen.fill((0, 69, 180))
@@ -68,7 +71,6 @@ def run():
             print(i.cellList, end="")"""
 
 
-        # Drawing code goes here
         # total_density = 0
         for particle in particles:
 
@@ -78,6 +80,10 @@ def run():
             # print(particle.get_pressure_force())
             # total_density += particle.density
             pygame.draw.circle(screen, (123,12,90), particle.get_position(), radius)
+
+        for cell in vector_field.blocked_cells:
+            pygame.draw.rect(screen, (0,0,0), (cell[0] * box_width, cell[1] * box_height, box_width, box_height))
+            pass
 
         # print("Total density: ", total_density)
 
