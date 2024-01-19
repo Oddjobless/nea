@@ -87,13 +87,8 @@ class VelocityField(SpatialMap):
                 if eachcoord and eachcoord not in self.blocked_cells:
                     distances[index] = self.grid[self.coord_to_index(eachcoord)].distance
                 else:
-                    distances[index] = 65535
+                    distances[index] = 10
 
-
-                if distances[0] == 65535 and distances[1] != 65535: distances[0] = distances[1] - 2
-                elif distances[1] == 65535 and distances[0] != 65535: distances[1] = distances[0] + 2
-                if distances[2] == 65535 and distances[3] != 65535: distances[2] = distances[3] - 2
-                elif distances[3] == 65535 and distances[2] != 65535: distances[3] = distances[2] + 2
 
 
             x_vector = distances[0] - distances[1]

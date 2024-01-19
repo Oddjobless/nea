@@ -285,7 +285,7 @@ class SpatialMap:
 
 
 screen_width, screen_height = 960, 960
-rows, columns = 8,8
+rows, columns = 64,64
 box_width, box_height = screen_width / columns, screen_height / rows
 
 clock = pygame.time.Clock()
