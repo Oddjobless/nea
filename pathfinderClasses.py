@@ -53,40 +53,33 @@ class VelocityField(SpatialMap):
         visited = np.full_like(self.grid, False, dtype=bool)  # to avoid revisiting the same cell over and over again
         visited[self.coord_to_index(goal_coords)] = True
 
-
         while len(queue) > 0:
             current_coord = queue.pop(0)
             current_distance = self.grid[self.coord_to_index(current_coord)].distance
 
             neighbouring_coords = self.get_neighbouring_coords(current_coord, include_diagonal=True)
-            new_coords_for_queue = []
-            for diag_tracker ,next_coord in enumerate(neighbouring_coords):
-                """print(neighbouring_coords)
-                print(next_coord, visited[self.coord_to_index(next_coord)])
-                print("SADF")"""
-                # print_visited()
-                # time.sleep(0.3)
+            for next_coord in neighbouring_coords:
                 index = self.coord_to_index(next_coord)
                 if not visited[index]:
                     visited[index] = True
-                    if self.grid[index].isBlocked:
-                        continue
-                    new_coords_for_queue.append(next_coord)
-                    if diag_tracker > 3:
+                    queue.append(next_coord)
+
+                    # Calculate path cost based on movement direction
+                    change_x = abs(next_coord[0] - current_coord[0])
+                    change_y = abs(next_coord[1] - current_coord[1])
+                    if change_x == 1 and change_y == 1:  # Diagonal movement
                         path_cost = np.sqrt(2)
-                    else:
+                    else:  # Orthogonal movement
                         path_cost = 1
 
                     self.grid[index].distance = current_distance + path_cost
-                    # self.grid[index].distance = np.hypot(next_coord[0] - goal_coords[0], next_coord[1] - goal_coords[1])
-        neighbouring_coords.append(new_coords_for_queue)
-
 
     def calculate_vectors(self):
 
         for index, cell in enumerate(self.grid):
             if self.index_to_coord(index) in self.blocked_cells:
-                cell.velocity = (0,0)
+                cell.velocity = np.array([0,0])
+                continue
             coords = self.get_neighbouring_coords(self.index_to_coord(index), placeholder_for_boundary=True)
 
             distances = [0, 0, 0, 0] # left, right, up , down etc
@@ -97,12 +90,17 @@ class VelocityField(SpatialMap):
                     distances[index] = 65535
 
 
+                if distances[0] == 65535 and distances[1] != 65535: distances[0] = distances[1] - 2
+                elif distances[1] == 65535 and distances[0] != 65535: distances[1] = distances[0] + 2
+                if distances[2] == 65535 and distances[3] != 65535: distances[2] = distances[3] - 2
+                elif distances[3] == 65535 and distances[2] != 65535: distances[3] = distances[2] + 2
+
 
             x_vector = distances[0] - distances[1]
             y_vector = distances[2] - distances[3]
 
             cell.velocity = self.normalise_vector(np.array([x_vector, y_vector]))
-        self.print_visited()
+
 
     def update_velocity_field(self, coords_of_goal):
         self.generate_heatmap(coords_of_goal)
@@ -120,8 +118,10 @@ class VelocityField(SpatialMap):
         for eachCell in self.grid:
             # velChange = self.normalise_vector(eachCell.velocity) * self.STRENGTH
             desired_velocity = eachCell.velocity * self.particle_max_velocity
+            print(eachCell.velocity)
 
             for eachParticle in eachCell.cellList:
+
                 steering_force = desired_velocity - eachParticle.velocity
                 eachParticle.velocity += steering_force / self.field_strength
 

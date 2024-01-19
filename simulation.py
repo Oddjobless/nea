@@ -56,10 +56,10 @@ def run():
                 pygame.draw.line(screen, "#353252", (0, y), (screen_width, y), 1)
 
 
-            """for coord, vector in zip(vector_field.get_grid_coords(), vector_field.grid()):
-                boxCentre = (coord[0] + box_width/2, coord[1] + box_height/2)
-                lineRadius = vector
-                pygame.draw.circle(screen, "#ff3542", (boxCentre), 4, 4)"""
+            for coord, vector in zip(vector_field.get_grid_coords(), vector_field.grid):
+                boxCentre = np.array([coord[0] + box_width/2, coord[1] + box_height/2])
+                lineRadius = 30 * vector.velocity
+                pygame.draw.line(screen, "#ff3542", (boxCentre), boxCentre+lineRadius)
 
 #
         # logic goes here
