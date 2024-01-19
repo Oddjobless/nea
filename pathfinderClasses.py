@@ -20,7 +20,6 @@ class VelocityField(SpatialMap):
             print(i.velocity)
         self.blocked_cells = set()
         goal = np.array([3,3])
-        self.field_strength = 80
         self.goal_position = self.undo_hash_position(goal)
         self.update_velocity_field(goal)
         self.particle_max_velocity = 500
@@ -40,7 +39,7 @@ class VelocityField(SpatialMap):
         if not coord in self.blocked_cells:
             self.blocked_cells.add(coord)
         else:
-            self.blocked_cells.discard(coord)
+            self.blocked_cells.remove(coord)
         print(self.blocked_cells)
 
 
@@ -62,6 +61,10 @@ class VelocityField(SpatialMap):
                 index = self.coord_to_index(next_coord)
                 if not visited[index]:
                     visited[index] = True
+                    print(tuple(current_coord) in self.blocked_cells)
+                    if tuple(current_coord) in self.blocked_cells:
+                        continue
+
                     queue.append(next_coord)
 
                     # Calculate path cost based on movement direction
@@ -82,16 +85,27 @@ class VelocityField(SpatialMap):
                 continue
             coords = self.get_neighbouring_coords(self.index_to_coord(index), placeholder_for_boundary=True)
 
-            distances = [0, 0, 0, 0] # left, right, up , down etc
+            distances = [0, 0, 0, 0] # right, left, up , down etc
             for index, eachcoord in enumerate(coords):
                 if eachcoord and eachcoord not in self.blocked_cells:
                     distances[index] = self.grid[self.coord_to_index(eachcoord)].distance
                 else:
-                    distances[index] = 10
+
+                    distances[index] = np.inf
+
+            if np.inf in distances:
+                if distances[0] == np.inf:
+                    distances[0] = distances[1] + 4
+                if distances[1] == np.inf:
+                    distances[1] = distances[0] + 4
+                if distances[2] == np.inf:
+                    distances[2] = distances[3] + 4
+                if distances[3] == np.inf:
+                    distances[3] = distances[2] + 4
 
 
 
-            x_vector = distances[0] - distances[1]
+            x_vector = distances[1] - distances[0]
             y_vector = distances[2] - distances[3]
 
             cell.velocity = self.normalise_vector(np.array([x_vector, y_vector]))
@@ -104,21 +118,37 @@ class VelocityField(SpatialMap):
     def calculate_steering_force(self, particle):
         pass
 
+    def calculate_avoidance_force(self, position):
+        radius = 4 * box_width
+        avoidance_strength = 100
+        steering_force = np.zeros(2)
 
+        for obstacle in self.blocked_cells:
+            distance = np.linalg.norm(position - obstacle)
+            if distance < radius:
+                # Adjust steering force to avoid the obstacle
+                steering_force += avoidance_strength * (position - obstacle) / distance
 
+        return steering_force
 
 
     def update(self):
-
+        field_strength = 0.02
         for eachCell in self.grid:
             # velChange = self.normalise_vector(eachCell.velocity) * self.STRENGTH
             desired_velocity = eachCell.velocity * self.particle_max_velocity
             print(eachCell.velocity)
 
             for eachParticle in eachCell.cellList:
-
                 steering_force = desired_velocity - eachParticle.velocity
-                eachParticle.velocity += steering_force / self.field_strength
+                eachParticle.velocity += (steering_force * field_strength)
+        """for eachCell in self.grid:
+            # velChange = self.normalise_vector(eachCell.velocity) * self.STRENGTH
+            print(eachCell.velocity)
+
+            for eachParticle in eachCell.cellList:
+
+                eachParticle.velocity += eachCell.velocity"""
 
                 # speed = self.get_magnitude(eachParticle.velocity) - 100000000
                 # if speed > self.particle_max_velocity:

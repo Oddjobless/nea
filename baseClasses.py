@@ -215,7 +215,7 @@ class SpatialMap:
 
     def get_neighbouring_coords(self, coord, include_diagonal=False, include_self=False, placeholder_for_boundary=False):
         row, col = coord
-        directions = [[-1, 0], [1, 0], [0, -1], [0, 1]] # left, right, up, down
+        directions = [[1, 0], [-1, 0], [0, -1], [0, 1]] # right, left, up, down
         neighbouring_coords = []
         if include_diagonal:
             directions.extend([[-1, -1], [1, -1], [-1, 1], [1, 1]]) # need to change if using euclidean distance
@@ -285,7 +285,7 @@ class SpatialMap:
 
 
 screen_width, screen_height = 960, 960
-rows, columns = 64,64
+rows, columns = 32,32
 box_width, box_height = screen_width / columns, screen_height / rows
 
 clock = pygame.time.Clock()
@@ -293,9 +293,9 @@ clock = pygame.time.Clock()
 frame_rate = 30  # frames per second
 dt = 1 / frame_rate  # time elapsed between frames
 radius = 3  # radius of particles, purely for visualisation
-noOfParticles = 2500  # number of particles.
+noOfParticles = 1000  # number of particles.
 wall_damping = 0.4  # what percentage of energy the particles keep on collision with boundary
-drawGrid = True  # draw the grid lines on the screen
+drawGrid = False  # draw the grid lines on the screen
 using_poly_6 = True  #
 using_cubic_spline_kernel = True
 smoothing_radius = min(box_height, box_width) # will integrate this into program.
