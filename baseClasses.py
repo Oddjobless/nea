@@ -197,8 +197,10 @@ class SpatialMap:
         return coords
 
     def hash_position(self, position): # todo this
-        return self.coord_to_index((int(position[0] / box_width), int(position[1] / box_height)))
-
+        try:
+            return self.coord_to_index((int(position[0] / box_width), int(position[1] / box_height)))
+        except ValueError:
+            print(position)
     def undo_hash_position(self, position):
         return position * box_width
 
@@ -267,6 +269,13 @@ class SpatialMap:
     def insert_particle(self, particle):
         # print(particle, particle.position, particle.next_position)
         new_cell = self.hash_position(particle.next_position)
+        if new_cell == None:
+            print("ERROR WHY IS THIS BROKEN")
+            print(particle.__dir__())
+            input((particle.position, particle.next_position, particle.velocity, particle.mass))
+
+            return
+
 
         self.grid[new_cell].cellList.add(particle)
 
@@ -285,7 +294,7 @@ class SpatialMap:
 
 
 screen_width, screen_height = 960, 960
-rows, columns = 32,32
+rows, columns = 40,40
 box_width, box_height = screen_width / columns, screen_height / rows
 
 clock = pygame.time.Clock()
@@ -295,7 +304,7 @@ dt = 1 / frame_rate  # time elapsed between frames
 radius = 3  # radius of particles, purely for visualisation
 noOfParticles = 1000  # number of particles.
 wall_damping = 0.4  # what percentage of energy the particles keep on collision with boundary
-drawGrid = False  # draw the grid lines on the screen
+drawGrid = True  # draw the grid lines on the screen
 using_poly_6 = True  #
 using_cubic_spline_kernel = True
 smoothing_radius = min(box_height, box_width) # will integrate this into program.

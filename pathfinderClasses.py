@@ -19,9 +19,8 @@ class VelocityField(SpatialMap):
         for i in self.grid:
             print(i.velocity)
         self.blocked_cells = set()
-        goal = np.array([3,3])
-        self.goal_position = self.undo_hash_position(goal)
-        self.update_velocity_field(goal)
+        self.goal = np.array([3,3])
+        # self.update_velocity_field(self.goal)
         self.particle_max_velocity = 500
         self.print_visited()
         # self.particle_damping = 0.996 # dont like this
@@ -36,11 +35,14 @@ class VelocityField(SpatialMap):
             print()
 
     def toggle_blocked_cell(self, coord):
-        if not coord in self.blocked_cells:
+        if coord not in self.blocked_cells:
             self.blocked_cells.add(coord)
+            print("asdfsad")
         else:
-            self.blocked_cells.remove(coord)
-        print(self.blocked_cells)
+            print("Hi")
+            pass
+            # self.blocked_cells.remove(coord) # todo
+
 
 
 
@@ -61,7 +63,6 @@ class VelocityField(SpatialMap):
                 index = self.coord_to_index(next_coord)
                 if not visited[index]:
                     visited[index] = True
-                    print(tuple(current_coord) in self.blocked_cells)
                     if tuple(current_coord) in self.blocked_cells:
                         continue
 
@@ -77,9 +78,14 @@ class VelocityField(SpatialMap):
 
                     self.grid[index].distance = current_distance + path_cost
 
+        """for index, bool in enumerate(visited):
+            if False:
+                print("WARNING")
+                self.grid[index].velocity = np.zeros(2)"""
+
     def calculate_vectors(self):
 
-        for index, cell in enumerate(self.grid):
+        for index, cell in enumerate(self.grid.copy()): # added .copy() cos debugging
             if self.index_to_coord(index) in self.blocked_cells:
                 cell.velocity = np.array([0,0])
                 continue
@@ -91,17 +97,18 @@ class VelocityField(SpatialMap):
                     distances[index] = self.grid[self.coord_to_index(eachcoord)].distance
                 else:
 
-                    distances[index] = np.inf
+                    distances[index] = 65535
 
             if np.inf in distances:
-                if distances[0] == np.inf:
-                    distances[0] = distances[1] + 4
-                if distances[1] == np.inf:
-                    distances[1] = distances[0] + 4
-                if distances[2] == np.inf:
-                    distances[2] = distances[3] + 4
-                if distances[3] == np.inf:
-                    distances[3] = distances[2] + 4
+                if distances[0] == 65535:
+                    distances[0] = distances[1]
+                if distances[1] == 65535:
+                    distances[1] = distances[0]
+                if distances[2] == 65535:
+                    distances[2] = distances[3]
+                if distances[3] == 65535:
+                    distances[3] = distances[2]
+
 
 
 
@@ -112,8 +119,9 @@ class VelocityField(SpatialMap):
 
 
     def update_velocity_field(self, coords_of_goal):
-        self.generate_heatmap(coords_of_goal)
-        self.calculate_vectors()
+        if self.goal[0] != coords_of_goal[0] and self.goal[1] != coords_of_goal[1]:
+            self.generate_heatmap(coords_of_goal)
+            self.calculate_vectors()
 
     def calculate_steering_force(self, particle):
         pass
@@ -137,7 +145,7 @@ class VelocityField(SpatialMap):
         for eachCell in self.grid:
             # velChange = self.normalise_vector(eachCell.velocity) * self.STRENGTH
             desired_velocity = eachCell.velocity * self.particle_max_velocity
-            print(eachCell.velocity)
+
 
             for eachParticle in eachCell.cellList:
                 steering_force = desired_velocity - eachParticle.velocity

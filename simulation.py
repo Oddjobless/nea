@@ -38,11 +38,15 @@ def run():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 return
-            if event.type == pygame.MOUSEBUTTONDOWN:
+
+            click_event = pygame.mouse.get_pressed()
+            if any(click_event):
+
                 pos_cell_index = vector_field.index_to_coord(vector_field.hash_position(pygame.mouse.get_pos()))
-                if event.button == 1: # LEFT CLICK
+                if click_event[0]: # LEFT CLICK
+                    print("fdsgf")
                     vector_field.update_velocity_field(pos_cell_index)
-                elif event.button == 3: # RIGHT CLICK
+                elif click_event[2]: # RIGHT CLICK
                     vector_field.toggle_blocked_cell(pos_cell_index)
 
         ### drawing vectorField
