@@ -19,7 +19,7 @@ class VelocityField(SpatialMap):
         for i in self.grid:
             print(i.velocity)
         self.blocked_cells = set()
-        self.goal = np.array([3,3])
+        self.goal = np.array([0,0])
         # self.update_velocity_field(self.goal)
         self.particle_max_velocity = 500
         self.print_visited()
@@ -85,7 +85,7 @@ class VelocityField(SpatialMap):
 
     def calculate_vectors(self):
 
-        for index, cell in enumerate(self.grid.copy()): # added .copy() cos debugging
+        for index, cell in enumerate(self.grid): # added .copy() cos debugging
             if self.index_to_coord(index) in self.blocked_cells:
                 cell.velocity = np.array([0,0])
                 continue
@@ -97,17 +97,25 @@ class VelocityField(SpatialMap):
                     distances[index] = self.grid[self.coord_to_index(eachcoord)].distance
                 else:
 
-                    distances[index] = 65535
+                    distances[index] = -1
 
-            if np.inf in distances:
-                if distances[0] == 65535:
-                    distances[0] = distances[1]
-                if distances[1] == 65535:
-                    distances[1] = distances[0]
-                if distances[2] == 65535:
-                    distances[2] = distances[3]
-                if distances[3] == 65535:
-                    distances[3] = distances[2]
+            maximum = max(distances)
+            for index, distance in enumerate(distances):
+                if distance == -1:
+                   distances[index] = maximum + 1
+
+
+
+
+            """if maximum in distances:
+                if distances[0] == maximum:
+                    distances[0] = distances[1] + 4
+                if distances[1] == maximum:
+                    distances[1] = distances[0] + 4
+                if distances[2] == maximum:
+                    distances[2] = distances[3] + 4
+                if distances[3] == maximum:
+                    distances[3] = distances[2] + 4"""
 
 
 

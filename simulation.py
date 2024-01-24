@@ -64,7 +64,7 @@ def run():
                 boxCentre = np.array([coord[0] + box_width/2, coord[1] + box_height/2])
                 lineRadius = 30 * vector.velocity
                 pygame.draw.line(screen, "#ff3542", (boxCentre), boxCentre+lineRadius)
-
+                
 #
         # logic goes here
         for particle in particles:
