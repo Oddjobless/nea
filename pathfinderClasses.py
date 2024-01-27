@@ -12,6 +12,42 @@ class Pathfinder(Particle):
     def __init__(self, mass, radius, vector_field, damping):
         super().__init__(mass, radius, vector_field, damping)
 
+    def check_for_collision_X(self, obstacle_x, obstacle_width):
+        if self.position[0] + self.radius > obstacle_x + obstacle_width or self.next_position[0] - self.radius < obstacle_x:
+            return False
+        return True
+    def check_for_collision_Y(self, obstacle_y, obstacle_height):
+        if self.position[1] + self.radius > obstacle_y + obstacle_height or self.next_position[1] - self.radius < obstacle_y:
+            return False
+        return True
+
+
+
+    def check_for_collision(self, obstacle_pos, obstacle_width):
+        if self.check_for_collision_X(obstacle_pos[0], obstacle_width):
+            print("33")
+            self.velocity[0] *= -1 * self.damping
+
+            return True
+        elif self.check_for_collision_Y(obstacle_pos[1], obstacle_width):
+            self.velocity[1] *= -1 * self.damping
+            return True
+        return False
+
+    def extra_boundary_check(self, obstacle_pos, obstacle_width):
+        return self.check_for_collision(obstacle_pos, obstacle_width)
+
+    def is_moving_horizontally(self):
+        if abs(self.velocity[0]) > abs(self.velocity[1]):
+            return True
+        return False
+
+    def collision_event(self, obstacle_pos, obstacle_width):
+        if self.check_for_collision_X(obstacle_pos[0], obstacle_width):
+            self.velocity[0] *= -1
+        else:
+            self.velocity[1] *= -1
+        self.next_position = self.position + self.velocity * -1 * dt
 
 class VelocityField(SpatialMap):
     def __init__(self, noOfRows, noOfCols):
@@ -104,7 +140,15 @@ class VelocityField(SpatialMap):
             maximum = max(distances)
             for index, distance in enumerate(distances):
                 if distance == -1:
-                   distances[index] = maximum + 1
+
+                    if index == 0 and distances[1] != -1:
+                        distances[0] = distances[1] + 4
+                    if index == 1 and distances[0] != -1:
+                        distances[1] = distances[0] + 4
+                    if index == 2 and distances[3] != -1:
+                        distances[2] = distances[3] + 4
+                    if index == 3 and distances[2] != -1:
+                        distances[3] = distances[2] + 4
 
 
 
@@ -170,15 +214,6 @@ class VelocityField(SpatialMap):
             return
 
 
-    def checkForCollisionX(self, obj):
-        pass
-
-
-
-    def checkForCollisionY(self):
-        pass
-
-
 
 
 
@@ -195,16 +230,14 @@ class VelocityField(SpatialMap):
 
                 eachParticle.velocity += (steering_force * field_strength) # + self.calculate_collision_avoidance(eachParticle)
                 # self.zero_vel_for_blocked_cells(eachParticle)
-        """for eachCell in self.grid:
-            # velChange = self.normalise_vector(eachCell.velocity) * self.STRENGTH
-            print(eachCell.velocity)
+                """for blockedCell in self.blocked_cells:
+                    if eachParticle.extra_boundary_check(self.undo_hash_position(blockedCell), box_width):
+                        break"""
+                coord = self.index_to_coord(self.hash_position(eachParticle.next_position))
 
-            for eachParticle in eachCell.cellList:
+                if coord in self.blocked_cells:
 
-                eachParticle.velocity += eachCell.velocity"""
+                    eachParticle.collision_event(coord, box_width)
 
-                # speed = self.get_magnitude(eachParticle.velocity) - 100000000
-                # if speed > self.particle_max_velocity:
-                #     eachParticle.velocity = (eachParticle.velocity / speed) * self.particle_max_velocity
-    """def get_normalised_grid(self):
-        return list(map(self.normalise_vector, self.grid))"""
+
+

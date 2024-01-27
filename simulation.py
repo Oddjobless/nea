@@ -27,9 +27,10 @@ def run():
 
     vector_field = VelocityField(rows, columns)
 
-    particles = [Pathfinder(10, 3, vector_field, wall_damping) for _ in range(noOfParticles)]
+    particles = [Pathfinder(10, radius, vector_field, wall_damping) for _ in range(noOfParticles)]
     print("high")
     # vector_field.calculate_rest_density(particles) # integrate into __init
+    font = pygame.font.SysFont("comicsans", int(box_width // 2.6))
 
 
 
@@ -56,7 +57,6 @@ def run():
             pygame.draw.rect(screen, (0, 0, 0, 0.5), (cell[0] * box_width, cell[1] * box_height, box_width, box_height))
 
         if drawGrid:
-
             for x in vector_field.get_grid_coords(x=True):
                 pygame.draw.line(screen, "#353252", (x, 0), (x, screen_height), 1)
 
@@ -64,16 +64,25 @@ def run():
                 pygame.draw.line(screen, "#353252", (0, y), (screen_width, y), 1)
 
 
-            for coord, vector in zip(vector_field.get_grid_coords(), vector_field.grid):
+            for coord, cell in zip(vector_field.get_grid_coords(), vector_field.grid):
                 boxCentre = np.array([coord[0] + box_width/2, coord[1] + box_height/2])
-                lineRadius = 30 * vector.velocity
+                lineRadius = (box_width/2.2) * cell.velocity
                 pygame.draw.line(screen, "#ff3542", (boxCentre), boxCentre+lineRadius)
+                if draw_distances:
+                    number = font.render(f"{cell.distance:.1f}", True, (255, 255, 255))
+                    screen.blit(number, boxCentre - (box_width//4))
+
+
+
                 
-#
+
+
+
         # logic goes here
+        vector_field.update()
         for particle in particles:
             particle.update(screen) # updates position of particles
-        vector_field.update()
+
 
         """for i in vector_field.grid:
             print(i.cellList, end="")"""
