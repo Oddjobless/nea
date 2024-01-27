@@ -27,6 +27,7 @@ class Particle:
     def update(self, screen):
 
         self.next_position = self.position + self.velocity * dt
+
         if self.next_position[0] > screen.get_width() - (self.radius) or self.next_position[0] < self.radius: # or within blocked cell
             self.velocity[0] *= -1 * self.damping
         if self.next_position[1] > screen.get_height() - self.radius or self.next_position[1] < self.radius:
@@ -86,7 +87,12 @@ class Particle:
 
         # density += self.mass / (self.get_magnitude(self.velocity) ** 2)
         # self.density = self.mass / (self.get_magnitude(self.velocity) *)
+    def reverse_position(self, steps):
 
+        self.vector_field.remove_particle(self)
+        self.position = self.position - self.velocity * steps * dt
+        self.next_position = self.position
+        self.vector_field.insert_particle(self)
     def get_pressure(self): #
         return self.pressure
 
@@ -202,7 +208,7 @@ class SpatialMap:
         except ValueError:
             print(position)
     def undo_hash_position(self, position):
-        return position * box_width
+        return np.array(position) // box_width
 
 
     def coord_to_index(self, coord):
@@ -294,7 +300,7 @@ class SpatialMap:
 
 
 screen_width, screen_height = 960, 960
-rows, columns = 4,4
+rows, columns = 30,30
 box_width, box_height = screen_width / columns, screen_height / rows
 
 clock = pygame.time.Clock()

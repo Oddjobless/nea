@@ -51,6 +51,10 @@ def run():
 
         ### drawing vectorField
         screen.fill((0, 69, 180))
+
+        for cell in vector_field.blocked_cells:
+            pygame.draw.rect(screen, (0, 0, 0, 0.5), (cell[0] * box_width, cell[1] * box_height, box_width, box_height))
+
         if drawGrid:
 
             for x in vector_field.get_grid_coords(x=True):
@@ -74,7 +78,6 @@ def run():
         """for i in vector_field.grid:
             print(i.cellList, end="")"""
 
-
         # total_density = 0
         for particle in particles:
 
@@ -85,9 +88,7 @@ def run():
             # total_density += particle.density
             pygame.draw.circle(screen, (123,12,90), particle.get_position(), radius)
 
-        for cell in vector_field.blocked_cells:
-            pygame.draw.rect(screen, (0,0,0), (cell[0] * box_width, cell[1] * box_height, box_width, box_height))
-            pass
+
 
         # print("Total density: ", total_density)
 

@@ -23,10 +23,12 @@ class VelocityField(SpatialMap):
         # self.update_velocity_field(self.goal)
         self.particle_max_velocity = 500
         self.print_visited()
+        self.blocked_cell_radius = box_width
         # self.particle_damping = 0.996 # dont like this
 
 
-        # todo: distance from a cell to its neighbouring diagonal is sqrt(2) or 2?
+        # todo: increase force of blcok on particle. do not normalise
+
 
     def print_visited(self):
         for i in range(rows):
@@ -135,8 +137,8 @@ class VelocityField(SpatialMap):
         pass
 
     def calculate_avoidance_force(self, position):
-        radius = 4 * box_width
-        avoidance_strength = 100
+        radius = 1 * box_width
+        avoidance_strength = 150
         steering_force = np.zeros(2)
 
         for obstacle in self.blocked_cells:
@@ -146,6 +148,39 @@ class VelocityField(SpatialMap):
                 steering_force += avoidance_strength * (position - obstacle) / distance
 
         return steering_force
+
+    def calculate_collision_avoidance(self, particle):
+        force = 0
+        magnitude = 1000
+        ahead = particle.position + self.normalise_vector(particle.velocity) * self.blocked_cell_radius
+        box_centre_add = box_width / 2
+        for coord in self.blocked_cells:
+            distance_vector = ahead - (self.undo_hash_position(coord) + box_centre_add)
+
+            if self.get_magnitude(distance_vector) < self.blocked_cell_radius:
+                return self.normalise_vector(distance_vector) * magnitude
+        return 0
+
+    def zero_vel_for_blocked_cells(self, particle):
+        pos = particle.position
+        current_cell = self.index_to_coord(self.hash_position(pos))
+        if current_cell in self.blocked_cells:
+            particle.velocity *= 0
+        else:
+            return
+
+
+    def checkForCollisionX(self, obj):
+        pass
+
+
+
+    def checkForCollisionY(self):
+        pass
+
+
+
+
 
 
     def update(self):
@@ -157,7 +192,9 @@ class VelocityField(SpatialMap):
 
             for eachParticle in eachCell.cellList:
                 steering_force = desired_velocity - eachParticle.velocity
-                eachParticle.velocity += (steering_force * field_strength)
+
+                eachParticle.velocity += (steering_force * field_strength) # + self.calculate_collision_avoidance(eachParticle)
+                # self.zero_vel_for_blocked_cells(eachParticle)
         """for eachCell in self.grid:
             # velChange = self.normalise_vector(eachCell.velocity) * self.STRENGTH
             print(eachCell.velocity)
