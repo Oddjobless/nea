@@ -142,13 +142,13 @@ class VelocityField(SpatialMap):
                 if distance == -1:
 
                     if index == 0 and distances[1] != -1:
-                        distances[0] = distances[1] + 4
+                        distances[0] = distances[1] + 2
                     if index == 1 and distances[0] != -1:
-                        distances[1] = distances[0] + 4
+                        distances[1] = distances[0] + 2
                     if index == 2 and distances[3] != -1:
-                        distances[2] = distances[3] + 4
+                        distances[2] = distances[3] + 2
                     if index == 3 and distances[2] != -1:
-                        distances[3] = distances[2] + 4
+                        distances[3] = distances[2] + 2
 
 
 
