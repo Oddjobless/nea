@@ -15,11 +15,8 @@ class Particle:
         self.next_position = self.position.copy()
         # self.acceleration = np.array([0,9.8]) * self.mass # short term
         self.vector_field.insert_particle(self)
-        self.smoothing_radius = 2 * self.radius
-        """self.kernel = SmoothingKernel(smoothing_radius, cubic_spline=True)"""
 
-        """self.calculate_density()
-        print(self.density)"""
+
 
         """self.spatial_map_update_frequency = 4  # 1 / 4 frames update the spatial map
         self.spatial_map_update_counter = 0"""
@@ -47,102 +44,25 @@ class Particle:
 
 
 
-    def calculate_density(self): # can i use self instead?
-        density = 0
-        neighbouring_particles = self.vector_field.get_neighbouring_particles(self)
-
-        for neighbour_particle in neighbouring_particles:
-            distance = self.vector_field.get_magnitude(neighbour_particle.position - self.position)
-            density += self.kernel.calculate_density_contribution(distance) # self.density
-
-
-        # print(self.density == density)
-        self.density = self.kernel.get_normalised_density(density)
-
-        # self.calculate_pressure()
-
-
-        # (self.density)
-
-        # density += self.mass / (self.get_magnitude(self.velocity) ** 2)
-        # self.density = self.mass / (self.get_magnitude(self.velocity) *)
     def reverse_position(self, steps):
 
         self.vector_field.remove_particle(self)
         self.position = self.position - self.velocity * steps * dt
         self.next_position = self.position
         self.vector_field.insert_particle(self)
-    def get_pressure(self): #
-        return self.pressure
-
-    def calculate_pressure(self): # ideal gas law
-        self.pressure = stiffness_constant * (self.density - self.vector_field.rest_density)
 
 
-    def calculate_pressure_force(self): #pressure force
-        pass
 
-    def get_density(self):
-        return self.density
+
+
+
 
     def get_position(self):
         return int(self.position[0]), int(self.position[1])
 import time
 """
-class SmoothingKernel:
-    def __init__(self, smoothing_length, poly_6=False, gaussian=False, cubic_spline=False):
-        self.h = smoothing_length / 2 if cubic_spline else smoothing_length  # the radius within which a neighbouring particle will have an impact
-
-        self.cubic_spline = cubic_spline
-        self.poly_6 = poly_6
-        self.gaussian = gaussian
-        if poly_6:
-            self.normalisation_constant = 315 / (64 * np.pi * self.h**9)
-        elif gaussian:
-            self.normalisation_constant = 1 / (np.sqrt(2 * np.pi) * self.h)
-        elif cubic_spline:
-            self.normalisation_constant = 10 / (7 * np.pi * self.h**2)
 
 
-        # im uneased by this normalisation constant, tempted to just use total mass instead
-
-    def calculate_density_contribution(self, particle_radius):
-
-        if self.poly_6:
-            return self.poly_6_kernel(particle_radius)
-
-        elif self.cubic_spline:
-            return self.cubic_spline_kernel(particle_radius)
-
-        elif self.gaussian:
-            return self.gaussian_kernel(particle_radius)
-
-
-        raise ValueError("Unknown kernel type")
-
-    def get_normalised_density(self, density):
-        return self.normalisation_constant * density
-
-    def cubic_spline_kernel(self, particle_radius): # Article. Numerical Model of Oil Film Diffusion in Water Based on SPH Method
-        ratio = particle_radius / self.h
-
-        if 0 <= ratio < 1:
-            return (1 - (1.5 * ratio ** 2) + (0.75 * ratio ** 3))
-        elif 1 <= ratio < 2:
-            return 0.25 * ((2 - ratio) ** 3)
-        else:
-            return 0
-
-    def poly_6_kernel(self, particle_radius):
-        if particle_radius <= self.h:
-            return abs((self.h ** 2 - particle_radius ** 2) ** 3)
-        return 0
-
-    def gaussian_kernel(self, particle_radius):
-        return 0 # explain why bad
-
-    def calculate_pressure_contribution(self, particle_radius):
-        pass
 """
 class Cell:
     def __init__(self):
