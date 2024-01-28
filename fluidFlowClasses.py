@@ -126,41 +126,17 @@ class SmoothingKernel:
     def gaussian_kernel(self, particle_radius):
         return 0 # :(
 
-class SpatialMap:
+class FluidSpatialMap(SpatialMap):
     def __init__(self, noOfRows, noOfCols):
-        self.noOfRows = noOfRows
-        self.noOfCols = noOfCols
-        # I WANT TO MAKE SELF.HASH INTO A 1D ARRAY
-
-
-        ### creating vector field
-        self.vectorField = list(map(self.normalise_vector, np.random.rand(self.noOfRows * self.noOfCols, 2)))
+        super().__init__(noOfRows, noOfCols)
         self.rest_density = -1 # A ROUGH ESTIMATE BASED ON INTIAL POS OF PARTICLES
         # USER SHOULD ADJUST AS PER NEEDED
 
-    def get_grid_coords(self, x=False, y=False):
-        xCoords = np.linspace(0, screen_width, self.noOfCols, endpoint=False)
-        if x:
-            return xCoords
 
-        yCoords = np.linspace(0, screen_height, self.noOfRows, endpoint=False)
-        if y:
-            return yCoords
 
-        xValues, yValues = np.array(np.meshgrid(xCoords, yCoords))
-        coords = np.column_stack((xValues.ravel(), yValues.ravel()))
-        return coords
 
-    def hash_position(self, position):
-        return self.coord_to_index(int(position[0] / box_width), int(position[1] / box_height))
 
-    def coord_to_index(self, x, y):
-        # print(x, y, x + (y * self.noOfCols))
-        return x + y * self.noOfCols
 
-    def update_particle(self, particle):
-        self.remove_particle(particle)
-        self.insert_particle(particle)
 
     def get_neighbouring_particles(self, particle):
         cell_row, cell_col = divmod(self.hash_position(particle.position), self.noOfCols)
@@ -198,8 +174,7 @@ class SpatialMap:
 
         # np.append(self.grid[new_cell[0], new_cell[1]], particle)
 
-    def get_normalised_grid(self):
-        return list(map(self.normalise_vector, self.vectorField))
+
 
     def get_magnitude(self, vector):
         return np.hypot(vector[0], vector[1])

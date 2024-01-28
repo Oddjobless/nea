@@ -83,10 +83,6 @@ class SpatialMap:
 
         ### creating vector field
 
-        self.rest_density = -1 # A ROUGH ESTIMATE BASED ON INTIAL POS OF PARTICLES
-        #  CAN CALCULATE ACCURATE REST DENSITY BY SPACING OUT PARTICLES AND CALCULATING DENSITIES
-
-
 
     def get_grid_coords(self, x=False, y=False):
         xCoords = np.linspace(0, screen_width, self.noOfCols, endpoint=False)
@@ -116,9 +112,7 @@ class SpatialMap:
     def index_to_coord(self, index):
         return (index % self.noOfCols, index // self.noOfCols)
 
-    def update_particle(self, particle):
-        self.remove_particle(particle)
-        self.insert_particle(particle)
+
 
     def get_neighbouring_coords(self, coord, include_diagonal=False, include_self=False, placeholder_for_boundary=False):
         row, col = coord
