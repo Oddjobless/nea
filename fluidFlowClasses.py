@@ -1,4 +1,4 @@
-@ -1,109 +1,112 @@
+
 # import numpy as np
 
 from baseClasses import *
@@ -6,16 +6,15 @@ from baseClasses import *
 
 class FluidParticle(Particle):
     def __init__(self, mass, radius, vector_field, damping):
-        super().init(mass, radius, vector_field, damping)
+        super().__init__(mass, radius, vector_field, damping)
         self.damping = damping
         self.radius = radius  # visual only
         self.mass = mass
         self.vector_field = vector_field
 
-        self.velocity = np.array([randrange(-1000, 1000), randrange(-1000, 1000)]) # poo
-        self.position = np.array([randrange(2 * self.radius, screen_width - 2 * self.radius),
-                                  randrange(2 * self.radius, screen_height - 2 * self.radius)]) # poo
-        self.acceleration = np.array([0,9.8]) * self.mass # short term
+        self.velocity = np.array([randrange(-200, 200), randrange(-20, 200)]) # poo
+        self.position = np.array([randrange(2 * self.radius, screen_width - 2 * self.radius), randrange(2 * self.radius, screen_height - 2 * self.radius)]) # poo
+        self.acceleration = np.array([0,0]) * self.mass # short term
 
         self.smoothing_radius = 2 * self.radius
         self.kernel = SmoothingKernel(self.smoothing_radius, cubic_spline=True)
@@ -26,7 +25,11 @@ class FluidParticle(Particle):
         """self.spatial_map_update_frequency = 4  # 1 / 4 frames update the spatial map
         self.spatial_map_update_counter = 0"""
 
-
+    def update(self, screen):
+        super().update(screen)
+        self.velocity = self.velocity + self.acceleration * self.mass
+        self.calculate_density()  # todo i want it to do this less often
+        self.calculate_pressure()  # todo ditto
 
     def calculate_density(self): # can i use self instead?
         density = 0
@@ -38,7 +41,7 @@ class FluidParticle(Particle):
 
 
         # print(self.density == density)
-        self.density = self.kernel.get_normalised_density(density)
+        self.density = self.mass * self.kernel.get_normalised_density(density)
 
         # self.calculate_pressure()
 
@@ -60,6 +63,10 @@ class FluidParticle(Particle):
 
     def get_position(self):
         return int(self.next_position[0]), int(self.next_position[1])
+
+
+
+
 
 
 
@@ -129,7 +136,7 @@ class SmoothingKernel:
 class FluidSpatialMap(SpatialMap):
     def __init__(self, noOfRows, noOfCols):
         super().__init__(noOfRows, noOfCols)
-        self.rest_density = -1 # A ROUGH ESTIMATE BASED ON INTIAL POS OF PARTICLES
+        self.rest_density = 2000 # A ROUGH ESTIMATE BASED ON INTIAL POS OF PARTICLES
         # USER SHOULD ADJUST AS PER NEEDED
 
 
@@ -138,20 +145,7 @@ class FluidSpatialMap(SpatialMap):
 
 
 
-    def get_neighbouring_particles(self, particle):
-        cell_row, cell_col = divmod(self.hash_position(particle.position), self.noOfCols)
-        neighbouring_particles = []
-        for i in range(-1, 2):
-            for j in range(-1, 2):
-                neighbour_row, neighbour_col = cell_row + i, cell_col + j
-                if 0 <= neighbour_row < self.noOfRows and 0 <= neighbour_col < self.noOfCols:
-                    neighbouring_particles.extend(self.grid[self.coord_to_index(neighbour_col, neighbour_row)])
 
-        # neighbouring_particles.remove(particle)
-        # print(neighbouring_particles)
-        return neighbouring_particles
-
-        # feels inefficient, ought to compare with linear search.
 
     def calculate_rest_density(self, particle_list):
         total_density = 0
@@ -163,24 +157,10 @@ class FluidSpatialMap(SpatialMap):
     def set_rest_density(self, rest_density):
         self.rest_density = rest_density
 
-    def remove_particle(self, particle):
-        cell = self.hash_position(particle.position)
-        self.grid[cell].discard(particle)
-        # np.delete(self.grid[int(cell[0]), int(cell[1])], particle)
-
-    def insert_particle(self, particle):
-        new_cell = self.hash_position(particle.next_position)
-        self.grid[new_cell].add(particle)
-
-        # np.append(self.grid[new_cell[0], new_cell[1]], particle)
 
 
 
-    def get_magnitude(self, vector):
-        return np.hypot(vector[0], vector[1])
 
-    def normalise_vector(self, vector):
-        return vector / self.get_magnitude(vector)
 
 
 if __name__ == "__main__":

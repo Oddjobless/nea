@@ -40,11 +40,12 @@ def run():
     screen = pygame.display.set_mode((screen_width, screen_height))
     pygame.display.set_caption("Pygame Boilerplate")
 
-    vector_field = SpatialMap(rows, columns)
+    vector_field = FluidSpatialMap(rows, columns)
 
-    particles = [Particle(1, 3, vector_field, wall_damping) for _ in range(noOfParticles)]
+    particles = [FluidParticle(1, 3, vector_field, wall_damping) for _ in range(noOfParticles)]
     print("high")
     vector_field.calculate_rest_density(particles) # integrate into __init
+    print(vector_field.rest_density)
 
 
 
@@ -56,7 +57,7 @@ def run():
 
 
         ### drawing vectorField
-        screen.fill((0, 69, 180))
+        screen.fill((90, 69, 50))
         if drawGrid:
 
             for x in vector_field.get_grid_coords(x=True):
@@ -66,22 +67,26 @@ def run():
                 pygame.draw.line(screen, "#353252", (0, y), (screen_width, y), 1)
 
 
-            for coord, vector in zip(vector_field.get_grid_coords(), vector_field.get_normalised_grid()):
+            """for coord, vector in zip(vector_field.get_grid_coords(), vector_field.get_normalised_grid()):
                 boxCentre = (coord[0] + box_width/2, coord[1] + box_height/2)
                 lineRadius = vector
-                #pygame.draw.circle(screen, "#ff3542", (boxCentre), 4, 4)
+                #pygame.draw.circle(screen, "#ff3542", (boxCentre), 4, 4)"""
 
 #
         # logic goes here
         for particle in particles:
             particle.update(screen)
 
-        # Drawing code goes here
-        # total_density = 0
-        for particle in particles:
+            pygame.draw.circle(screen, (123, 12, 90), particle.get_position(), radius)
+        # print(particles[0].pressure + vector_field.rest_density)
 
-            particle.calculate_density()  # todo i want it to do this less often
-            # print(particle.get_pressure_force())
-            # print(particle.density)
-            # total_density += particle.density
-run()
+
+
+        pygame.display.update()
+
+
+        clock.tick(frame_rate)
+
+
+if __name__ == "__main__":
+    run()

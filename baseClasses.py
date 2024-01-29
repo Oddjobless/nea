@@ -134,13 +134,13 @@ class SpatialMap:
 
     def get_neighbouring_cells(self, cell_row, cell_col, diagonal=False, use_self=False):
         neighbouring_cells = []
-        for coord in self.get_coordinates(cell_row, cell_col, include_diagonal=diagonal, include_self=use_self):
+        for coord in self.get_neighbouring_coords((cell_row, cell_col), include_diagonal=diagonal, include_self=use_self):
             neighbouring_cells.append(self.grid[self.coord_to_index(coord)])
         return neighbouring_cells
 
     def get_neighbouring_particles(self, particle):
         cell_row, cell_col = divmod(self.hash_position(particle.position), self.noOfCols)
-        neighbour_cells = self.get_neighbouring_cells(cell_row, cell_col, include_self=True, diagonal=True)
+        neighbour_cells = self.get_neighbouring_cells(cell_row, cell_col, use_self=True, diagonal=True)
 
         neighbouring_particles = []
         for cell in neighbour_cells:
@@ -150,15 +150,7 @@ class SpatialMap:
 
         # feels inefficient, ought to compare with linear search.
 
-    def calculate_rest_density(self, particle_list):
-        total_density = 0
-        for particle in particle_list:
-            total_density += particle.density
-            print(total_density, "\n\n==")
-        self.set_rest_density(total_density / noOfParticles)  # rest density
 
-    def set_rest_density(self, rest_density):
-        self.rest_density = rest_density
 
     def remove_particle(self, particle):
         cell = self.hash_position(particle.position)
@@ -193,12 +185,12 @@ class SpatialMap:
 
 
 screen_width, screen_height = 960, 960
-rows, columns =40,40
+rows, columns =20,20
 box_width, box_height = screen_width / columns, screen_height / rows
 
 clock = pygame.time.Clock()
 
-frame_rate = 60  # frames per second
+frame_rate = 30  # frames per second
 dt = 1 / frame_rate  # time elapsed between frames
 radius = 5  # radius of particles, purely for visualisation
 noOfParticles = 1000  # number of particles.
@@ -206,6 +198,6 @@ wall_damping = 1  # what percentage of energy the particles keep on collision wi
 drawGrid = True  # draw the grid lines on the screen
 using_poly_6 = True  #
 using_cubic_spline_kernel = True
-smoothing_radius = min(box_height, box_width) # will integrate this into program.
-stiffness_constant = 2500
+smoothing_radius = box_width # will integrate this into program.
+stiffness_constant = 1
 draw_distances = True
