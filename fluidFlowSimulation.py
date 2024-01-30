@@ -77,8 +77,9 @@ def run():
         for particle in particles:
             particle.update(screen)
 
+
             pygame.draw.circle(screen, (123, 12, 90), particle.get_position(), radius)
-        # print(particles[0].pressure + vector_field.rest_density)
+        print(particles[0].pressure + vector_field.rest_density)
 
 
 

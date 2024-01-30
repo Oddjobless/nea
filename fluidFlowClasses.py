@@ -12,11 +12,11 @@ class FluidParticle(Particle):
         self.mass = mass
         self.vector_field = vector_field
 
-        self.velocity = np.array([randrange(-200, 200), randrange(-20, 200)]) # poo
-        self.position = np.array([randrange(2 * self.radius, screen_width - 2 * self.radius), randrange(2 * self.radius, screen_height - 2 * self.radius)]) # poo
+        self.velocity = np.array([randrange(-200, 200), randrange(-200, 200)]) # poo
+        self.position = np.array([randrange(self.radius, screen_width - self.radius), randrange(self.radius, screen_height - self.radius)]) # poo
         self.acceleration = np.array([0,0]) * self.mass # short term
 
-        self.smoothing_radius = 2 * self.radius
+        self.smoothing_radius = box_width
         self.kernel = SmoothingKernel(self.smoothing_radius, cubic_spline=True)
 
         self.calculate_density()
@@ -28,6 +28,7 @@ class FluidParticle(Particle):
     def update(self, screen):
         super().update(screen)
         self.velocity = self.velocity + self.acceleration * self.mass
+
         self.calculate_density()  # todo i want it to do this less often
         self.calculate_pressure()  # todo ditto
 
@@ -37,7 +38,7 @@ class FluidParticle(Particle):
 
         for neighbour_particle in neighbouring_particles:
             distance = self.vector_field.get_magnitude(neighbour_particle.position - self.position)
-            density += self.kernel.calculate_density_contribution(distance)
+            density += self.kernel.calculate_density_contribution(distance) * neighbour_particle.mass
 
 
         # print(self.density == density)
@@ -57,6 +58,17 @@ class FluidParticle(Particle):
     def calculate_pressure(self): # ideal gas law
         self.pressure = stiffness_constant * (self.density - self.vector_field.rest_density)
 
+    def calculate_property(self):
+        property = 0
+        neighbouring_particles = self.vector_field.get_neighbouring_particles(self)
+
+        for neighbour_particle in neighbouring_particles:
+            distance = self.vector_field.get_magnitude(neighbour_particle.position - self.position)
+            influence = self.kernel.calculate_density_contribution(distance)
+
+
+        # print(self.density == density)
+        return self.mass * self.kernel.get_normalised_density(property)
 
     def get_density(self):
         return self.density
