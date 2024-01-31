@@ -11,12 +11,13 @@ class FluidParticle(Particle):
         self.radius = radius  # visual only
         self.mass = mass
         self.vector_field = vector_field
-
+        self.force = np.zeros(2, dtype=float)
 
         # self.velocity = np.array([randrange(-200, 200), randrange(-200, 200)]) # poo
         self.velocity = np.zeros(2, dtype=float)
-        self.position = np.array([78,125]) # poo
-
+        print(self.position)
+        self.position = np.array([randint(2 * self.radius, screen_width - 2 * self.radius), randint(2 * self.radius, screen_height - 2 * self.radius)], dtype=float)
+        print("Adsf", self.position)
 
 
 
@@ -38,11 +39,11 @@ class FluidParticle(Particle):
 
     def apply_forces(self):
         # todo ditto
-        force = np.zeros_like(self.velocity)
-        force = force - self.calculate_pressure_force()
+        self.force = np.zeros_like(self.velocity)
+        self.force = self.force - self.calculate_pressure_force()
 
 
-        self.velocity =  dt * np.array((100 * force / self.mass), dtype=float)
+        self.velocity = dt * np.array((self.force / self.mass), dtype=float)
 
     def calculate_density(self): # can i use self instead?
         density = 0
@@ -50,7 +51,7 @@ class FluidParticle(Particle):
 
         for neighbour_particle in neighbouring_particles:
             distance = self.vector_field.get_magnitude(neighbour_particle.position - self.position)
-            density += self.vector_field.kernel.normalisation_constant * self.vector_field.kernel.calculate_density_contribution(distance) * neighbour_particle.mass
+            density += self.vector_field.kernel.calculate_density_contribution(distance) * neighbour_particle.mass
 
 
 
@@ -98,7 +99,7 @@ class FluidParticle(Particle):
                 direction_vector = np.random.rand(2)
             else:
                 direction_vector = self.vector_field.normalise_vector(vector)
-            influence = self.vector_field.pressure_kernel.calculate_density_contribution(distance) * self.vector_field.pressure_kernel.normalisation_constant
+            influence = self.vector_field.pressure_kernel.calculate_density_contribution(distance)
             avg_pressure = 0.5 * (self.pressure + neighbour_particle.pressure)
             if neighbour_particle.density != 0:
                 pressure_force += direction_vector * influence * avg_pressure * (neighbour_particle.mass / neighbour_particle.density)
@@ -132,13 +133,13 @@ class SmoothingKernel:
         self.gaussian = gaussian
         self.spiky = spiky
         if poly_6:
-            self.normalisation_constant = 315 / (64 * np.pi * self.h**9)
+            self.normalisation_constant = 315 / (64 * np.pi * self.h**4) # ** 9
         elif gaussian:
             self.normalisation_constant = 1 / (np.sqrt(2 * np.pi) * self.h)
         elif cubic_spline:
             self.normalisation_constant = 10 / (7 * np.pi * self.h**2)
         elif spiky:
-            self.normalisation_constant = 15 / (np.pi * (smoothing_length ** 6))
+            self.normalisation_constant = 15 / (np.pi * (self.h ** 2)) # ** 6
 
 
         # im uneased by this normalisation constant, tempted to just use total mass instead
@@ -146,7 +147,9 @@ class SmoothingKernel:
     def calculate_density_contribution(self, particle_radius):
 
         if self.poly_6:
+            print(self.poly_6_kernel(particle_radius))
             return self.poly_6_kernel(particle_radius)
+
 
         elif self.cubic_spline:
             return self.cubic_spline_kernel(particle_radius)
@@ -174,7 +177,7 @@ class SmoothingKernel:
 
     def poly_6_kernel(self, particle_radius):
         if particle_radius <= self.h:
-            return abs((self.h ** 2 - particle_radius ** 2) ** 3)
+            return self.normalisation_constant * ((self.h ** 2 - particle_radius ** 2) ** 3)
         return 0
 
     def gaussian_kernel(self, particle_radius):
@@ -182,7 +185,7 @@ class SmoothingKernel:
 
     def spikey_kernel(self, particle_radius):
         if particle_radius <= self.h:
-            return (self.h - particle_radius) ** 3
+            return self.normalisation_constant * (self.h - particle_radius) ** 3
         return 0
 
 

@@ -77,7 +77,7 @@ def run():
         for particle in particles:
             particle.update(screen)
             pygame.draw.circle(screen, (123, 12, 90), particle.position, radius)
-
+        print(particles[randint(0,noOfParticles-7)].pressure, particles[randint(0,noOfParticles-7)].calculate_pressure_force(), particles[randint(0,noOfParticles-7)].density)
             # input((particle.density, particle.pressure, particle.calculate_pressure_force()))
 
 
