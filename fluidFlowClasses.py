@@ -17,7 +17,8 @@ class FluidParticle(Particle):
         self.acceleration = np.array([0,0]) * self.mass # short term
 
         self.smoothing_radius = box_width
-        self.kernel = SmoothingKernel(self.smoothing_radius, cubic_spline=True)
+        self.kernel = SmoothingKernel(self.smoothing_radius, poly_6=True)
+        self.pressure_kernel = SmoothingKernel(self.smoothing_radius, )
 
         self.calculate_density()
         print(self.density)
@@ -42,7 +43,7 @@ class FluidParticle(Particle):
 
 
         # print(self.density == density)
-        self.density = self.mass * self.kernel.get_normalised_density(density)
+        self.density = self.kernel.get_normalised_density(density)
 
         # self.calculate_pressure()
 
@@ -65,10 +66,24 @@ class FluidParticle(Particle):
         for neighbour_particle in neighbouring_particles:
             distance = self.vector_field.get_magnitude(neighbour_particle.position - self.position)
             influence = self.kernel.calculate_density_contribution(distance)
+            property += influence * (neighbour_particle.mass / neighbour_particle.density)
+
 
 
         # print(self.density == density)
-        return self.mass * self.kernel.get_normalised_density(property)
+        return self.kernel.get_normalised_density(property)
+
+    def calculate_pressure_force(self):
+        pressure_force = np.zeros(2)
+        neighbouring_particles = self.vector_field.get_neighbouring_particles(self)
+
+        for neighbour_particle in neighbouring_particles:
+            vector = neighbour_particle.position - self.position
+            distance = self.vector_field.get_magnitude(vector)
+            direction_vector = self.vector_field.normalise_vector(vector)
+            influence = self.kernel.calculate_density_contribution(distance, )
+            pressure_force += influence * (neighbour_particle.mass / neighbour_particle.density)
+
 
     def get_density(self):
         return self.density
@@ -148,7 +163,7 @@ class SmoothingKernel:
 class FluidSpatialMap(SpatialMap):
     def __init__(self, noOfRows, noOfCols):
         super().__init__(noOfRows, noOfCols)
-        self.rest_density = 2000 # A ROUGH ESTIMATE BASED ON INTIAL POS OF PARTICLES
+        self.rest_density = 1 # A ROUGH ESTIMATE BASED ON INTIAL POS OF PARTICLES
         # USER SHOULD ADJUST AS PER NEEDED
 
 
