@@ -45,7 +45,7 @@ def run():
     particles = [FluidParticle(1, 3, vector_field, wall_damping) for _ in range(noOfParticles)]
     print("high")
     vector_field.calculate_rest_density(particles) # integrate into __init
-    print(vector_field.rest_density)
+
 
 
 
@@ -75,17 +75,16 @@ def run():
 #
         # logic goes here
         for particle in particles:
-            particle.update(screen)
-            pygame.draw.circle(screen, (123, 12, 90), particle.position, radius)
-        print(particles[randint(0,noOfParticles-7)].pressure, particles[randint(0,noOfParticles-7)].calculate_pressure_force(), particles[randint(0,noOfParticles-7)].density)
-            # input((particle.density, particle.pressure, particle.calculate_pressure_force()))
-
+            particle.update_density()
+            particle.update_pressure()
 
             # print(particle.position)
 
 
         for particle in particles:
-            particle.apply_forces()
+            particle.calculate_pressure_force()
+            particle.update(screen)
+            pygame.draw.circle(screen, (123, 12, 90), particle.position, radius)
 
         pygame.display.update()
 

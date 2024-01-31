@@ -191,7 +191,7 @@ class SpatialMap:
 
 
 screen_width, screen_height = 960, 960
-rows, columns = 10,10
+rows, columns = 16,16
 box_width, box_height = screen_width / columns, screen_height / rows
 
 clock = pygame.time.Clock()
@@ -199,11 +199,11 @@ clock = pygame.time.Clock()
 frame_rate = 60  # frames per second
 dt = 1 / frame_rate  # time elapsed between frames
 radius = 5  # radius of particles, purely for visualisation
-noOfParticles = 800  # number of particles.
+noOfParticles = 200  # number of particles.
 wall_damping = 1  # what percentage of energy the particles keep on collision with boundary
 drawGrid = True  # draw the grid lines on the screen
 using_poly_6 = True  #
 using_cubic_spline_kernel = True
-smoothing_radius = 2* box_width # will integrate this into program.# todo
+smoothing_radius = box_width # will integrate this into program.# todo
 stiffness_constant = 10
 draw_distances = True
