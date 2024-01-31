@@ -174,10 +174,16 @@ class SpatialMap:
 
 
     def get_magnitude(self, vector):
-        return np.hypot(vector[0], vector[1])
+        try:
+            return np.hypot(vector[0], vector[1])
+        except:
+            print("ZERO MAGNITUDE")
+            return vector * 0
 
     def normalise_vector(self, vector):
         if vector[0] == 0 and vector[1] == 0:
+
+
             print("WARNING: DIVIDE BY ZERO!!!\n\n\nWHEN NORMALISING VELOCITY FIELD, THERE WAS A VECTOR WITH ZERO MAGNITUDE")
             return vector
         return vector / self.get_magnitude(vector)
@@ -185,7 +191,7 @@ class SpatialMap:
 
 
 screen_width, screen_height = 960, 960
-rows, columns = 8,8
+rows, columns = 3,3
 box_width, box_height = screen_width / columns, screen_height / rows
 
 clock = pygame.time.Clock()
@@ -193,11 +199,11 @@ clock = pygame.time.Clock()
 frame_rate = 30  # frames per second
 dt = 1 / frame_rate  # time elapsed between frames
 radius = 5  # radius of particles, purely for visualisation
-noOfParticles = 50  # number of particles.
+noOfParticles = 30  # number of particles.
 wall_damping = 1  # what percentage of energy the particles keep on collision with boundary
 drawGrid = True  # draw the grid lines on the screen
 using_poly_6 = True  #
 using_cubic_spline_kernel = True
-smoothing_radius = box_width # will integrate this into program.
-stiffness_constant = 1
+smoothing_radius = 2* box_width # will integrate this into program.
+stiffness_constant = 1000000000
 draw_distances = True
