@@ -76,13 +76,16 @@ def run():
         # logic goes here
         for particle in particles:
             particle.update(screen)
-            print(particle.density, particle.calculate_pressure_force())
+            pygame.draw.circle(screen, (123, 12, 90), particle.position, radius)
+
+            # input((particle.density, particle.pressure, particle.calculate_pressure_force()))
 
 
-            pygame.draw.circle(screen, (123, 12, 90), particle.get_position(), radius)
+            # print(particle.position)
 
 
-
+        for particle in particles:
+            particle.apply_forces()
 
         pygame.display.update()
 

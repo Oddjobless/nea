@@ -1,6 +1,6 @@
 import pygame
 import numpy as np
-from random import randint
+from random import randint, randrange
 class Particle:
     def __init__(self, mass, radius, vector_field, damping):
         self.damping = damping
@@ -10,8 +10,7 @@ class Particle:
 
         # self.velocity = np.array([randint(-100, 100), randint(-100, 100)], dtype=float)
         self.velocity = np.zeros(2, dtype=float)
-        self.position = np.array([randint(2 * self.radius, screen_width - 2 * self.radius),
-                                  randint(2 * self.radius, screen_height - 2 * self.radius)], dtype=float)
+        self.position = np.array([randint(2 * self.radius, screen_width - 2 * self.radius), randint(2 * self.radius, screen_height - 2 * self.radius)], dtype=float)
         self.next_position = self.position.copy()
         # self.acceleration = np.array([0,9.8]) * self.mass # short term
         self.vector_field.insert_particle(self)
@@ -27,6 +26,7 @@ class Particle:
             0] < self.radius:  # or within blocked cell
             self.velocity[0] *= -1 * self.damping
         if self.next_position[1] > screen.get_height() - self.radius or self.next_position[1] < self.radius:
+
             self.velocity[1] *= -1 * self.damping
 
         self.next_position = np.clip(self.next_position, (self.radius, self.radius),
@@ -191,19 +191,19 @@ class SpatialMap:
 
 
 screen_width, screen_height = 960, 960
-rows, columns = 3,3
+rows, columns = 10,10
 box_width, box_height = screen_width / columns, screen_height / rows
 
 clock = pygame.time.Clock()
 
-frame_rate = 30  # frames per second
+frame_rate = 60  # frames per second
 dt = 1 / frame_rate  # time elapsed between frames
 radius = 5  # radius of particles, purely for visualisation
-noOfParticles = 30  # number of particles.
+noOfParticles = 100  # number of particles.
 wall_damping = 1  # what percentage of energy the particles keep on collision with boundary
 drawGrid = True  # draw the grid lines on the screen
 using_poly_6 = True  #
 using_cubic_spline_kernel = True
-smoothing_radius = 2* box_width # will integrate this into program.
-stiffness_constant = 1000000000
+smoothing_radius = box_width # will integrate this into program.
+stiffness_constant = 1000000
 draw_distances = True
