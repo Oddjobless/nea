@@ -10,7 +10,7 @@ def run():
 
     vector_field = Container(rows, columns)
 
-    vector_field.particles.extend([ProjectileParticle(1, 60, vector_field, wall_damping, floor_damping=0.75) for _ in range(2)])  # eccentricity
+    vector_field.particles.extend([ProjectileParticle(1, 30, vector_field, wall_damping, floor_damping=0.9) for _ in range(10)])  # eccentricity
     font = pygame.font.SysFont("comicsans", int(box_width // 2.6))
     frame = 0
     mouse_rel_refresh = frame_rate * 0.5
@@ -32,8 +32,10 @@ def run():
             pygame.draw.circle(screen, (123, 12, 90), particle.position, particle.radius)
             # pygame.draw.circle(screen, (123, 12, 90), collide_x, self.radius)
 
-        if vector_field.draw_line_to_mouse:
+        if vector_field.draw_line_to_mouse and vector_field.selected_particle != None:
             pygame.draw.line(screen, (255, 0, 0), vector_field.particles[vector_field.selected_particle].position, pygame.mouse.get_pos())
+        else:
+            vector_field.draw_line_to_mouse = False
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -56,7 +58,7 @@ def run():
                 if event.button == 1 and vector_field.selected_particle != None:
                     vector_field.drop_particle()
 
-                if event.button == 3 and vector_field.selected_particle != None:
+                elif event.button == 3 and vector_field.selected_particle != None:
                     vector_field.release_projected_particle(event.pos)
 
             if vector_field.selected_particle != None and not vector_field.draw_line_to_mouse:
@@ -150,7 +152,7 @@ class Container(SpatialMap):
 
     def release_projected_particle(self, mouse_pos):
         particle = self.particles[self.selected_particle]
-        particle.velocity = (particle.position - mouse_pos) * self.projected_particle_velocity_vector
+        particle.velocity = (particle.position - np.array(mouse_pos)) * self.projected_particle_velocity_vector
         self.draw_line_to_mouse = False
         self.selected_particle = None
 
