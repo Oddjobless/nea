@@ -113,7 +113,8 @@ class SpatialMap:
     def index_to_coord(self, index):
         return (index % self.noOfCols, index // self.noOfCols)
 
-
+    def get_square_magnitude(self, vector):
+        return (vector[0] ** 2 + vector[1] ** 2)
 
     def get_neighbouring_coords(self, coord, include_diagonal=False, include_self=False, placeholder_for_boundary=False):
         row, col = coord
@@ -197,11 +198,11 @@ box_width, box_height = screen_width / columns, screen_height / rows
 
 clock = pygame.time.Clock()
 
-frame_rate = 60  # frames per second
+frame_rate = 120  # frames per second
 dt = 1 / frame_rate  # time elapsed between frames
 radius = 5  # radius of particles, purely for visualisation
 noOfParticles = 200  # number of particles.
-wall_damping = 1  # what percentage of energy the particles keep on collision with boundary
+wall_damping = 0.5  # what percentage of energy the particles keep on collision with boundary
 drawGrid = True  # draw the grid lines on the screen
 using_poly_6 = True  #
 using_cubic_spline_kernel = True
