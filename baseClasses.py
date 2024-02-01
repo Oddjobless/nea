@@ -2,9 +2,9 @@ import pygame
 import numpy as np
 from random import randint, randrange
 class Particle:
-    def __init__(self, mass, radius, vector_field, damping):
+    def __init__(self, mass, _radius, vector_field, damping):
         self.damping = damping
-        self.radius = radius  # visual only
+        self.radius = _radius  # visual only
         self.mass = mass
         self.vector_field = vector_field
 
@@ -13,7 +13,8 @@ class Particle:
         self.position = np.array([randint(2 * self.radius, screen_width - 2 * self.radius), randint(2 * self.radius, screen_height - 2 * self.radius)], dtype=float)
         self.next_position = self.position.copy()
         # self.acceleration = np.array([0,9.8]) * self.mass # short term
-        self.vector_field.insert_particle(self)
+        if self.vector_field:
+            self.vector_field.insert_particle(self)
 
 
 
