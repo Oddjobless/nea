@@ -1,6 +1,6 @@
 import pygame
 from baseClasses import *
-
+# ported from projectile sim. could make a ideal gas sim, with adjustable volume and more particles and higher temperature
 pygame.init()
 
 
@@ -11,7 +11,7 @@ def run():
 
     vector_field = Container(rows, columns)
 
-    vector_field.particles.extend([ProjectileParticle(1, 25, vector_field, wall_damping, floor_damping=1.0) for _ in range(150)])  # eccentricity
+    vector_field.particles.extend([ProjectileParticle(1, 30, vector_field, wall_damping, floor_damping=1.01) for _ in range(200)])  # eccentricity
     font = pygame.font.SysFont("comicsans", int(box_width // 2.6))
     frame = 0
     mouse_rel_refresh = frame_rate * 0.5
@@ -45,7 +45,7 @@ def run():
                 print("Ball", ball_i, "collides with", ball_j)
                 ball_i.resolve_dynamic_collision(ball_j)
                 pygame.draw.line(screen, (0, 255, 0), ball_i.position, ball_j.position)
-        vector_field.colliding_balls_pairs.clear()
+        # vector_field.colliding_balls_pairs.clear()
 
         if vector_field.draw_line_to_mouse and vector_field.selected_particle != None:
             pygame.draw.line(screen, (255, 0, 0), vector_field.particles[vector_field.selected_particle].position, pygame.mouse.get_pos())
@@ -170,7 +170,7 @@ class Container(SpatialMap):
         self.draw_line_to_mouse = False
         self.colliding_balls_pairs = []
 
-        self.air_resistance = True
+        self.air_resistance = False
         self.drag_coefficient = 0.000000001
 
     def drag_particle(self, mouse_pos):
