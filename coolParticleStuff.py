@@ -45,7 +45,7 @@ def run():
                 print("Ball", ball_i, "collides with", ball_j)
                 ball_i.resolve_dynamic_collision(ball_j)
                 pygame.draw.line(screen, (0, 255, 0), ball_i.position, ball_j.position)
-        # vector_field.colliding_balls_pairs.clear()
+        vector_field.colliding_balls_pairs.clear()
 
         if vector_field.draw_line_to_mouse and vector_field.selected_particle != None:
             pygame.draw.line(screen, (255, 0, 0), vector_field.particles[vector_field.selected_particle].position, pygame.mouse.get_pos())
@@ -165,12 +165,12 @@ class Container(SpatialMap):
         super().__init__(rows, columns)
         self.particles = []
         self.selected_particle = None
-        self.projected_particle_velocity_multiplier = 10
+        self.projected_particle_velocity_multiplier = 80
 
         self.draw_line_to_mouse = False
         self.colliding_balls_pairs = []
 
-        self.air_resistance = False
+        self.air_resistance = True
         self.drag_coefficient = 0.000000001
 
     def drag_particle(self, mouse_pos):
