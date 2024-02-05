@@ -11,10 +11,11 @@ def run():
 
     vector_field = Container(rows, columns)
 
-    vector_field.particles.extend([ProjectileParticle(1, 25, vector_field, wall_damping, floor_damping=1.0) for _ in range(150)])  # eccentricity
+    vector_field.particles.extend([ProjectileParticle(1, 25, vector_field, wall_damping, floor_damping=1.0) for _ in range(2)])  # eccentricity
     font = pygame.font.SysFont("comicsans", int(box_width // 2.6))
     frame = 0
     mouse_rel_refresh = frame_rate * 0.5
+
 
     while True:
 
@@ -90,9 +91,22 @@ def run():
 class ProjectileParticle(Particle):
     def __init__(self, mass, particle_radius, vector_field, _wall_damping, floor_damping):
         super().__init__(mass, particle_radius, vector_field, _wall_damping)
-        g = 0
+        g = 2 # 2 px / sec^2
         self.acceleration = np.array([0, g])
         self.floor_damping = floor_damping
+
+
+    def kinematics(self):
+        pass
+        # vel = [3,3]
+        # so we move 12 pixels right every tick. f = 60, so 1 * 60 pixels per second = 180 px / sec
+        # distance in pixels, lets say 720 pixels
+        # acceleration downwards should be 9.8 m/s^2. so if i use 2 px/s^, it's a conversion of 9.8:
+        # so we can
+
+
+    def px_to_metres(self, pixel_val):
+        pass
 
     def update(self, screen):
 
@@ -165,13 +179,15 @@ class Container(SpatialMap):
         super().__init__(rows, columns)
         self.particles = []
         self.selected_particle = None
-        self.projected_particle_velocity_multiplier = 10
+        self.projected_particle_velocity_multiplier = 3
 
         self.draw_line_to_mouse = False
         self.colliding_balls_pairs = []
 
         self.air_resistance = True
         self.drag_coefficient = 0.000000001
+
+        self.px_to_metres_factor = 4
 
     def drag_particle(self, mouse_pos):
         for index, particle in enumerate(self.particles):
