@@ -11,12 +11,12 @@ def run():
 
     vector_field = Container(rows, columns)
 
-    vector_field.particles.extend([ProjectileParticle(1, 25, vector_field, wall_damping, floor_damping=1.0) for _ in range(2)])  # eccentricity
-    font = pygame.font.SysFont("comicsans", int(box_width // 2.6))
+    vector_field.particles.extend([ProjectileParticle(1, 25, vector_field, wall_damping, floor_damping=1.0) for _ in range(20)])  # eccentricity
+    font = pygame.font.SysFont("comicsans", 20)
     frame = 0
     mouse_rel_refresh = frame_rate * 0.5
 
-
+# force
     while True:
 
 
@@ -37,7 +37,8 @@ def run():
 
             pygame.draw.circle(screen, (123, 12, 90), particle.position, particle.radius)
             # pygame.draw.circle(screen, (123, 12, 90), collide_x, self.radius)
-
+            text = font.render(f"{particle.get_real_velocity()[1]:1f}, {(particle.get_position()[0] * vector_field.g_multiplier):1f}", True, (255, 255, 255))
+            screen.blit(text, particle.get_position() - np.array([0, 80]))
 
         completed = set()
         for ball_i, ball_j in vector_field.colliding_balls_pairs:
@@ -91,22 +92,29 @@ def run():
 class ProjectileParticle(Particle):
     def __init__(self, mass, particle_radius, vector_field, _wall_damping, floor_damping):
         super().__init__(mass, particle_radius, vector_field, _wall_damping)
-        g = 2 # 2 px / sec^2
-        self.acceleration = np.array([0, g])
-        self.floor_damping = floor_damping
 
+        self.acceleration = np.array([0, self.vector_field.g])
+        self.floor_damping = floor_damping
 
     def kinematics(self):
         pass
         # vel = [3,3]
         # so we move 12 pixels right every tick. f = 60, so 1 * 60 pixels per second = 180 px / sec
         # distance in pixels, lets say 720 pixels
-        # acceleration downwards should be 9.8 m/s^2. so if i use 2 px/s^, it's a conversion of 9.8:
-        # so we can
-
+        # acceleration downwards should be 9.8 m/s^2. so if i use 2 px/s^, it's a conversion to 9.8:
 
     def px_to_metres(self, pixel_val):
-        pass
+        return self.vector_field.g_multiplier * pixel_val
+
+    def get_real_acceleration(self):
+        return self.px_to_metres(self.acceleration)
+
+    def get_real_velocity(self, ):
+        return self.px_to_metres(self.velocity)
+
+    def get_real_distance(self, val):
+        return self.px_to_metres(val)
+
 
     def update(self, screen):
 
@@ -184,10 +192,16 @@ class Container(SpatialMap):
         self.draw_line_to_mouse = False
         self.colliding_balls_pairs = []
 
-        self.air_resistance = True
+        self.air_resistance = False
         self.drag_coefficient = 0.000000001
 
+        self.g = 9.8
+        self.g_multiplier = 9.8 / self.g
+
         self.px_to_metres_factor = 4
+
+
+
 
     def drag_particle(self, mouse_pos):
         for index, particle in enumerate(self.particles):
