@@ -1,8 +1,27 @@
 import pygame
 from baseClasses import *
-
+# ported from projectile sim. could make a ideal gas sim, with adjustable volume and more particles and higher temperature
 pygame.init()
+import pymunk
+import pymunk.pygame_util
 
+class Object:
+    def __init__(self, space, radius, mass):
+        self.body = pymunk.Body()
+        self.body.position = (100, 100)
+        self.shape = pymunk.Circle(self.body, radius)
+        self.shape.mass = mass
+        self.shape.color = (123, 12, 90, 100)
+        self.shape.elasticity = 1
+        self.shape.friction = 0
+        space.add(self.body, self.shape)
+
+
+def calculate_distance(p1, p2):
+    return np.sqrt((p2[1] - p1[1]) ** 2 + (p2[0] - p1[0]) ** 2)
+
+def calculate_angle(p1, p2):
+    return np.arctan2(p2[1] - p1[1], p2[0] - p1[0])
 
 def run():
     screen_width, screen_height = 1920, 1080
@@ -11,40 +30,60 @@ def run():
 
     vector_field = Container(rows, columns)
 
-    vector_field.particles.extend([ProjectileParticle(1, 25, vector_field, wall_damping, floor_damping=1.0) for _ in range(100)])  # eccentricity
-    font = pygame.font.SysFont("comicsans", 20)
+    vector_field.particles.extend([ProjectileParticle(1, 30, vector_field, wall_damping, floor_damping=1.00) for _ in range(100)])  # eccentricity
+    font = pygame.font.SysFont("comicsans", int(box_width // 2.6))
     frame = 0
-    mouse_rel_refresh = frame_rate * 0.5
+    mouse_rel_refresh = frame_rate * 0.5##
 
-# force
+
+    space = pymunk.Space()
+    space.gravity = (0.0, 981)
+    draw_options = pymunk.pygame_util.DrawOptions(screen)
+
+    pressed_pos = None
+    ball = None
+
+    ball = Object(space, 40, 2)
+    width, height = 1920, 1080
+
+
+    rects = [
+        [(width / 2, height - 10), (width, 20)],
+        [(width / 2, 10), (width, 20)],
+        [(10, height/2), (20, height)],
+        [(width - 10, height / 2), (20, height)]
+    ]
+    for position, size in rects:
+        body = pymunk.Body(body_type=pymunk.Body.STATIC)
+        body.position = position
+        shape = pymunk.Poly.create_box(body, size)
+        space.add(body, shape)
+        shape.elasticity = 1
+        shape.friction = 0.5
+
+
     while True:
 
-
+        screen.fill((70, 69, 5))
 
         ### drawing vectorField
-        screen.fill((70, 69, 5))
+
+        space.debug_draw(draw_options)
 
         # logic goes here
 
-        for index, particle in enumerate(vector_field.particles):
+        """for index, particle in enumerate(vector_field.particles):
 
             particle.update(screen)
-
             if vector_field.air_resistance:
                 particle.apply_air_resistance()
 
         for particle in vector_field.particles:
-            particle.collision_event_obstacles()
             particle.collision_event()
-
 
             pygame.draw.circle(screen, (123, 12, 90), particle.position, particle.radius)
             # pygame.draw.circle(screen, (123, 12, 90), collide_x, self.radius)
-            text = font.render(f"{particle.get_real_velocity()[1]:1f}, {(particle.get_position()[0] * vector_field.g_multiplier):1f}", True, (255, 255, 255))
-            screen.blit(text, particle.get_position() - np.array([0, 80]))
 
-        for obstacle in vector_field.obstacles:
-            obstacle.draw(screen)
 
         completed = set()
         for ball_i, ball_j in vector_field.colliding_balls_pairs:
@@ -58,15 +97,17 @@ def run():
         if vector_field.draw_line_to_mouse and vector_field.selected_particle != None:
             pygame.draw.line(screen, (255, 0, 0), vector_field.particles[vector_field.selected_particle].position, pygame.mouse.get_pos())
         else:
-            vector_field.draw_line_to_mouse = False
+            vector_field.draw_line_to_mouse = False"""
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 return
 
-
             if event.type == pygame.MOUSEBUTTONDOWN:
+                ball.body.apply_impulse_at_local_point((100,0), (0,0))
+
+            """if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1 and vector_field.selected_particle == None:
                     vector_field.drag_particle(event.pos)
                     print("adf")
@@ -85,12 +126,14 @@ def run():
                     vector_field.release_projected_particle(event.pos)
 
             if vector_field.selected_particle != None and not vector_field.draw_line_to_mouse:
-                vector_field.move_selected_particle(event.pos)
+                vector_field.move_selected_particle(event.pos)"""
 
 
 
         pygame.display.update()
 
+
+        space.step(dt)
         clock.tick(frame_rate)
 
 
@@ -98,68 +141,10 @@ def run():
 class ProjectileParticle(Particle):
     def __init__(self, mass, particle_radius, vector_field, _wall_damping, floor_damping):
         super().__init__(mass, particle_radius, vector_field, _wall_damping)
-
-        self.acceleration = np.array([0, self.vector_field.g])
+        g = 0
+        self.acceleration = np.array([0, g])
         self.floor_damping = floor_damping
 
-    def kinematics(self):
-        pass
-        # vel = [3,3]
-        # so we move 12 pixels right every tick. f = 60, so 1 * 60 pixels per second = 180 px / sec
-        # distance in pixels, lets say 720 pixels
-        # acceleration downwards should be 9.8 m/s^2. so if i use 2 px/s^, it's a conversion to 9.8:
-
-    def px_to_metres(self, pixel_val):
-        return self.vector_field.g_multiplier * pixel_val
-
-    def get_real_acceleration(self):
-        return self.px_to_metres(self.acceleration)
-
-    def get_real_velocity(self, ):
-        return self.px_to_metres(self.velocity)
-
-    def get_real_distance(self, val):
-        return self.px_to_metres(val)
-
-    def collision_event_obstacles(self):
-        for obstacle in self.vector_field.obstacles:
-            if self.check_obstacle_collision(obstacle):
-
-                return self.resolve_obstacle_collision(obstacle)
-
-    def resolve_obstacle_collision(self, obstacle):
-        # Calculate the displacement vector from the rectangle to the circle
-        displacement = self.next_position - np.array([max(obstacle.position[0], min(self.next_position[0], obstacle.position[0] + obstacle.width)),
-                                                      max(obstacle.position[1], min(self.next_position[1], obstacle.position[1] + obstacle.height))])
-
-        # Calculate the penetration depth for both x and y directions
-        penetration_x = max(0, self.radius - abs(displacement[0]))
-        penetration_y = max(0, self.radius - abs(displacement[1]))
-
-        # Determine the direction of displacement
-        direction_x = 1 if displacement[0] > 0 else -1
-        direction_y = 1 if displacement[1] > 0 else -1
-
-        # Resolve the collision by moving the circle outside the rectangle
-        if penetration_x < penetration_y:
-            # Collided in x-direction
-            self.next_position[0] += penetration_x * direction_x
-            self.velocity[0] *= -1 * self.damping
-        else:
-            # Collided in y-direction
-            self.next_position[1] += penetration_y * direction_y
-            self.velocity[1] *= -1 * self.damping
-
-    def check_obstacle_collision(self, obstacle):
-        # Calculate the closest point on the rectangle to the circle
-        closest_x = max(obstacle.position[0], min(self.next_position[0], obstacle.position[0] + obstacle.width))
-        closest_y = max(obstacle.position[1], min(self.next_position[1], obstacle.position[1] + obstacle.height))
-
-        # Calculate the distance between the circle's center and the closest point on the rectangle
-        distance = np.sqrt((self.next_position[0] - closest_x) ** 2 + (self.next_position[1] - closest_y) ** 2)
-
-        # Check if the distance is less than the circle's radius
-        return distance < self.radius
     def update(self, screen):
 
         self.next_position = self.position + self.velocity * dt
@@ -225,43 +210,19 @@ class ProjectileParticle(Particle):
         self.velocity = tangential_vel_i + normal_vel_i
         next_particle.velocity = tangential_vel_j + normal_vel_j
 
-class Obstacle:
-    def __init__(self, position, width, height):
-        self.position = np.array(position)
-        self.width, self.height = width, height
-
-    def draw(self, screen):
-        pygame.draw.rect(screen, (255, 0, 0), (self.position[0], self.position[1], self.width, self.height))
-
 
 class Container(SpatialMap):
     def __init__(self, rows, columns):
         super().__init__(rows, columns)
         self.particles = []
         self.selected_particle = None
-        self.projected_particle_velocity_multiplier = 3
+        self.projected_particle_velocity_multiplier = 80
 
         self.draw_line_to_mouse = False
         self.colliding_balls_pairs = []
 
-        self.air_resistance = False
+        self.air_resistance = True
         self.drag_coefficient = 0.000000001
-
-        self.g = 9.8
-        self.g_multiplier = 9.8 / self.g
-
-        self.px_to_metres_factor = 4
-
-        self.obstacles = []
-        self.initialise_level("ProjectileMotionLevels/lvl1")
-
-
-    def initialise_level(self, file_name):
-        with open(file_name, "r") as file:
-            for line in file:
-                line = line.split(",")
-                self.obstacles.append(Obstacle((int(line[0]), int(line[1])), int(line[2]), int(line[3])))
-
 
     def drag_particle(self, mouse_pos):
         for index, particle in enumerate(self.particles):
