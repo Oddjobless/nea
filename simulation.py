@@ -90,8 +90,8 @@ def run():
         # total_density = 0
         for particle in particles:
 
-            # particle.calculate_density()  # todo i want it to do this less often
-            # particle.calculate_pressure()  # todo ditto
+            # particle.calculate_density()  #
+            # particle.calculate_pressure()  #
 
             # print(particle.get_pressure_force())
             # total_density += particle.density

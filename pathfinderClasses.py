@@ -4,8 +4,8 @@ import numpy as np
 
 from baseClasses import *
 # todo euclidean distance?? max(x_2-x_1,y_2-y_1) + (sqrt(2) - 1) * min(x_2-x_1,y_2-y_1): DONE
-# TODO deal with blocked cells no idea how to. maybe set particle velocity to zero upon hitting blocked cell? or cell has reverse velocity of neighbouring cell?
-# TODO  mouse interaction...
+#  deal with blocked cells no idea how to. maybe set particle velocity to zero upon hitting blocked cell? or cell has reverse velocity of neighbouring cell?
+#   mouse interaction...
 
 #
 class Pathfinder(Particle):
@@ -61,9 +61,6 @@ class VelocityField(SpatialMap):
         self.print_visited()
         self.blocked_cell_radius = box_width
         # self.particle_damping = 0.996 # dont like this
-
-
-        # todo: increase force of blcok on particle. do not normalise
 
 
     def print_visited(self):

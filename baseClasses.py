@@ -98,7 +98,7 @@ class SpatialMap:
         coords = np.column_stack((xValues.ravel(), yValues.ravel()))
         return coords
 
-    def hash_position(self, position): # todo this
+    def hash_position(self, position):
         try:
             return self.coord_to_index((int(position[0] / box_width), int(position[1] / box_height)))
         except ValueError:
@@ -206,6 +206,6 @@ wall_damping = 1.0  # what percentage of energy the particles keep on collision 
 drawGrid = True  # draw the grid lines on the screen
 using_poly_6 = True  #
 using_cubic_spline_kernel = True
-smoothing_radius = box_width # will integrate this into program.# todo
+smoothing_radius = box_width # will integrate this into program.#
 stiffness_constant = 10
 draw_distances = True
