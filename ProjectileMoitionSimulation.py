@@ -63,12 +63,16 @@ def run():
             if vector_field.air_resistance:
                 particle.apply_air_resistance()
 
+        # pygame.draw.circle(screen, (169, 130, 85), vector_field.goal.position, vector_field.goal.radius)
+        vector_field.goal.draw(screen)
+
         for particle in vector_field.particles:
             particle.collision_event_obstacles()
             particle.collision_event()
+            particle.collision_event_goal()
 
 
-            pygame.draw.circle(screen, (123, 12, 90), particle.position, particle.radius)
+            particle.draw(screen)
             # pygame.draw.circle(screen, (123, 12, 90), collide_x, self.radius)
             text = font.render(f"{particle.get_real_velocity()[1]:1f}, {(particle.get_position()[0] * vector_field.g_multiplier):1f}", True, (255, 255, 255))
             screen.blit(text, particle.get_position() - np.array([0, 80]))
@@ -80,7 +84,7 @@ def run():
         for ball_i, ball_j in vector_field.colliding_balls_pairs:
             completed.add(ball_i)
             if ball_j not in completed:
-                print("Ball", ball_i, "collides with", ball_j)
+                # print("Ball", ball_i, "collides with", ball_j)
                 ball_i.resolve_dynamic_collision(ball_j)
                 pygame.draw.line(screen, (0, 255, 0), ball_i.position, ball_j.position)
         vector_field.colliding_balls_pairs.clear()
@@ -89,8 +93,7 @@ def run():
             pygame.draw.line(screen, (255, 0, 0), vector_field.particles[vector_field.selected_particle].position, pygame.mouse.get_pos())
         else:
             vector_field.draw_line_to_mouse = False
-        print(vector_field.goal.position)
-        pygame.draw.circle(screen, (169,130,85), vector_field.goal.position, vector_field.goal.radius)
+
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -133,6 +136,9 @@ class ProjectileParticle(Particle):
 
         self.acceleration = np.array([0, self.vector_field.g])
         self.floor_damping = floor_damping
+        self.colour = (43,132,154)
+    def draw(self, screen):
+        pygame.draw.circle(screen, self.colour, self.position, self.radius)
 
     def kinematics(self):
         pass
@@ -172,17 +178,27 @@ class ProjectileParticle(Particle):
         direction_x = 1 if displacement[0] > 0 else -1
         direction_y = 1 if displacement[1] > 0 else -1
 
-        # Resolve the collision by moving the circle outside the rectangle
+
+        if obstacle.is_platform:
+            damping = 0.1
+        else:
+            damping = self.damping
+
+
         if penetration_x < penetration_y:
             # Collided in x-direction
             self.next_position[0] += penetration_x * direction_x
-            self.velocity[0] *= -1 * self.damping
+            self.velocity[0] *= -1 * damping
+            if obstacle.is_platform:
+                self.velocity[1] *= -1 * damping
         else:
             # Collided in y-direction
             self.next_position[1] += penetration_y * direction_y
-            self.velocity[1] *= -1 * self.damping
+            self.velocity[1] *= -1 * damping
+            if obstacle.is_platform:
+                self.velocity[0] *= -1 * damping
 
-    def check_obstacle_collision(self, obstacle):
+    def check_obstacle_collision(self, obstacle, custom_radius=None):
         # Calculate the closest point on the rectangle to the circle
         closest_x = max(obstacle.position[0], min(self.next_position[0], obstacle.position[0] + obstacle.width))
         closest_y = max(obstacle.position[1], min(self.next_position[1], obstacle.position[1] + obstacle.height))
@@ -191,10 +207,19 @@ class ProjectileParticle(Particle):
         distance = np.sqrt((self.next_position[0] - closest_x) ** 2 + (self.next_position[1] - closest_y) ** 2)
 
         # Check if the distance is less than the circle's radius
-        return distance < self.radius
+        if not custom_radius:
+            return distance < self.radius
+        print(distance, self.radius)
+        return distance < custom_radius
 
-    def check_goal_collision(self):
-        pass
+    def collision_event_goal(self):
+        goal = self.vector_field.goal
+        if self.check_obstacle_collision(goal, custom_radius=0.01):
+            self.velocity *= 0
+            self.colour = (255,255,255)
+            # self.acceleration *= 0
+
+
     def update(self, screen):
 
         self.next_position = self.position + self.velocity * dt
@@ -266,9 +291,11 @@ class Obstacle:
     def __init__(self, position, width, height):
         self.position = np.array(position)
         self.width, self.height = width, height
+        self.colour = (255, 0, 0)
+        self.is_platform = False
 
     def draw(self, screen):
-        pygame.draw.rect(screen, (255, 0, 0), (self.position[0], self.position[1], self.width, self.height))
+        pygame.draw.rect(screen, self.colour, (self.position[0], self.position[1], self.width, self.height))
 
 
 class Container(SpatialMap):
@@ -290,9 +317,9 @@ class Container(SpatialMap):
         self.px_to_metres_factor = 4
 
         self.obstacles = []
-        self.initialise_level("ProjectileMotionLevels/lvl1")
+        self.initialise_level("ProjectileMotionLevels/lvl2")
 
-        self.goal3 = None
+
 
 
 
@@ -302,12 +329,17 @@ class Container(SpatialMap):
             self.initialise_goal(goal.split(","))
             for line in file:
                 line = line.split(",")
-                self.obstacles.append(Obstacle((int(line[0]), int(line[1])), int(line[2]), int(line[3])))
+                object = Obstacle((int(line[0]), int(line[1])), int(line[2]), int(line[3]))
+                self.obstacles.append(object)
+                if int(line[4]):
+                    object.is_platform = True
+                    object.colour = (37,41,74)
 
     def initialise_goal(self, goal):
-        self.goal = Particle(0, int(goal[0]), self, 0)
-        self.goal.position = np.array([int(goal[1]), int(goal[2])])
-
+        # self.goal = Particle(0, int(goal[0]), self, 0)
+        self.goal = Obstacle((int(goal[0]), int(goal[1])),int(goal[2]), int(goal[3]))
+        # self.goal.position = np.array([int(goal[1]), int(goal[2])])
+        self.goal.colour = (255,105,180) # hot pink color
 
 
 
