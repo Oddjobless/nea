@@ -41,7 +41,7 @@ def run():
 
     vector_field = Container(rows, columns)
 
-    vector_field.particles.extend([ProjectileParticle(1, 25, vector_field, wall_damping, floor_damping=0.7) for _ in range(6)])  # eccentricity
+    vector_field.particles.extend([ProjectileParticle(1, 15, vector_field, wall_damping, floor_damping=0.7) for _ in range(6)])  # eccentricity
     font = pygame.font.SysFont("comicsans", 20)
     frame = 0
     mouse_rel_refresh = frame_rate * 0.5
