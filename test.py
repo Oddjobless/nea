@@ -107,6 +107,7 @@ def run():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 ball.body.apply_impulse_at_local_point((100,0), (0,0))
 
+
             """if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1 and vector_field.selected_particle == None:
                     vector_field.drag_particle(event.pos)

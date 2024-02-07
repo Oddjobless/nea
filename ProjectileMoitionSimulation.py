@@ -1,7 +1,6 @@
 import pygame
 from baseClasses import *
 
-pygame.init()
 
 
 def draw_mode():

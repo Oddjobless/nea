@@ -1,6 +1,8 @@
 import pygame
 import numpy as np
 from random import randint, randrange
+pygame.init()
+
 class Particle:
     def __init__(self, mass, _radius, vector_field, damping):
         self.damping = damping
