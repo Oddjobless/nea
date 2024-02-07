@@ -4,6 +4,36 @@ from baseClasses import *
 pygame.init()
 
 
+def draw_mode():
+    screen = pygame.display.set_mode((1920,1080))
+    obstacles = []
+    level_name = ""
+    while True:
+        screen.fill((169, 130, 40))
+
+        for obstacle in obstacles:
+            obstacle.draw(screen)
+
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                return
+
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                pass
+
+
+            elif event.type == pygame.MOUSEBUTTONUP:
+                if event.button == 1:
+                    pass
+
+                elif event.button == 3:
+                    pass
+
+
+
 def run():
     screen_width, screen_height = 1920, 1080
     screen = pygame.display.set_mode((screen_width, screen_height))
@@ -11,7 +41,7 @@ def run():
 
     vector_field = Container(rows, columns)
 
-    vector_field.particles.extend([ProjectileParticle(1, 25, vector_field, wall_damping, floor_damping=0.7) for _ in range(100)])  # eccentricity
+    vector_field.particles.extend([ProjectileParticle(1, 25, vector_field, wall_damping, floor_damping=0.7) for _ in range(6)])  # eccentricity
     font = pygame.font.SysFont("comicsans", 20)
     frame = 0
     mouse_rel_refresh = frame_rate * 0.5
@@ -225,6 +255,8 @@ class ProjectileParticle(Particle):
         self.velocity = tangential_vel_i + normal_vel_i
         next_particle.velocity = tangential_vel_j + normal_vel_j
 
+
+
 class Obstacle:
     def __init__(self, position, width, height):
         self.position = np.array(position)
@@ -256,8 +288,11 @@ class Container(SpatialMap):
         self.initialise_level("ProjectileMotionLevels/lvl1")
 
 
+
+
     def initialise_level(self, file_name):
         with open(file_name, "r") as file:
+
             for line in file:
                 line = line.split(",")
                 self.obstacles.append(Obstacle((int(line[0]), int(line[1])), int(line[2]), int(line[3])))
