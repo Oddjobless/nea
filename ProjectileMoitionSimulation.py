@@ -89,6 +89,8 @@ def run():
             pygame.draw.line(screen, (255, 0, 0), vector_field.particles[vector_field.selected_particle].position, pygame.mouse.get_pos())
         else:
             vector_field.draw_line_to_mouse = False
+        print(vector_field.goal.position)
+        pygame.draw.circle(screen, (169,130,85), vector_field.goal.position, vector_field.goal.radius)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -190,6 +192,9 @@ class ProjectileParticle(Particle):
 
         # Check if the distance is less than the circle's radius
         return distance < self.radius
+
+    def check_goal_collision(self):
+        pass
     def update(self, screen):
 
         self.next_position = self.position + self.velocity * dt
@@ -287,15 +292,24 @@ class Container(SpatialMap):
         self.obstacles = []
         self.initialise_level("ProjectileMotionLevels/lvl1")
 
+        self.goal3 = None
 
 
 
     def initialise_level(self, file_name):
         with open(file_name, "r") as file:
-
+            goal = file.readline()
+            self.initialise_goal(goal.split(","))
             for line in file:
                 line = line.split(",")
                 self.obstacles.append(Obstacle((int(line[0]), int(line[1])), int(line[2]), int(line[3])))
+
+    def initialise_goal(self, goal):
+        self.goal = Particle(0, int(goal[0]), self, 0)
+        self.goal.position = np.array([int(goal[1]), int(goal[2])])
+
+
+
 
 
     def drag_particle(self, mouse_pos):
