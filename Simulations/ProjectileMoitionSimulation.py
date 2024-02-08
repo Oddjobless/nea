@@ -4,6 +4,7 @@ from baseClasses import *
 
 
 def draw_mode():
+
     screen = pygame.display.set_mode((1920,1080))
     obstacles = []
     level_name = ""
@@ -34,7 +35,9 @@ def draw_mode():
 
 
 def run():
-    screen_width, screen_height = 1920, 1080
+
+    pygame.init()
+    # screen_width, screen_height = 1920, 1080
     screen = pygame.display.set_mode((screen_width, screen_height))
     pygame.display.set_caption("Pygame Boilerplate")
 
@@ -44,6 +47,8 @@ def run():
     font = pygame.font.SysFont("comicsans", 20)
     frame = 0
     mouse_rel_refresh = frame_rate * 0.5
+
+    clock = pygame.time.Clock()
 
 # force
     while True:
@@ -98,6 +103,10 @@ def run():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 return
+            elif event.type == pygame.KEYUP:
+                if event.key == pygame.K_q:
+                    pygame.quit()
+                    return
 
 
             if event.type == pygame.MOUSEBUTTONDOWN:
@@ -316,7 +325,7 @@ class Container(SpatialMap):
         self.px_to_metres_factor = 4
 
         self.obstacles = []
-        self.initialise_level("ProjectileMotionLevels/lvl2")
+        self.initialise_level("./ProjectileMotionLevels/lvl2")
 
 
 

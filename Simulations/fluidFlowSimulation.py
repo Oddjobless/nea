@@ -31,12 +31,13 @@ from fluidFlowClasses import *
 
 
 
-pygame.init()
+
 
 
 
 
 def run():
+    pygame.init()
     screen = pygame.display.set_mode((screen_width, screen_height))
     pygame.display.set_caption("Pygame Boilerplate")
 
@@ -46,7 +47,7 @@ def run():
     print("high")
     vector_field.calculate_rest_density(particles) # integrate into __init
 
-
+    clock = pygame.time.Clock()
 
 
     while True:
@@ -54,6 +55,10 @@ def run():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 return
+            elif event.type == pygame.KEYUP:
+                if event.key == pygame.K_q:
+                    pygame.quit()
+                    return
 
 
         ### drawing vectorField

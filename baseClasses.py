@@ -1,7 +1,6 @@
 import pygame
 import numpy as np
 from random import randint, randrange
-pygame.init()
 
 class Particle:
     def __init__(self, mass, _radius, vector_field, damping):
@@ -198,7 +197,6 @@ screen_width, screen_height = 1920, 1080 # 960, 960
 rows, columns = 16,16
 box_width, box_height = screen_width / columns, screen_height / rows
 
-clock = pygame.time.Clock()
 
 frame_rate = 75  # frames per second
 dt = 1 / frame_rate  # time elapsed between frames

@@ -1,6 +1,6 @@
 import pygame
+# from pathfinderClasses import *
 from pathfinderClasses import *
-
 
 
 # todo: , euclidean), , deal with fluid flow sim, back to this, kernel convolution, steering,
@@ -16,12 +16,13 @@ OPTION 2 LIKELY BETTER THOUGH
 
 
 
-pygame.init()
 
 
 
 
 def run():
+    pygame.init()
+
     screen = pygame.display.set_mode((screen_width, screen_height))
     pygame.display.set_caption("Pygame Boilerplate")
 
@@ -32,13 +33,17 @@ def run():
     # vector_field.calculate_rest_density(particles) # integrate into __init
     font = pygame.font.SysFont("comicsans", int(box_width // 2.6))
 
-
+    clock = pygame.time.Clock()
 
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 return
+            elif event.type == pygame.KEYUP:
+                if event.key == pygame.K_q:
+                    pygame.quit()
+                    return
 
             click_event = pygame.mouse.get_pressed()
             if any(click_event):

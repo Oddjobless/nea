@@ -1,29 +1,12 @@
 import pygame
 from baseClasses import *
 # ported from projectile sim. could make a ideal gas sim, with adjustable volume and more particles and higher temperature
-pygame.init()
-import pymunk
-import pymunk.pygame_util
-
-class Object:
-    def __init__(self, space, radius, mass):
-        self.body = pymunk.Body()
-        self.body.position = (100, 100)
-        self.shape = pymunk.Circle(self.body, radius)
-        self.shape.mass = mass
-        self.shape.color = (123, 12, 90, 100)
-        self.shape.elasticity = 1
-        self.shape.friction = 0
-        space.add(self.body, self.shape)
 
 
-def calculate_distance(p1, p2):
-    return np.sqrt((p2[1] - p1[1]) ** 2 + (p2[0] - p1[0]) ** 2)
-
-def calculate_angle(p1, p2):
-    return np.arctan2(p2[1] - p1[1], p2[0] - p1[0])
 
 def run():
+    pygame.init()
+
     screen_width, screen_height = 1920, 1080
     screen = pygame.display.set_mode((screen_width, screen_height))
     pygame.display.set_caption("Pygame Boilerplate")
@@ -33,46 +16,20 @@ def run():
     vector_field.particles.extend([ProjectileParticle(1, 30, vector_field, wall_damping, floor_damping=1.00) for _ in range(100)])  # eccentricity
     font = pygame.font.SysFont("comicsans", int(box_width // 2.6))
     frame = 0
-    mouse_rel_refresh = frame_rate * 0.5##
+    mouse_rel_refresh = frame_rate * 0.5
 
 
-    space = pymunk.Space()
-    space.gravity = (0.0, 981)
-    draw_options = pymunk.pygame_util.DrawOptions(screen)
-
-    pressed_pos = None
-    ball = None
-
-    ball = Object(space, 40, 2)
-    width, height = 1920, 1080
-
-
-    rects = [
-        [(width / 2, height - 10), (width, 20)],
-        [(width / 2, 10), (width, 20)],
-        [(10, height/2), (20, height)],
-        [(width - 10, height / 2), (20, height)]
-    ]
-    for position, size in rects:
-        body = pymunk.Body(body_type=pymunk.Body.STATIC)
-        body.position = position
-        shape = pymunk.Poly.create_box(body, size)
-        space.add(body, shape)
-        shape.elasticity = 1
-        shape.friction = 0.5
-
-
+    clock = pygame.time.Clock()
     while True:
 
-        screen.fill((70, 69, 5))
+
 
         ### drawing vectorField
-
-        space.debug_draw(draw_options)
+        screen.fill((70, 69, 5))
 
         # logic goes here
 
-        """for index, particle in enumerate(vector_field.particles):
+        for index, particle in enumerate(vector_field.particles):
 
             particle.update(screen)
             if vector_field.air_resistance:
@@ -97,18 +54,20 @@ def run():
         if vector_field.draw_line_to_mouse and vector_field.selected_particle != None:
             pygame.draw.line(screen, (255, 0, 0), vector_field.particles[vector_field.selected_particle].position, pygame.mouse.get_pos())
         else:
-            vector_field.draw_line_to_mouse = False"""
+            vector_field.draw_line_to_mouse = False
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 return
 
+            elif event.type == pygame.KEYUP:
+                if event.key == pygame.K_q:
+                    pygame.quit()
+                    return
+
+
             if event.type == pygame.MOUSEBUTTONDOWN:
-                ball.body.apply_impulse_at_local_point((100,0), (0,0))
-
-
-            """if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1 and vector_field.selected_particle == None:
                     vector_field.drag_particle(event.pos)
                     print("adf")
@@ -127,14 +86,12 @@ def run():
                     vector_field.release_projected_particle(event.pos)
 
             if vector_field.selected_particle != None and not vector_field.draw_line_to_mouse:
-                vector_field.move_selected_particle(event.pos)"""
+                vector_field.move_selected_particle(event.pos)
 
 
 
         pygame.display.update()
 
-
-        space.step(dt)
         clock.tick(frame_rate)
 
 
