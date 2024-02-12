@@ -28,7 +28,7 @@ def run():
 
     vector_field = VelocityField(rows, columns)
 
-    vector_field.particles = [Pathfinder(10, radius, vector_field, wall_damping) for _ in range(noOfParticles)]
+    vector_field.particles = [Pathfinder(radius//3, radius, vector_field, wall_damping) for _ in range(noOfParticles)]
     # vector_field.calculate_rest_density(particles) # integrate into __init
     font = pygame.font.SysFont("comicsans", int(box_width // 2.6))
 
@@ -50,6 +50,17 @@ def run():
                 if event.key == pygame.K_q:
                     pygame.quit()
                     return
+                elif event.key == pygame.K_a: # switch between adding particles and changing goal
+                    vector_field.is_adding_particles = not vector_field.is_adding_particles
+                elif event.key == pygame.K_c: # toggle collisions, laggy
+                    vector_field.enable_collision_between_particles = not vector_field.enable_collision_between_particles
+                elif event.key == pygame.K_EQUALS:
+                    print("asdfdfsa")
+                    vector_field.particle_to_add_radius += 1
+                    if vector_field.particle_to_add_radius < 3:
+                        vector_field.particle_to_add_radius = 3
+                elif event.key == pygame.K_MINUS:
+                    vector_field.particle_to_add_radius -= 1
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 3:
                     cell = vector_field.index_to_coord(vector_field.hash_position(pygame.mouse.get_pos()))
@@ -61,9 +72,12 @@ def run():
                 pos_cell_index = vector_field.index_to_coord(vector_field.hash_position(pygame.mouse.get_pos()))
                 if click_event[0]: # LEFT CLICK
                     vector_field.update_velocity_field(pos_cell_index)
-                elif click_event[2]: # RIGHT CLICK
-                    vector_field.toggle_blocked_cell(pos_cell_index)
 
+                elif click_event[2]: # RIGHT CLICK
+                    if not vector_field.is_adding_particles:
+                        vector_field.toggle_blocked_cell(pos_cell_index)
+                    else:
+                        vector_field.add_particle(pygame.mouse.get_pos())
         ### drawing vectorField
         screen.fill((0, 69, 180))
 
@@ -117,7 +131,7 @@ def run():
 
             # print(particle.get_pressure_force())
             # total_density += particle.density
-            pygame.draw.circle(screen, (123,12,90), particle.get_position(), radius)
+            pygame.draw.circle(screen, (123,12,90), particle.get_position(), particle.radius)
 
 
 

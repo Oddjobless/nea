@@ -3,7 +3,7 @@ import numpy as np
 from random import randint, randrange
 
 class Particle:
-    def __init__(self, mass, _radius, vector_field, damping):
+    def __init__(self, mass, _radius, vector_field, damping, position=None):
         self.damping = damping
         self.radius = _radius  # visual only
         self.mass = mass
@@ -11,7 +11,10 @@ class Particle:
 
         # self.velocity = np.array([randint(-100, 100), randint(-100, 100)], dtype=float)
         self.velocity = np.zeros(2, dtype=float)
-        self.position = np.array([randint(2 * self.radius, screen_width - 2 * self.radius), randint(2 * self.radius, screen_height - 2 * self.radius)], dtype=float)
+        if position is not None:
+            self.position = position
+        else:
+            self.position = np.array([randint(2 * self.radius, screen_width - 2 * self.radius), randint(2 * self.radius, screen_height - 2 * self.radius)], dtype=float)
         self.next_position = self.position.copy()
         # self.acceleration = np.array([0,9.8]) * self.mass # short term
         if self.vector_field:
@@ -22,7 +25,58 @@ class Particle:
         """self.spatial_map_update_frequency = 4  # 1 / 4 frames update the spatial map
         self.spatial_map_update_counter = 0"""
 
+    def collision_event_obstacles(self):
+        for obstacle in self.vector_field.obstacles:
+            if self.check_obstacle_collision(obstacle.position, obstacle.width, obstacle.height):
 
+                return self.resolve_obstacle_collision(obstacle)
+
+    def resolve_obstacle_collision(self, obstacle):
+        # Calculate the displacement vector from the rectangle to the circle
+        displacement = self.next_position - np.array([max(obstacle.position[0], min(self.next_position[0], obstacle.position[0] + obstacle.width)),
+                                                      max(obstacle.position[1], min(self.next_position[1], obstacle.position[1] + obstacle.height))])
+
+        # Calculate the penetration depth for both x and y directions
+        penetration_x = max(0, self.radius - abs(displacement[0]))
+        penetration_y = max(0, self.radius - abs(displacement[1]))
+
+        # Determine the direction of displacement
+        direction_x = 1 if displacement[0] > 0 else -1
+        direction_y = 1 if displacement[1] > 0 else -1
+
+
+        if obstacle.is_platform:
+            damping = 0.1
+        else:
+            damping = self.damping
+
+
+        if penetration_x < penetration_y:
+            # Collided in x-direction
+            self.next_position[0] += penetration_x * direction_x
+            self.velocity[0] *= -1 * damping
+            if obstacle.is_platform:
+                self.velocity[1] *= -1 * damping
+        else:
+            # Collided in y-direction
+            self.next_position[1] += penetration_y * direction_y
+            self.velocity[1] *= -1 * damping
+            if obstacle.is_platform:
+                self.velocity[0] *= -1 * damping
+
+    def check_obstacle_collision(self, obstacle_pos, width, height, custom_radius=None):
+        # Calculate the closest point on the rectangle to the circle
+        closest_x = max(obstacle_pos[0], min(self.next_position[0], obstacle_pos[0] + width))
+        closest_y = max(obstacle_pos[1], min(self.next_position[1], obstacle_pos[1] + height))
+
+        # Calculate the distance between the circle's center and the closest point on the rectangle
+        distance = np.sqrt((self.next_position[0] - closest_x) ** 2 + (self.next_position[1] - closest_y) ** 2)
+
+        # Check if the distance is less than the circle's radius
+        if not custom_radius:
+            return distance < self.radius
+        print(distance, self.radius)
+        return distance < custom_radius
     def update(self, screen):
         if self.next_position[0] > screen.get_width() - (1.5 * self.radius) or self.next_position[
             0] < 1.5 * self.radius:  # or within blocked cell
@@ -42,7 +96,7 @@ class Particle:
         # print(self.vector_field.grid)
 
         # self.velocity = self.velocity + self.acceleration * self.mass
-        self.next_position = self.position + self.velocity * dt
+        self.next_position = self.position + (self.velocity * dt / self.mass)
 
 
 
@@ -86,6 +140,7 @@ class SpatialMap:
         ### creating vector field
 
 
+
     def get_grid_coords(self, x=False, y=False):
         xCoords = np.linspace(0, screen_width, self.noOfCols, endpoint=False)
         if x:
@@ -104,6 +159,7 @@ class SpatialMap:
             return self.coord_to_index((int(position[0] / box_width), int(position[1] / box_height)))
         except ValueError:
             print(position)
+
     def undo_hash_position(self, position):
         return np.array(position) // box_width
 
@@ -195,14 +251,14 @@ class SpatialMap:
 
 
 screen_width, screen_height = 1080, 1080 # 960, 960
-rows, columns = 16,16
+rows, columns = 20, 20
 box_width, box_height = screen_width / columns, screen_height / rows
 
 
 frame_rate = 75  # frames per second
 dt = 1 / frame_rate  # time elapsed between frames
 radius = 5  # radius of particles, purely for visualisation
-noOfParticles = 1000  # number of particles.
+noOfParticles = 30  # number of particles.
 wall_damping = 0.7  # what percentage of energy the particles keep on collision with boundary
 drawGrid = True  # draw the grid lines on the screen
 using_poly_6 = True  #

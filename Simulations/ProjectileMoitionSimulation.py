@@ -167,62 +167,11 @@ class ProjectileParticle(Particle):
     def get_real_distance(self, val):
         return self.px_to_metres(val)
 
-    def collision_event_obstacles(self):
-        for obstacle in self.vector_field.obstacles:
-            if self.check_obstacle_collision(obstacle):
 
-                return self.resolve_obstacle_collision(obstacle)
-
-    def resolve_obstacle_collision(self, obstacle):
-        # Calculate the displacement vector from the rectangle to the circle
-        displacement = self.next_position - np.array([max(obstacle.position[0], min(self.next_position[0], obstacle.position[0] + obstacle.width)),
-                                                      max(obstacle.position[1], min(self.next_position[1], obstacle.position[1] + obstacle.height))])
-
-        # Calculate the penetration depth for both x and y directions
-        penetration_x = max(0, self.radius - abs(displacement[0]))
-        penetration_y = max(0, self.radius - abs(displacement[1]))
-
-        # Determine the direction of displacement
-        direction_x = 1 if displacement[0] > 0 else -1
-        direction_y = 1 if displacement[1] > 0 else -1
-
-
-        if obstacle.is_platform:
-            damping = 0.1
-        else:
-            damping = self.damping
-
-
-        if penetration_x < penetration_y:
-            # Collided in x-direction
-            self.next_position[0] += penetration_x * direction_x
-            self.velocity[0] *= -1 * damping
-            if obstacle.is_platform:
-                self.velocity[1] *= -1 * damping
-        else:
-            # Collided in y-direction
-            self.next_position[1] += penetration_y * direction_y
-            self.velocity[1] *= -1 * damping
-            if obstacle.is_platform:
-                self.velocity[0] *= -1 * damping
-
-    def check_obstacle_collision(self, obstacle, custom_radius=None):
-        # Calculate the closest point on the rectangle to the circle
-        closest_x = max(obstacle.position[0], min(self.next_position[0], obstacle.position[0] + obstacle.width))
-        closest_y = max(obstacle.position[1], min(self.next_position[1], obstacle.position[1] + obstacle.height))
-
-        # Calculate the distance between the circle's center and the closest point on the rectangle
-        distance = np.sqrt((self.next_position[0] - closest_x) ** 2 + (self.next_position[1] - closest_y) ** 2)
-
-        # Check if the distance is less than the circle's radius
-        if not custom_radius:
-            return distance < self.radius
-        print(distance, self.radius)
-        return distance < custom_radius
 
     def collision_event_goal(self):
         goal = self.vector_field.goal
-        if self.check_obstacle_collision(goal, custom_radius=0.01):
+        if self.check_obstacle_collision(goal.position, goal.width, goal.height, custom_radius=0.01):
             self.velocity *= 0
             self.colour = (255,255,255)
             # self.acceleration *= 0

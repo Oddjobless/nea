@@ -9,8 +9,8 @@ from baseClasses import *
 
 #
 class Pathfinder(Particle):
-    def __init__(self, mass, radius, vector_field, damping):
-        super().__init__(mass, radius, vector_field, damping)
+    def __init__(self, mass, radius, vector_field, damping, position=None):
+        super().__init__(mass, radius, vector_field, damping, position)
 
     def check_for_collision_X(self, obstacle_x, obstacle_width):
         if self.position[0] + self.radius > obstacle_x + obstacle_width or self.next_position[0] - self.radius < obstacle_x:
@@ -53,6 +53,9 @@ class Pathfinder(Particle):
         distance = self.vector_field.get_magnitude(next_particle.next_position - self.next_position)
 
         overlap = 0.5 * (distance - (self.radius + next_particle.radius))
+        if abs(overlap) > 2 * (self.radius + next_particle.radius):
+            print("OH NO")
+            raise
         self.next_position -= overlap * (self.next_position - next_particle.next_position) / distance
 
         next_particle.next_position += overlap * (self.next_position - next_particle.next_position) / distance
@@ -81,8 +84,11 @@ class VelocityField(SpatialMap):
         self.blocked_cell_radius = box_width
         # self.particle_damping = 0.996 # dont like this
 
+        self.is_adding_particles = False
         self.is_adding_cells = False
         self.enable_collision_between_particles = False
+
+        self.particle_to_add_radius = radius
 
         """for i in range(noOfRows):
             self.blocked_cells.add((i,0))
@@ -109,8 +115,13 @@ class VelocityField(SpatialMap):
             if coord not in self.blocked_cells:
                 self.blocked_cells.add(coord)
         else:
-            self.blocked_cells.remove(coord)
+            if coord in self.blocked_cells:
+                self.blocked_cells.remove(coord)
 
+    def add_particle(self, mouse_position):
+        obj = Pathfinder(self.particle_to_add_radius//3, self.particle_to_add_radius, self, wall_damping, np.array(mouse_position, dtype=float))
+
+        self.particles.append(obj)
 
     def generate_heatmap(self, goal_coords):
         # Initialize distances with a large value, obstacles with -1
@@ -259,7 +270,7 @@ class VelocityField(SpatialMap):
         for eachCell in self.grid:
             # velChange = self.normalise_vector(eachCell.velocity) * self.STRENGTH
             desired_velocity = eachCell.velocity * self.particle_max_velocity
-            if any(np.isnan(desired_velocity)):
+            if any(np.isnan(desired_velocity)) or any(np.isinf(desired_velocity)):
                 continue
 
             for eachParticle in eachCell.cellList:
@@ -270,6 +281,7 @@ class VelocityField(SpatialMap):
                 """for blockedCell in self.blocked_cells:
                     if eachParticle.extra_boundary_check(self.undo_hash_position(blockedCell), box_width):
                         break"""
+
                 coord = self.index_to_coord(self.hash_position(eachParticle.next_position))
 
                 if coord in self.blocked_cells:
