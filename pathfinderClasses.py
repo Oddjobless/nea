@@ -23,21 +23,9 @@ class Pathfinder(Particle):
 
 
 
-    def check_for_collision(self, obstacle_pos, obstacle_width):
-        if self.check_for_collision_X(obstacle_pos[0], obstacle_width):
-            print("33")
-            self.velocity[0] *= -1 * self.damping
-            # self.next_position = self.position + self.velocity * -1 * dt
 
-            return True
-        elif self.check_for_collision_Y(obstacle_pos[1], obstacle_width):
-            self.velocity[1] *= -1 * self.damping
-            # self.next_position = self.position + self.velocity * -1 * dt
-            return True
-        return False
 
-    def extra_boundary_check(self, obstacle_pos, obstacle_width):
-        return self.check_for_collision(obstacle_pos, obstacle_width)
+
 
     def is_moving_horizontally(self):
         if abs(self.velocity[0]) > abs(self.velocity[1]):
@@ -81,9 +69,7 @@ class VelocityField(SpatialMap):
     def toggle_blocked_cell(self, coord):
         if coord not in self.blocked_cells:
             self.blocked_cells.add(coord)
-            print("asdfsad")
         else:
-            print("Hi")
             pass
             # self.blocked_cells.remove(coord) # todo
 
@@ -177,9 +163,14 @@ class VelocityField(SpatialMap):
 
 
     def update_velocity_field(self, coords_of_goal):
-        if self.goal[0] != coords_of_goal[0] and self.goal[1] != coords_of_goal[1]:
-            self.generate_heatmap(coords_of_goal)
-            self.calculate_vectors()
+        print(coords_of_goal, "pooo")
+        print(np.isnan(coords_of_goal))
+        if not any(np.isnan(coords_of_goal)):
+            if self.goal[0] != coords_of_goal[0] and self.goal[1] != coords_of_goal[1] and coords_of_goal not in self.blocked_cells:
+
+                self.generate_heatmap(coords_of_goal)
+                self.calculate_vectors()
+
 
     def calculate_steering_force(self, particle):
         pass
@@ -227,7 +218,8 @@ class VelocityField(SpatialMap):
         for eachCell in self.grid:
             # velChange = self.normalise_vector(eachCell.velocity) * self.STRENGTH
             desired_velocity = eachCell.velocity * self.particle_max_velocity
-
+            if any(np.isnan(desired_velocity)):
+                continue
 
             for eachParticle in eachCell.cellList:
                 steering_force = desired_velocity - eachParticle.velocity

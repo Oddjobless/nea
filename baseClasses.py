@@ -112,8 +112,11 @@ class SpatialMap:
         return coord[0] + coord[1] * self.noOfCols
 
     def index_to_coord(self, index):
-        return (index % self.noOfCols, index // self.noOfCols)
-
+        try:
+            return (index % self.noOfCols, index // self.noOfCols)
+        except TypeError:
+            print("AAAAAAAAAAAAARFGHGBFHD")
+            return (-1, -1)
     def get_square_magnitude(self, vector):
         return (vector[0] ** 2 + vector[1] ** 2)
 
@@ -165,8 +168,7 @@ class SpatialMap:
         new_cell = self.hash_position(particle.next_position)
         if new_cell == None:
             print("ERROR WHY IS THIS BROKEN")
-            print(particle.__dir__())
-            input((particle.position, particle.next_position, particle.velocity, particle.mass))
+            # input((particle.position, particle.next_position, particle.velocity, particle.mass))
 
             return
 
@@ -180,14 +182,13 @@ class SpatialMap:
         try:
             return np.hypot(vector[0], vector[1])
         except:
-            print("ZERO MAGNITUDE")
             return np.array([0,0])
 
     def normalise_vector(self, vector):
         if vector[0] == 0 and vector[1] == 0:
 
 
-            print("WARNING: DIVIDE BY ZERO!!!\n\n\nWHEN NORMALISING VELOCITY FIELD, THERE WAS A VECTOR WITH ZERO MAGNITUDE")
+            # print("WARNING: DIVIDE BY ZERO!!!\n\n\nWHEN NORMALISING VELOCITY FIELD, THERE WAS A VECTOR WITH ZERO MAGNITUDE")
             return vector
         return vector / self.get_magnitude(vector)
 

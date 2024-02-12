@@ -29,7 +29,6 @@ def run():
     vector_field = VelocityField(rows, columns)
 
     particles = [Pathfinder(10, radius, vector_field, wall_damping) for _ in range(noOfParticles)]
-    print("high")
     # vector_field.calculate_rest_density(particles) # integrate into __init
     font = pygame.font.SysFont("comicsans", int(box_width // 2.6))
 
@@ -51,6 +50,7 @@ def run():
                 pos_cell_index = vector_field.index_to_coord(vector_field.hash_position(pygame.mouse.get_pos()))
                 if click_event[0]: # LEFT CLICK
                     print("fdsgf")
+
                     vector_field.update_velocity_field(pos_cell_index)
                 elif click_event[2]: # RIGHT CLICK
                     vector_field.toggle_blocked_cell(pos_cell_index)
