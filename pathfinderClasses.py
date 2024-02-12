@@ -98,6 +98,12 @@ class VelocityField(SpatialMap):
                 print(self.grid[self.coord_to_index((i, j))].distance, end=" | ")
             print()
 
+    def toggle_adding_cells(self, mouse_cell):
+        if mouse_cell in self.blocked_cells:
+            self.is_adding_cells = False
+        else:
+            self.is_adding_cells = True
+
     def toggle_blocked_cell(self, coord):
         if self.is_adding_cells:
             if coord not in self.blocked_cells:

@@ -52,7 +52,8 @@ def run():
                     return
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 3:
-                    vector_field.is_adding_cells
+                    cell = vector_field.index_to_coord(vector_field.hash_position(pygame.mouse.get_pos()))
+                    vector_field.toggle_adding_cells(cell)
 
 
             click_event = pygame.mouse.get_pressed()
