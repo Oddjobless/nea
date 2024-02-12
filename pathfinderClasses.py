@@ -27,10 +27,12 @@ class Pathfinder(Particle):
         if self.check_for_collision_X(obstacle_pos[0], obstacle_width):
             print("33")
             self.velocity[0] *= -1 * self.damping
+            # self.next_position = self.position + self.velocity * -1 * dt
 
             return True
         elif self.check_for_collision_Y(obstacle_pos[1], obstacle_width):
             self.velocity[1] *= -1 * self.damping
+            # self.next_position = self.position + self.velocity * -1 * dt
             return True
         return False
 
@@ -45,6 +47,7 @@ class Pathfinder(Particle):
     def collision_event(self, obstacle_pos, obstacle_width):
         if self.check_for_collision_X(obstacle_pos[0], obstacle_width):
             self.velocity[0] *= -1
+
         else:
             self.velocity[1] *= -1
         self.next_position = self.position + self.velocity * -1 * dt
@@ -61,6 +64,12 @@ class VelocityField(SpatialMap):
         self.print_visited()
         self.blocked_cell_radius = box_width
         # self.particle_damping = 0.996 # dont like this
+        for i in range(noOfRows):
+            self.blocked_cells.add((i,0))
+            self.blocked_cells.add((i,noOfCols-1))
+        for i in range(noOfRows):
+            self.blocked_cells.add((0,i))
+            self.blocked_cells.add((noOfRows-1,i))
 
 
     def print_visited(self):
@@ -80,8 +89,8 @@ class VelocityField(SpatialMap):
 
     def generate_heatmap(self, goal_coords):
         # Initialize distances with a large value, obstacles with -1
-        for i, cell in enumerate(self.grid):
-            cell_coord = self.index_to_coord(i)
+        for cell_index, cell in enumerate(self.grid):
+            cell_coord = self.index_to_coord(cell_index)
             if cell_coord in self.blocked_cells:
                 cell.distance = -1
             else:
@@ -102,7 +111,8 @@ class VelocityField(SpatialMap):
             neighbouring_coords = self.get_neighbouring_coords(current_coord, include_diagonal=False)
             for next_coord in neighbouring_coords:
                 next_index = self.coord_to_index(next_coord)
-                if self.grid[next_index].distance > current_distance + 1:
+                if next_coord not in self.blocked_cells and self.grid[next_index].distance == float('inf'):
+                    # Only update distance if the cell is not blocked and not yet visited
                     self.grid[next_index].distance = current_distance + 1
                     queue.append(next_coord)
 

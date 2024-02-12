@@ -70,6 +70,8 @@ def run():
 
 
             for coord, cell in zip(vector_field.get_grid_coords(), vector_field.grid):
+                if np.inf in cell.velocity:
+                    continue
                 boxCentre = np.array([coord[0] + box_width/2, coord[1] + box_height/2])
                 lineRadius = (box_width/2.2) * cell.velocity
                 pygame.draw.line(screen, "#ff3542", (boxCentre), boxCentre+lineRadius)
