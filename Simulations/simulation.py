@@ -28,11 +28,18 @@ def run():
 
     vector_field = VelocityField(rows, columns)
 
-    particles = [Pathfinder(10, radius, vector_field, wall_damping) for _ in range(noOfParticles)]
+    vector_field.particles = [Pathfinder(10, radius, vector_field, wall_damping) for _ in range(noOfParticles)]
     # vector_field.calculate_rest_density(particles) # integrate into __init
     font = pygame.font.SysFont("comicsans", int(box_width // 2.6))
 
     clock = pygame.time.Clock()
+
+    """
+    LEFT CLICK: set new goal 
+    RIGHT CLICK: toggle blocked cells
+    Q: quit
+    
+    """
 
     while True:
         for event in pygame.event.get():
@@ -43,14 +50,15 @@ def run():
                 if event.key == pygame.K_q:
                     pygame.quit()
                     return
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 3:
+                    vector_field.is_adding_cells
+
 
             click_event = pygame.mouse.get_pressed()
             if any(click_event):
-
                 pos_cell_index = vector_field.index_to_coord(vector_field.hash_position(pygame.mouse.get_pos()))
                 if click_event[0]: # LEFT CLICK
-                    print("fdsgf")
-
                     vector_field.update_velocity_field(pos_cell_index)
                 elif click_event[2]: # RIGHT CLICK
                     vector_field.toggle_blocked_cell(pos_cell_index)
@@ -70,11 +78,13 @@ def run():
 
 
             for coord, cell in zip(vector_field.get_grid_coords(), vector_field.grid):
-                if np.inf in cell.velocity:
-                    continue
+                # print(cell.velocity)
+
                 boxCentre = np.array([coord[0] + box_width/2, coord[1] + box_height/2])
                 lineRadius = (box_width/2.2) * cell.velocity
-                pygame.draw.line(screen, "#ff3542", (boxCentre), boxCentre+lineRadius)
+                if not any(np.isnan(cell.velocity)):
+
+                    pygame.draw.line(screen, "#ff3542", (boxCentre), boxCentre+lineRadius)
                 if draw_distances:
                     number = font.render(f"{cell.distance:.1f}", True, (255, 255, 255))
                     screen.blit(number, boxCentre - (box_width//4))
@@ -87,15 +97,19 @@ def run():
 
         # logic goes here
         vector_field.update()
-        for particle in particles:
+        for particle in vector_field.particles:
             particle.update(screen) # updates position of particles
 
+        if vector_field.enable_collision_between_particles:
+            for particle in vector_field.particles:
+                particle.collision_event_particles()
 
         """for i in vector_field.grid:
             print(i.cellList, end="")"""
 
         # total_density = 0
-        for particle in particles:
+        for particle in vector_field.particles:
+
 
             # particle.calculate_density()  #
             # particle.calculate_pressure()  #

@@ -40,6 +40,34 @@ class Pathfinder(Particle):
             self.velocity[1] *= -1
         self.next_position = self.position + self.velocity * -1 * dt
 
+
+    def is_collision(self, next_particle):
+        distance = self.vector_field.get_square_magnitude(next_particle.next_position - self.next_position)
+        if self != next_particle:
+            if 0 < distance <= (self.radius + next_particle.radius)**2:
+                # self.vector_field.colliding_balls_pairs.append((self, next_particle))
+                return True
+        return False
+
+    def resolve_static_collision(self, next_particle):
+        distance = self.vector_field.get_magnitude(next_particle.next_position - self.next_position)
+
+        overlap = 0.5 * (distance - (self.radius + next_particle.radius))
+        self.next_position -= overlap * (self.next_position - next_particle.next_position) / distance
+
+        next_particle.next_position += overlap * (self.next_position - next_particle.next_position) / distance
+
+    def collision_event_particles(self):
+        try:
+            cell_index = self.vector_field.hash_position(self.next_position)
+            particles_to_check = self.vector_field.grid[cell_index].cellList
+            for particle in particles_to_check:
+                if self.is_collision(particle):
+                    self.resolve_static_collision(particle)
+
+        except:
+            print(Exception("Collision unresolved"))
+
 class VelocityField(SpatialMap):
     def __init__(self, noOfRows, noOfCols):
         super().__init__(noOfRows, noOfCols)
@@ -52,12 +80,16 @@ class VelocityField(SpatialMap):
         self.print_visited()
         self.blocked_cell_radius = box_width
         # self.particle_damping = 0.996 # dont like this
-        for i in range(noOfRows):
+
+        self.is_adding_cells = False
+        self.enable_collision_between_particles = False
+
+        """for i in range(noOfRows):
             self.blocked_cells.add((i,0))
             self.blocked_cells.add((i,noOfCols-1))
         for i in range(noOfRows):
             self.blocked_cells.add((0,i))
-            self.blocked_cells.add((noOfRows-1,i))
+            self.blocked_cells.add((noOfRows-1,i))"""
 
 
     def print_visited(self):
@@ -67,11 +99,12 @@ class VelocityField(SpatialMap):
             print()
 
     def toggle_blocked_cell(self, coord):
-        if coord not in self.blocked_cells:
-            self.blocked_cells.add(coord)
+        if self.is_adding_cells:
+            if coord not in self.blocked_cells:
+                self.blocked_cells.add(coord)
         else:
-            pass
-            # self.blocked_cells.remove(coord) # todo
+            self.blocked_cells.remove(coord)
+
 
     def generate_heatmap(self, goal_coords):
         # Initialize distances with a large value, obstacles with -1
@@ -107,6 +140,10 @@ class VelocityField(SpatialMap):
                 print("WARNING")
                 self.grid[index].velocity = np.zeros(2)"""
 
+
+
+
+#########################################################
     def calculate_vectors(self):
         for cell_coord in self.blocked_cells:
             self.grid[self.coord_to_index(cell_coord)].distance = -1
@@ -163,8 +200,6 @@ class VelocityField(SpatialMap):
 
 
     def update_velocity_field(self, coords_of_goal):
-        print(coords_of_goal, "pooo")
-        print(np.isnan(coords_of_goal))
         if not any(np.isnan(coords_of_goal)):
             if self.goal[0] != coords_of_goal[0] and self.goal[1] != coords_of_goal[1] and coords_of_goal not in self.blocked_cells:
 

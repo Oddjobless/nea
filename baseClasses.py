@@ -24,15 +24,15 @@ class Particle:
 
 
     def update(self, screen):
-        if self.next_position[0] > screen.get_width() - (self.radius) or self.next_position[
-            0] < self.radius:  # or within blocked cell
+        if self.next_position[0] > screen.get_width() - (1.5 * self.radius) or self.next_position[
+            0] < 1.5 * self.radius:  # or within blocked cell
             self.velocity[0] *= -1 * self.damping
-        if self.next_position[1] > screen.get_height() - self.radius or self.next_position[1] < self.radius:
+        if self.next_position[1] > screen.get_height() - 1.5 * self.radius or self.next_position[1] < 1.5 * self.radius:
 
             self.velocity[1] *= -1 * self.damping
 
-        self.next_position = np.clip(self.next_position, (self.radius, self.radius),
-                                     (screen.get_width() - self.radius, screen.get_height() - self.radius))
+        self.next_position = np.clip(self.next_position, (1.5 * self.radius, 1.5 * self.radius),
+                                     (screen.get_width() - 1.5 * self.radius, screen.get_height() - 1.5 * self.radius))
 
 
         self.vector_field.remove_particle(self)
@@ -116,7 +116,7 @@ class SpatialMap:
             return (index % self.noOfCols, index // self.noOfCols)
         except TypeError:
             print("AAAAAAAAAAAAARFGHGBFHD")
-            return (-1, -1)
+            raise Exception("index_to_coord")
     def get_square_magnitude(self, vector):
         return (vector[0] ** 2 + vector[1] ** 2)
 
@@ -194,7 +194,7 @@ class SpatialMap:
 
 
 
-screen_width, screen_height = 1920, 1080 # 960, 960
+screen_width, screen_height = 1080, 1080 # 960, 960
 rows, columns = 16,16
 box_width, box_height = screen_width / columns, screen_height / rows
 
@@ -202,7 +202,7 @@ box_width, box_height = screen_width / columns, screen_height / rows
 frame_rate = 75  # frames per second
 dt = 1 / frame_rate  # time elapsed between frames
 radius = 5  # radius of particles, purely for visualisation
-noOfParticles = 200  # number of particles.
+noOfParticles = 1000  # number of particles.
 wall_damping = 0.7  # what percentage of energy the particles keep on collision with boundary
 drawGrid = True  # draw the grid lines on the screen
 using_poly_6 = True  #
