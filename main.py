@@ -265,7 +265,7 @@ class MainWindow(QMainWindow):
 
 
         self.runPoo = QPushButton("DO NOT CLICK THIS. DO NOT CLICK THIS. DO NOT CLICK THIS. DO NOT CLICK THIS. DO NOT CLICK THIS.")
-        self.squareMultiply_layout.addWidget(self.runPoo, 0, 1, 1, 1)
+        self.squareMultiply_layout.addWidget(self.runPoo, 1, 1, 1,3)
         self.runPoo.released.connect(self.brokenSim)
 
 

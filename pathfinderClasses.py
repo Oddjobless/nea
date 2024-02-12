@@ -78,40 +78,33 @@ class VelocityField(SpatialMap):
             pass
             # self.blocked_cells.remove(coord) # todo
 
+    def generate_heatmap(self, goal_coords):
+        # Initialize distances with a large value, obstacles with -1
+        for i, cell in enumerate(self.grid):
+            cell_coord = self.index_to_coord(i)
+            if cell_coord in self.blocked_cells:
+                cell.distance = -1
+            else:
+                cell.distance = float('inf')
 
+        # Set distance to the goal cell to 0
+        goal_index = self.coord_to_index(goal_coords)
+        self.grid[goal_index].distance = 0
 
+        # Queue for breadth-first search
+        queue = [goal_coords]
 
-
-
-    def generate_heatmap(self, goal_coords):  # todo: boundary problems idk why. ALSO WANT TO USE EUCLIDEAN DISTANCE COS THIS LOOKS RUBBISH
-        self.grid[self.coord_to_index(goal_coords)].distance = 0
-        queue = [goal_coords]  # where the number is the distance from the cell to the goal
-        visited = np.full_like(self.grid, False, dtype=bool)  # to avoid revisiting the same cell over and over again
-        visited[self.coord_to_index(goal_coords)] = True
-
-        while len(queue) > 0:
+        while queue:
             current_coord = queue.pop(0)
-            current_distance = self.grid[self.coord_to_index(current_coord)].distance
+            current_index = self.coord_to_index(current_coord)
+            current_distance = self.grid[current_index].distance
 
-            neighbouring_coords = self.get_neighbouring_coords(current_coord, include_diagonal=True)
+            neighbouring_coords = self.get_neighbouring_coords(current_coord, include_diagonal=False)
             for next_coord in neighbouring_coords:
-                index = self.coord_to_index(next_coord)
-                if not visited[index]:
-                    visited[index] = True
-                    if tuple(current_coord) in self.blocked_cells:
-                        continue
-
+                next_index = self.coord_to_index(next_coord)
+                if self.grid[next_index].distance > current_distance + 1:
+                    self.grid[next_index].distance = current_distance + 1
                     queue.append(next_coord)
-
-                    # Calculate path cost based on movement direction
-                    change_x = abs(next_coord[0] - current_coord[0])
-                    change_y = abs(next_coord[1] - current_coord[1])
-                    if change_x == 1 and change_y == 1:  # Diagonal movement
-                        path_cost = np.sqrt(2)
-                    else:  # Orthogonal movement
-                        path_cost = 1
-
-                    self.grid[index].distance = current_distance + path_cost
 
         """for index, bool in enumerate(visited):
             if False:
@@ -119,6 +112,9 @@ class VelocityField(SpatialMap):
                 self.grid[index].velocity = np.zeros(2)"""
 
     def calculate_vectors(self):
+        for cell_coord in self.blocked_cells:
+            self.grid[self.coord_to_index(cell_coord)].distance = -1
+
 
         for index, cell in enumerate(self.grid): # added .copy() cos debugging
             if self.index_to_coord(index) in self.blocked_cells:
@@ -135,17 +131,18 @@ class VelocityField(SpatialMap):
                     distances[index] = -1
 
             maximum = max(distances)
+            dist_copy = distances.copy()
             for index, distance in enumerate(distances):
                 if distance == -1:
 
                     if index == 0 and distances[1] != -1:
-                        distances[0] = distances[1] + 2
-                    if index == 1 and distances[0] != -1:
-                        distances[1] = distances[0] + 2
+                        dist_copy[0] = distances[1] + 2
+                    elif index == 1 and distances[0] != -1:
+                        dist_copy[1] = distances[0] + 2
                     if index == 2 and distances[3] != -1:
-                        distances[2] = distances[3] + 2
-                    if index == 3 and distances[2] != -1:
-                        distances[3] = distances[2] + 2
+                        dist_copy[2] = distances[3] + 2
+                    elif index == 3 and distances[2] != -1:
+                        dist_copy[3] = distances[2] + 2
 
 
 
@@ -163,8 +160,8 @@ class VelocityField(SpatialMap):
 
 
 
-            x_vector = distances[1] - distances[0]
-            y_vector = distances[2] - distances[3]
+            x_vector = dist_copy[1] - dist_copy[0]
+            y_vector = dist_copy[2] - dist_copy[3]
 
             cell.velocity = self.normalise_vector(np.array([x_vector, y_vector]))
 
