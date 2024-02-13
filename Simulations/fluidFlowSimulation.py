@@ -63,7 +63,7 @@ def run():
 
         ### drawing vectorField
         screen.fill((90, 69, 50))
-        if drawGrid:
+        if vector_field.draw_grid:
 
             for x in vector_field.get_grid_coords(x=True):
                 pygame.draw.line(screen, "#353252", (x, 0), (x, screen_height), 1)

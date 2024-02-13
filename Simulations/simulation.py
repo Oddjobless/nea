@@ -57,11 +57,14 @@ def run():
                 elif event.key == pygame.K_EQUALS:
                     print("asdfdfsa")
                     vector_field.particle_to_add_radius += 1
-
                 elif event.key == pygame.K_MINUS:
-                    vector_field.particle_to_add_radius -= 1
-                    if vector_field.particle_to_add_radius < 3:
-                        vector_field.particle_to_add_radius = 3
+                    vector_field.particle_to_add_radius = max(vector_field.particle_to_add_radius - 1, 3)
+                elif event.key == pygame.K_h:
+                    vector_field.draw_heatmap = not vector_field.draw_heatmap
+                elif event.key == pygame.K_g:
+                    vector_field.draw_grid = not vector_field.draw_grid
+
+
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 3:
                     cell = vector_field.index_to_coord(vector_field.hash_position(pygame.mouse.get_pos()))
@@ -90,7 +93,7 @@ def run():
         for cell in vector_field.blocked_cells:
             pygame.draw.rect(screen, (0, 0, 0, 0.5), (cell[0] * box_width, cell[1] * box_height, box_width, box_height))
 
-        if drawGrid:
+        if vector_field.draw_grid:
             for x in vector_field.get_grid_coords(x=True):
                 pygame.draw.line(screen, "#353252", (x, 0), (x, screen_height), 1)
 
@@ -104,9 +107,8 @@ def run():
                 boxCentre = np.array([coord[0] + box_width/2, coord[1] + box_height/2])
                 lineRadius = (box_width/2.2) * cell.velocity
                 if not any(np.isnan(cell.velocity)):
-
                     pygame.draw.line(screen, "#ff3542", (boxCentre), boxCentre+lineRadius)
-                if draw_distances:
+                if draw_distances and distance > 0:
                     number = font.render(f"{distance:.1f}", True, (255, 255, 255))
                     screen.blit(number, boxCentre - (box_width//4))
 
