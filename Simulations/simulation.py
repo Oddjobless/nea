@@ -57,10 +57,11 @@ def run():
                 elif event.key == pygame.K_EQUALS:
                     print("asdfdfsa")
                     vector_field.particle_to_add_radius += 1
-                    if vector_field.particle_to_add_radius < 3:
-                        vector_field.particle_to_add_radius = 3
+
                 elif event.key == pygame.K_MINUS:
                     vector_field.particle_to_add_radius -= 1
+                    if vector_field.particle_to_add_radius < 3:
+                        vector_field.particle_to_add_radius = 3
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 3:
                     cell = vector_field.index_to_coord(vector_field.hash_position(pygame.mouse.get_pos()))
@@ -79,7 +80,12 @@ def run():
                     else:
                         vector_field.add_particle(pygame.mouse.get_pos())
         ### drawing vectorField
-        screen.fill((0, 69, 180))
+        screen.fill((200, 200, 200))
+
+
+        if vector_field.draw_heatmap:
+            vector_field.display_heatmap(screen)
+
 
         for cell in vector_field.blocked_cells:
             pygame.draw.rect(screen, (0, 0, 0, 0.5), (cell[0] * box_width, cell[1] * box_height, box_width, box_height))
@@ -92,7 +98,7 @@ def run():
                 pygame.draw.line(screen, "#353252", (0, y), (screen_width, y), 1)
 
 
-            for coord, cell in zip(vector_field.get_grid_coords(), vector_field.grid):
+            for coord, cell, distance in zip(vector_field.get_grid_coords(), vector_field.grid, vector_field.cell_distances):
                 # print(cell.velocity)
 
                 boxCentre = np.array([coord[0] + box_width/2, coord[1] + box_height/2])
@@ -101,7 +107,7 @@ def run():
 
                     pygame.draw.line(screen, "#ff3542", (boxCentre), boxCentre+lineRadius)
                 if draw_distances:
-                    number = font.render(f"{cell.distance:.1f}", True, (255, 255, 255))
+                    number = font.render(f"{distance:.1f}", True, (255, 255, 255))
                     screen.blit(number, boxCentre - (box_width//4))
 
 

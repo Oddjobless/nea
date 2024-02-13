@@ -67,6 +67,7 @@ class Pathfinder(Particle):
             for particle in particles_to_check:
                 if self.is_collision(particle):
                     self.resolve_static_collision(particle)
+                    return
 
         except:
             print(Exception("Collision unresolved"))
@@ -74,21 +75,25 @@ class Pathfinder(Particle):
 class VelocityField(SpatialMap):
     def __init__(self, noOfRows, noOfCols):
         super().__init__(noOfRows, noOfCols)
+        self.cell_distances = np.zeros_like(self.grid)
         for i in self.grid:
             print(i.velocity)
         self.blocked_cells = set()
         self.goal = np.array([0,0])
         # self.update_velocity_field(self.goal)
         self.particle_max_velocity = 500
-        self.print_visited()
+
         self.blocked_cell_radius = box_width
         # self.particle_damping = 0.996 # dont like this
 
         self.is_adding_particles = False
         self.is_adding_cells = False
         self.enable_collision_between_particles = False
+        self.draw_heatmap = True
 
         self.particle_to_add_radius = radius
+
+        # self.print_visited()
 
         """for i in range(noOfRows):
             self.blocked_cells.add((i,0))
@@ -98,10 +103,31 @@ class VelocityField(SpatialMap):
             self.blocked_cells.add((noOfRows-1,i))"""
 
 
+    def display_heatmap(self, screen): # drawing a gradient depending on the distance
+        max_distance = np.max(self.cell_distances)
+        x, y = self.goal
+        pygame.draw.rect(screen, (255, 0, 0),(x * box_width, y * box_height, box_width, box_height))
+
+        for i in range(self.noOfRows):
+            for j in range(self.noOfCols):
+                distance = self.cell_distances[self.coord_to_index((i, j))]
+                if distance > 0 and not np.isinf(distance):
+                    if np.isinf(distance):
+                        pass
+                    else:
+                        norm_distance = distance / max_distance
+                        colour = np.array([255 * (1 - norm_distance), 190, 255 * (norm_distance)], dtype=int)
+                        pygame.draw.rect(screen, colour,
+                                         (i * box_width, j * box_height, box_width, box_height))
+
+
+                """if distance > 0 and not np.isinf(distance):
+                    pygame.draw.rect(screen, (255/distance, 255/distance, 30), (i * box_width, j * box_height, box_width, box_height))
+"""
     def print_visited(self):
         for i in range(rows):
             for j in range(columns):
-                print(self.grid[self.coord_to_index((i, j))].distance, end=" | ")
+                print(self.cell_distances[self.coord_to_index((i, j))], end=" | ")
             print()
 
     def toggle_adding_cells(self, mouse_cell):
@@ -124,17 +150,21 @@ class VelocityField(SpatialMap):
         self.particles.append(obj)
 
     def generate_heatmap(self, goal_coords):
+        self.cell_distances = np.empty_like(self.grid)
         # Initialize distances with a large value, obstacles with -1
-        for cell_index, cell in enumerate(self.grid):
+        for cell_index, cell in enumerate(self.cell_distances):
             cell_coord = self.index_to_coord(cell_index)
             if cell_coord in self.blocked_cells:
-                cell.distance = -1
+                self.cell_distances[cell_index] = -1
             else:
-                cell.distance = float('inf')
+                self.cell_distances[cell_index] = float('inf')
+
 
         # Set distance to the goal cell to 0
         goal_index = self.coord_to_index(goal_coords)
-        self.grid[goal_index].distance = 0
+        self.cell_distances[goal_index] = 0
+
+        self.cell_distances[goal_index] = 0
 
         # Queue for breadth-first search
         queue = [goal_coords]
@@ -142,14 +172,14 @@ class VelocityField(SpatialMap):
         while queue:
             current_coord = queue.pop(0)
             current_index = self.coord_to_index(current_coord)
-            current_distance = self.grid[current_index].distance
+            current_distance = self.cell_distances[current_index]
 
             neighbouring_coords = self.get_neighbouring_coords(current_coord, include_diagonal=False)
             for next_coord in neighbouring_coords:
                 next_index = self.coord_to_index(next_coord)
-                if next_coord not in self.blocked_cells and self.grid[next_index].distance == float('inf'):
+                if next_coord not in self.blocked_cells and self.cell_distances[next_index] == float('inf'):
                     # Only update distance if the cell is not blocked and not yet visited
-                    self.grid[next_index].distance = current_distance + 1
+                    self.cell_distances[next_index] = current_distance + 1
                     queue.append(next_coord)
 
         """for index, bool in enumerate(visited):
@@ -162,11 +192,12 @@ class VelocityField(SpatialMap):
 
 #########################################################
     def calculate_vectors(self):
-        for cell_coord in self.blocked_cells:
-            self.grid[self.coord_to_index(cell_coord)].distance = -1
+        for cell_coord in self.blocked_cells: # todo
+            self.cell_distances[self.coord_to_index(cell_coord)] = -1
 
 
-        for index, cell in enumerate(self.grid): # added .copy() cos debugging
+        for index, (values) in enumerate(zip(self.cell_distances, self.grid)): # added .copy() cos debugging
+            distance, cell = values
             if self.index_to_coord(index) in self.blocked_cells:
                 cell.velocity = np.array([0,0])
                 continue
@@ -175,12 +206,12 @@ class VelocityField(SpatialMap):
             distances = [0, 0, 0, 0] # right, left, up , down etc
             for index, eachcoord in enumerate(coords):
                 if eachcoord and eachcoord not in self.blocked_cells:
-                    distances[index] = self.grid[self.coord_to_index(eachcoord)].distance
+                    distances[index] = self.cell_distances[self.coord_to_index(eachcoord)]
                 else:
 
                     distances[index] = -1
 
-            maximum = max(distances)
+
             dist_copy = distances.copy()
             for index, distance in enumerate(distances):
                 if distance == -1:
