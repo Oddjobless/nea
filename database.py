@@ -63,6 +63,8 @@ class Database:
         (3, 15, 15);
         """)
 
+        #max length for email is 255 characters apparently
+
     def create_user(self, username, password_hash, email, first_name, last_name, date_of_birth):
         self.conn.execute("""
         INSERT INTO users (username, password_hash, email, first_name, last_name, date_of_birth) VALUES 
@@ -76,7 +78,20 @@ class Database:
         self.conn.execute("""
         SELECT * FROM users WHERE username = %s AND password_hash = %s;
         """, (username, password_hash))
-        return self.conn.fetchall()
+        return self.conn.fetchone()
+
+    def get_user_settings(self, user_id):
+        self.conn.execute("""
+        SELECT * FROM user_settings WHERE user_id = %s;
+        """, (user_id,))
+        return self.conn.fetchone()
+
+    def save_user_settings(self, user_id, settings):
+        self.conn.execute("""
+        UPDATE user_settings SET pathfinder_heatmap = %s, pathfinder_grid = %s, pathfinder_rows = %s, pathfinder_cols = %s, wall_collision_damping = %s, particle_collision_damping = %s WHERE user_id = %s;
+        """, settings + (user_id,))
+
+
 
 
 
