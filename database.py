@@ -31,9 +31,8 @@ class Database:
         
         CREATE TABLE users (
             id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
-            username VARCHAR(32) UNIQUE NOT NULL,
-            password_hash CHAR(64) NOT NULL,
             email VARCHAR(256) UNIQUE NOT NULL,
+            password_hash CHAR(64) NOT NULL,
             first_name VARCHAR(32),
             last_name VARCHAR(32),
             date_of_birth DATE
@@ -52,10 +51,10 @@ class Database:
         );
         
 
-        INSERT INTO users (username, password_hash, email, first_name, last_name, date_of_birth) VALUES 
-        ('username', 'password', 'email@email.com', 'First', 'Last', '2000-01-01'),
-        ('UnregisteredGimp', 'passwordGimp', 'passwordGimp@email.com', 'Gimp', 'Grinch', '1975-05-10'),
-        ('FunnyGuppyGaming', 'passwordGuppy', 'SamVokes@gmail.com', 'Sam', 'Vokes', '2006-04-28');
+        INSERT INTO users (email, password_hash, first_name, last_name, date_of_birth) VALUES 
+        ('email@email.com', 'password', 'First', 'Last', '2000-01-01'),
+        ('passwordGimp@email.com', 'passwordGimp', 'Gimp', 'Grinch', '1975-05-10'),
+        ('SamVokes@gmail.com', 'passwordGuppy', 'Sam', 'Vokes', '2006-04-28');
 
         INSERT INTO user_settings (user_id, pathfinder_rows, pathfinder_cols) VALUES
         (1, 30, 30),
@@ -65,19 +64,19 @@ class Database:
 
         #max length for email is 255 characters apparently
 
-    def create_user(self, username, password_hash, email, first_name, last_name, date_of_birth):
+    def create_user(self, email, password_hash, first_name, last_name, date_of_birth):
         self.conn.execute("""
-        INSERT INTO users (username, password_hash, email, first_name, last_name, date_of_birth) VALUES 
+        INSERT INTO users (email, password_hash, first_name, last_name, date_of_birth) VALUES 
         (%s, %s, %s, %s, %s, %s);
         
         INSERT INTO user_settings (user_id) VALUES (LAST_INSERT_ID());
-        """, (username, password_hash, email, first_name, last_name, date_of_birth))
+        """, (email, password_hash, first_name, last_name, date_of_birth))
 
 
-    def verify_login(self, username, password_hash):
+    def verify_login(self, email, password_hash):
         self.conn.execute("""
-        SELECT * FROM users WHERE username = %s AND password_hash = %s;
-        """, (username, password_hash))
+        SELECT * FROM users WHERE email = %s AND password_hash = %s;
+        """, (email, password_hash))
         return self.conn.fetchone()
 
     def get_user_settings(self, user_id):
@@ -90,6 +89,7 @@ class Database:
         self.conn.execute("""
         UPDATE user_settings SET pathfinder_heatmap = %s, pathfinder_grid = %s, pathfinder_rows = %s, pathfinder_cols = %s, wall_collision_damping = %s, particle_collision_damping = %s WHERE user_id = %s;
         """, settings + (user_id,))
+
 
 
 

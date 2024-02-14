@@ -4,6 +4,7 @@ from PyQt6.QtGui import *
 from PyQt6.QtCore import *
 from Simulations import simulation, ProjectileMoitionSimulation, test, coolParticleStuff, fluidFlowSimulation
 from database import Database
+from hashlib import sha256
 
 # from matplotlib import pyplot
 
@@ -43,19 +44,57 @@ class MainWindow(QMainWindow):
         self.login = QWidget()
         self.login.setLayout(self.login_layout)
 
-        self.username_label = QLabel("Username: ")
-        self.login_layout.addWidget(self.username_label, 0, 0, 1, 1)
+        self.login_label = QLabel("Login")
+        self.login_layout.addWidget(self.login_label, 0, 1, 1, 1)
 
-        self.password_label = QLabel("Password: ")
-        self.login_layout.addWidget(self.password_label, 1, 0, 1, 1)
-
-        self.username = QLineEdit()
-        self.login_layout.addWidget(self.username, 0, 1, 1, 3)
+        self.email = QLineEdit()
+        self.email.setPlaceholderText("Enter email address")
+        self.login_layout.addWidget(self.email, 1, 1, 1, 1)
 
         self.password = QLineEdit()
-        self.login_layout.addWidget(self.password, 1, 1, 1, 3)
+        self.password.setPlaceholderText("Enter password")
+        self.password.setEchoMode(QLineEdit.EchoMode.Password)
+        self.login_layout.addWidget(self.password, 2, 1, 1, 1)
 
         self.layout.addWidget(self.login)
+
+        self.login.setStyleSheet("""
+
+            QLabel {
+                font-family: 'Comic Sans MS';
+                font-size: 30px;
+                align: right;
+            }
+            QLineEdit {
+                margin-right: 120;
+                margin-left: 10;
+                border: 10px solid '#0000ff';
+                font-size: 30px;
+            }
+
+            QTextEdit {
+                border: 2px dashed '#0000ff';
+                margin: 30;
+            }
+
+            QPushButton {
+                font-family: 'Comic Sans MS';
+                font-size: 30px;
+                padding: 20px 32px;
+                color: green;
+                border-radius: 6%;
+                display: inline-block;
+                position: fixed;
+                margin: 0 0 0 0;
+                transition-duration: 0.4s;
+                border: 3px solid;
+            }
+
+            QPushButton:hover {
+                background-color: '#0000ff';
+                color: white;
+            }
+        """)
 
         ##################################################
         self.home_page_button = QAction("Home Page")
@@ -67,40 +106,6 @@ class MainWindow(QMainWindow):
         self.toolbar.addSeparator()
         self.home_page.setStyleSheet("background-color: '#F49097';")
 
-        """self.login.setStyleSheet(
-
-                    QLabel {
-                        font-family: 'Comic Sans MS';
-                        font-size: 30px;
-                    }
-                    QLineEdit {
-                        margin: 60;
-                        border: 3px solid '#0000ff';
-                    }
-
-                    QTextEdit {
-                        border: 2px dashed '#0000ff';
-                        margin: 30;
-                    }
-
-                    QPushButton {
-                        font-family: 'Comic Sans MS';
-                        font-size: 30px;
-                        padding: 20px 32px;
-                        color: green;
-                        border-radius: 6%;
-                        display: inline-block;
-                        position: fixed;
-                        margin: 0 0 0 0;
-                        transition-duration: 0.4s;
-                        border: 3px solid;
-                    }
-
-                    QPushButton:hover {
-                        background-color: '#0000ff';
-                        color: white;
-                    }
-                )"""
 
         ##################################################
 
@@ -338,8 +343,14 @@ class MainWindow(QMainWindow):
         self.layout.setCurrentIndex(newIndex)
 
 
-    def verify_login(self):
-        pass
+    def attempt_login(self):
+        user_info = self.database.verify_login(self.email.text(), sha256(self.password.text().encode()).hexdigest())
+        if user_info:
+            self.user_info = user_info
+            self.show_toolbar()
+            # todo: display success message
+        else:
+            return False # todo:
 
     def show_toolbar(self):
         self.toolbar.setVisible(True)
