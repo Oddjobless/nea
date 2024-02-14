@@ -3,7 +3,7 @@ from PyQt6.QtWidgets import *
 from PyQt6.QtGui import *
 from PyQt6.QtCore import *
 from Simulations import simulation, ProjectileMoitionSimulation, test, coolParticleStuff, fluidFlowSimulation
-
+from database import Database
 
 # from matplotlib import pyplot
 
@@ -11,6 +11,9 @@ from Simulations import simulation, ProjectileMoitionSimulation, test, coolParti
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.database = Database("localhost", "root", "2121", "NEA")
+
+
         self.setWindowTitle("ARGHHHHHHHHHH")
         self.setGeometry(0, 0, 1920, 1080)
         self.showFullScreen() # todo: fullscreen
