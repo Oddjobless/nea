@@ -29,7 +29,7 @@ class MainWindow(QMainWindow):
         self.setFont(QFont("Helvetica", 15))
         self.index.setStyleSheet("""
             {
-                font-size: 40;
+                font-size: 60;
                 font_family: 'Helvetica';
             }
 
@@ -56,8 +56,11 @@ class MainWindow(QMainWindow):
         self.password.setEchoMode(QLineEdit.EchoMode.Password)
         self.login_layout.addWidget(self.password, 2, 1, 1, 1)
 
-        self.layout.addWidget(self.login)
+        self.register_email_address = QLineEdit()
+        self.register_email_address.setPlaceholderText("Enter email address")
 
+
+        self.layout.addWidget(self.login)
         self.login.setStyleSheet("""
 
             QLabel {
