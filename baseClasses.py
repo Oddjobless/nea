@@ -251,7 +251,7 @@ class SpatialMap:
 
 
 
-screen_width, screen_height = 1080, 1080 # 960, 960
+screen_width, screen_height = 1920, 1080 # 960, 960
 rows, columns = 20, 20
 box_width, box_height = screen_width / columns, screen_height / rows
 

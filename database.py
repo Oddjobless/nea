@@ -1,13 +1,13 @@
 import mysql.connector
 
-db = mysql.connector.connect(
+"""db = mysql.connector.connect(
     host="localhost",
     user="root",
     password="2121",
     database="employees"
 )
 
-conn = db.cursor()
+conn = db.cursor()"""
 
 def create_boilerplate_db():
     conn.execute("""
@@ -15,13 +15,11 @@ def create_boilerplate_db():
     CREATE DATABASE IF NOT EXISTS employees;
     USE employees;
     
-    SELECT 'CREATING DATABASE STRUCTURE' as 'INFO';
+
     
     DROP TABLE IF EXISTS employees,
                          departments;
-    
-    /*!50503 set default_storage_engine = InnoDB */;
-    /*!50503 select CONCAT('storage engine: ', @@default_storage_engine) as INFO */;
+
     
     CREATE TABLE employees (
         emp_no      INT             NOT NULL AUTO_INCREMENT,
@@ -70,5 +68,62 @@ def create_boilerplate_db():
         WHERE emp_no IN (4, 5, 6, 7);
     """)
 
-conn.execute("SELECT first_name, last_name FROM employees WHERE gender = 'M'")
-print(conn.fetchall())
+
+class Database:
+    def __init__(self, user_, password_, host_, database_):
+        self.db = mysql.connector.connect(
+            host="localhost",
+            user="root",
+            password="2121",
+            database="employees"
+        )
+
+        self.conn = self.db.cursor()
+
+    def initialise__default_db(self):
+        self.conn.execute("""DROP DATABASE IF EXISTS NEA;
+        CREATE DATABASE IF NOT EXISTS NEA;
+        USE NEA;
+        
+        DROP TABLE IF EXISTS users;
+        DROP TABLE IF EXISTS user_settings;
+        
+        CREATE TABLE users (
+            id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+            username VARCHAR(32) UNIQUE NOT NULL,
+            password_hash CHAR(64) NOT NULL,
+            email UNIQUE VARCHAR(256) NOT NULL,
+            first_name VARCHAR(32),
+            last_name VARCHAR(32),
+            date_of_birth DATE
+        );
+        
+        CREATE TABLE user_settings (
+            id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+            user_id INT NOT NULL,
+            pathfinder_heatmap BOOLEAN DEFAULT FALSE,
+            pathfinder_grid BOOLEAN DEFAULT FALSE,
+            pathfinder_rows INT DEFAULT 20,
+            pathfinder_cols INT DEFAULT 20,
+            wall_collision_damping FLOAT DEFAULT 0.8,
+            particle_collision_damping FLOAT DEFAULT 1.0,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        )
+        
+        INSERT INTO users VALUES 
+        ('username', 'password', 'email@email.com', 'First', 'Last', '2000-01-01');
+        ('UnregisteredGimp', 'passwordGimp', 'passwordGimp@email.com', 'Gimp', 'Grinch', '1975-05-10')
+        ('FunnyGuppyGaming', 'passwordGuppy', 'SamVokes@gmail.com', 'Sam', 'Vokes', '2006-04-28');
+        
+        INSERT INTO user_settings (user_id, pathfinder_rows, pathfinder_cols) VALUES
+        (1, 30, 30)
+        (2, 32, 18)
+        (3, 15, 15);
+        
+        """)
+
+
+
+
+db = Database("root", "2121", "localhost", "employees")
+db.initialise_default_db()

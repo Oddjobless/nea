@@ -13,15 +13,15 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("ARGHHHHHHHHHH")
         self.setGeometry(0, 0, 1920, 1080)
-        self.showFullScreen()
-
+        self.showFullScreen() # todo: fullscreen
         self.layout = QStackedLayout()
         self.index = QWidget()
         self.index.setLayout(self.layout)
         self.setCentralWidget(self.index)
         self.toolbar = QToolBar("ahshsh")
-        self.toolbar.setMovable(False)
         self.addToolBar(self.toolbar)
+        self.toolbar.setMovable(False)
+
         self.setFont(QFont("Helvetica", 15))
         self.index.setStyleSheet("""
             {
@@ -34,21 +34,76 @@ class MainWindow(QMainWindow):
             }
         """)  # FIX
 
+        #################################################
+
+        self.login_layout = QGridLayout()
+        self.login = QWidget()
+        self.login.setLayout(self.login_layout)
+
+        self.username_label = QLabel("Username: ")
+        self.login_layout.addWidget(self.username_label, 0, 0, 1, 1)
+
+        self.password_label = QLabel("Password: ")
+        self.login_layout.addWidget(self.password_label, 1, 0, 1, 1)
+
+        self.username = QLineEdit()
+        self.login_layout.addWidget(self.username, 0, 1, 1, 3)
+
+        self.password = QLineEdit()
+        self.login_layout.addWidget(self.password, 1, 1, 1, 3)
+
+        self.layout.addWidget(self.login)
+
         ##################################################
         self.home_page_button = QAction("Home Page")
         self.toolbar.addAction(self.home_page_button)
-        self.home_page_button.triggered.connect(lambda: self.changeIndex(0))
+        self.home_page_button.triggered.connect(lambda: self.changeIndex(1))
         self.home_page = QPushButton("Home page")
         self.home_page.setFont(QFont("Gadzoox", 30))
         self.layout.addWidget(self.home_page)
         self.toolbar.addSeparator()
         self.home_page.setStyleSheet("background-color: '#F49097';")
 
+        """self.login.setStyleSheet(
+
+                    QLabel {
+                        font-family: 'Comic Sans MS';
+                        font-size: 30px;
+                    }
+                    QLineEdit {
+                        margin: 60;
+                        border: 3px solid '#0000ff';
+                    }
+
+                    QTextEdit {
+                        border: 2px dashed '#0000ff';
+                        margin: 30;
+                    }
+
+                    QPushButton {
+                        font-family: 'Comic Sans MS';
+                        font-size: 30px;
+                        padding: 20px 32px;
+                        color: green;
+                        border-radius: 6%;
+                        display: inline-block;
+                        position: fixed;
+                        margin: 0 0 0 0;
+                        transition-duration: 0.4s;
+                        border: 3px solid;
+                    }
+
+                    QPushButton:hover {
+                        background-color: '#0000ff';
+                        color: white;
+                    }
+                )"""
+
         ##################################################
 
         self.cipher1_button = QAction("Caesar Cipher", self)
         self.toolbar.addAction(self.cipher1_button)
-        self.cipher1_button.triggered.connect(lambda: self.changeIndex(1))
+        self.cipher1_button.triggered.connect(lambda: self.changeIndex(2))
 
         self.caesarCipher_layout = QGridLayout()
         self.caesarCipher = QWidget()
@@ -121,7 +176,7 @@ class MainWindow(QMainWindow):
 
         self.cipher2_button = QAction("Transposition Cipher", self)
         self.toolbar.addAction(self.cipher2_button)
-        self.cipher2_button.triggered.connect(lambda: self.changeIndex(2))
+        self.cipher2_button.triggered.connect(lambda: self.changeIndex(3))
 
         self.transpositionCipher_layout = QGridLayout()
         self.transpositionCipher = QWidget()
@@ -190,7 +245,7 @@ class MainWindow(QMainWindow):
 
         self.cipher3_button = QAction("One Time Pad", self)
         self.toolbar.addAction(self.cipher3_button)
-        self.cipher3_button.triggered.connect(lambda: self.changeIndex(3))
+        self.cipher3_button.triggered.connect(lambda: self.changeIndex(4))
 
         self.oneTimeCipher_layout = QGridLayout()
         self.oneTimeCipher = QWidget()
@@ -252,7 +307,7 @@ class MainWindow(QMainWindow):
 
         self.cipher4_button = QAction("Square Multiply", self)
         self.toolbar.addAction(self.cipher4_button)
-        self.cipher4_button.triggered.connect(lambda: self.changeIndex(4))
+        self.cipher4_button.triggered.connect(lambda: self.changeIndex(5))
 
         self.squareMultiply_layout = QGridLayout()
         self.squareMultiply = QWidget()
@@ -278,6 +333,16 @@ class MainWindow(QMainWindow):
 
     def changeIndex(self, newIndex):  # FIX THIS
         self.layout.setCurrentIndex(newIndex)
+
+
+    def verify_login(self):
+        pass
+
+    def show_toolbar(self):
+        self.toolbar.setVisible(True)
+
+    def hide_toolbar(self):
+        self.toolbar.setVisible(False)
 
     def caesar(self):
         ProjectileMoitionSimulation.run()
