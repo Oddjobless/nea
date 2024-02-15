@@ -47,35 +47,48 @@ class MainWindow(QMainWindow):
         self.login_label = QLabel("Login")
         self.login_layout.addWidget(self.login_label, 0, 1, 1, 1)
 
-        self.register_label = QLabel("Register")
-        # self.login_layout.addWidget(self.register_label, 0, 4, 1, 1)
 
         self.email = QLineEdit()
         self.email.setPlaceholderText("Enter email address")
-        self.login_layout.addWidget(self.email, 6, 0, 1, 7)
+        self.login_layout.addWidget(self.email, 7, 0, 1, 7)
 
         self.password = QLineEdit()
         self.password.setPlaceholderText("Enter password")
         self.password.setEchoMode(QLineEdit.EchoMode.Password)
-        self.login_layout.addWidget(self.password, 7, 0, 1, 7)
+        self.login_layout.addWidget(self.password, 8, 0, 1, 4)
 
 
         self.login_button = QPushButton("Attempt Login")
         self.login_button.released.connect(self.attempt_login)
-        self.login_layout.addWidget(self.login_button,8, 5, 1, 1)
+        self.login_layout.addWidget(self.login_button,9, 4, 1, 1)
 
 
 
-        self.toggle_login = QPushButton("Sign-In Instead")
+        self.toggle_login = QPushButton("Already Have\nAn Account?")
         self.toggle_login.released.connect(self.toggle_login_register)
-        self.login_layout.addWidget(self.toggle_login, 8, 1, 1, 1)
+        self.login_layout.addWidget(self.toggle_login, 9, 1, 1, 1)
 
 
         # registration widgets
-        self.repeat_password = QLineEdit().setPlaceholderText("Enter Your Password Again")
+        self.repeat_password = QLineEdit()
+        self.repeat_password.setPlaceholderText("Enter Your Password Again")
         self.repeat_password.setEchoMode(QLineEdit.EchoMode.Password)
+        self.login_layout.addWidget(self.repeat_password, 8, 0, 1, 4)
+        self.repeat_password.hide()
 
-        self.full_name = QLineEdit().setPlaceholderText("Enter your full name")
+        self.full_name = QLineEdit()
+        self.full_name.setPlaceholderText("Enter your full name")
+        self.login_layout.addWidget(self.full_name, 4, 0, 1, 4)
+        self.full_name.hide()
+
+        self.date_of_birth = QDateEdit()
+        self.date_of_birth.setDisplayFormat("dd/MM/yyyy")
+        self.date_of_birth.setCalendarPopup(True)
+        self.login_layout.addWidget(self.date_of_birth, 6, 1, 1, 2)
+        self.date_of_birth.hide()
+        self.date_of_birth_label = QLabel("Date of\n Birth")
+        self.login_layout.addWidget(self.date_of_birth_label, 6, 0, 1, 1)
+        self.date_of_birth_label.hide()
 
 
 
@@ -86,6 +99,7 @@ class MainWindow(QMainWindow):
                 font-family: 'Comic Sans MS';
                 font-size: 30px;
                 align: right;
+                margin-left: 30px;
             }
             QLineEdit {
                 margin: 20px 50px 0px 30px;;
@@ -99,7 +113,7 @@ class MainWindow(QMainWindow):
                 margin: 60px;
             }
 
-            QPushButton {
+            QPushButton, QDateEdit {
                 font-family: 'Comic Sans MS';
                 font-size: 40px;
                 padding: 10px 20px;
@@ -376,21 +390,32 @@ class MainWindow(QMainWindow):
             print("Fail") # todo:
 
     def toggle_login_register(self):
-        # self.email, self.password, self.repeat_password, self.register_first_name, self.date_of_birth
-
         if self.toggle_login.text()[0] == "A":
-            self.toggle_login.setText("Don't have an account?\nRegister Instead")
-            self.login_layout.removeWidget(self.email, self.repeat_password, self.password, self.full_name)
-            self.login_layout.addWidget(self.email, 6, 0, 1, 7)
-            self.login_layout.addWidget(self.password, 7, 0, 1, 7)
+            self.toggle_login.setText("Don't have\n an account?")
+            self.full_name.hide()
+            self.date_of_birth.hide()
+            self.date_of_birth_label.hide()
+            self.repeat_password.hide()
+
+            self.login_layout.removeWidget(self.password)
+            self.login_layout.removeWidget(self.email)
+            self.login_layout.addWidget(self.email, 5, 0, 1, 4)
+            self.login_layout.addWidget(self.password, 6, 0, 1, 4)
 
 
         else:
-            self.toggle_login.setText("Already have an account?\nLogin Instead")
-            self.login_layout.addWidget(self.email, 5, 0, 1, 6)
-            self.login_layout.addWidget(self.repeat_password, 7, 0, 1, 7)
-            self.login_layout.addWidget(self.password, 6, 0, 1, 7)
-            self.login_layout.addWidget(self.full_name, 4, 0, 1, 7)
+            self.toggle_login.setText("Already have\n an account?")
+
+            self.full_name.show()
+            self.date_of_birth.show()
+            self.date_of_birth_label.show()
+            self.repeat_password.show()
+
+
+            self.login_layout.removeWidget(self.password)
+            self.login_layout.removeWidget(self.email)
+            self.login_layout.addWidget(self.email, 8, 0, 1, 4)
+            self.login_layout.addWidget(self.password, 7, 0, 1, 4)
 
 
     def switch_to_login(self):
