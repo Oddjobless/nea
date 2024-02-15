@@ -60,21 +60,18 @@ class MainWindow(QMainWindow):
 
         self.login_button = QPushButton("Attempt Login")
         self.login_button.released.connect(self.attempt_login)
-        self.login_layout.addWidget(self.login_button,9, 4, 1, 1)
+        self.login_layout.addWidget(self.login_button,9, 5, 1, 1)
 
 
 
-        self.toggle_login = QPushButton("Already Have\nAn Account?")
+
+        self.toggle_login = QPushButton("Don't Have\nAn Account?")
         self.toggle_login.released.connect(self.toggle_login_register)
         self.login_layout.addWidget(self.toggle_login, 9, 1, 1, 1)
 
 
         # registration widgets
-        self.repeat_password = QLineEdit()
-        self.repeat_password.setPlaceholderText("Enter Your Password Again")
-        self.repeat_password.setEchoMode(QLineEdit.EchoMode.Password)
-        self.login_layout.addWidget(self.repeat_password, 8, 0, 1, 4)
-        self.repeat_password.hide()
+
 
         self.full_name = QLineEdit()
         self.full_name.setPlaceholderText("Enter your full name")
@@ -295,6 +292,7 @@ class MainWindow(QMainWindow):
         self.oneTimeCipher_layout = QGridLayout()
         self.oneTimeCipher = QWidget()
         self.oneTimeCipher.setStyleSheet("""
+        
             QLineEdit {
                 margin: 60;
                 border: 3px solid '#ff0000';
@@ -389,19 +387,15 @@ class MainWindow(QMainWindow):
         else:
             print("Fail") # todo:
 
+    def create_new_user(self):
+        self.database.create_new_user(self.email.text(), sha256(self.password.text().encode()).hexdigest())
+
     def toggle_login_register(self):
         if self.toggle_login.text()[0] == "A":
             self.toggle_login.setText("Don't have\n an account?")
             self.full_name.hide()
             self.date_of_birth.hide()
             self.date_of_birth_label.hide()
-            self.repeat_password.hide()
-
-            self.login_layout.removeWidget(self.password)
-            self.login_layout.removeWidget(self.email)
-            self.login_layout.addWidget(self.email, 5, 0, 1, 4)
-            self.login_layout.addWidget(self.password, 6, 0, 1, 4)
-
 
         else:
             self.toggle_login.setText("Already have\n an account?")
@@ -409,22 +403,12 @@ class MainWindow(QMainWindow):
             self.full_name.show()
             self.date_of_birth.show()
             self.date_of_birth_label.show()
-            self.repeat_password.show()
 
 
-            self.login_layout.removeWidget(self.password)
-            self.login_layout.removeWidget(self.email)
-            self.login_layout.addWidget(self.email, 8, 0, 1, 4)
-            self.login_layout.addWidget(self.password, 7, 0, 1, 4)
 
 
-    def switch_to_login(self):
-        if self.toggle_login.text()[0] == "A":
-            self.login_layout.addWidget()
 
-        else:
-            pass
-            # self.login_layout.removeWidget() todo: remove widgets from registering
+
 
 
 

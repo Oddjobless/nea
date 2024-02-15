@@ -261,7 +261,7 @@ dt = 1 / frame_rate  # time elapsed between frames
 radius = 5  # radius of particles, purely for visualisation
 noOfParticles = 30  # number of particles.
 wall_damping = 0.7  # what percentage of energy the particles keep on collision with boundary
-  # draw the grid lines on the screen
+# draw the grid lines on the screen
 using_poly_6 = True  #
 using_cubic_spline_kernel = True
 smoothing_radius = box_width # will integrate this into program.#
