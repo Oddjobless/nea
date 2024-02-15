@@ -47,17 +47,39 @@ class MainWindow(QMainWindow):
         self.login_label = QLabel("Login")
         self.login_layout.addWidget(self.login_label, 0, 1, 1, 1)
 
+        self.register_label = QLabel("Register")
+        # self.login_layout.addWidget(self.register_label, 0, 4, 1, 1)
+
         self.email = QLineEdit()
         self.email.setPlaceholderText("Enter email address")
-        self.login_layout.addWidget(self.email, 1, 1, 1, 1)
+        self.login_layout.addWidget(self.email, 1, 0, 1, 7)
 
         self.password = QLineEdit()
         self.password.setPlaceholderText("Enter password")
         self.password.setEchoMode(QLineEdit.EchoMode.Password)
-        self.login_layout.addWidget(self.password, 2, 1, 1, 1)
+        self.login_layout.addWidget(self.password, 2, 0, 1, 7)
 
-        self.register_email_address = QLineEdit()
-        self.register_email_address.setPlaceholderText("Enter email address")
+
+
+
+        self.login_button = QPushButton("Attempt Login")
+        self.login_button.released.connect(self.attempt_login)
+        self.login_layout.addWidget(self.login_button, 3, 5, 1, 1)
+
+        self.register_button = QPushButton("Attempt Register")
+        self.login_button.released.connect(self.attempt_login)
+        self.login_layout.addWidget(self.register_button, 3, 1, 1, 1)
+
+        # self.register_email_address = QLineEdit()
+        # self.register_email_address.setPlaceholderText("Enter email address")
+        # self.login_layout.addWidget(self.register_email_address, 1, 3, 1, 3)
+
+        self.register_password = QLineEdit()
+        self.register_password.setPlaceholderText("Enter password")
+        self.register_password.setEchoMode(QLineEdit.EchoMode.Password)
+        self.login_layout.replaceWidget(self.password, self.register_password)
+
+
 
 
         self.layout.addWidget(self.login)
@@ -69,10 +91,10 @@ class MainWindow(QMainWindow):
                 align: right;
             }
             QLineEdit {
-                margin-right: 120;
-                margin-left: 10;
+                margin: 20px 80px 0px 30px;;
                 border: 10px solid '#0000ff';
                 font-size: 30px;
+                padding: 10px;
             }
 
             QTextEdit {
@@ -82,15 +104,16 @@ class MainWindow(QMainWindow):
 
             QPushButton {
                 font-family: 'Comic Sans MS';
-                font-size: 30px;
-                padding: 20px 32px;
+                font-size: 40px;
+                padding: 10px 20px;
                 color: green;
-                border-radius: 6%;
+                border-radius: 10%;
                 display: inline-block;
                 position: fixed;
-                margin: 0 0 0 0;
-                transition-duration: 0.4s;
-                border: 3px solid;
+                margin: 30px 30px 30px 0px;
+                transition-duration: 0.9s;
+                border: 2px solid;
+                align: right;
             }
 
             QPushButton:hover {

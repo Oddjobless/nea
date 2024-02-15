@@ -104,7 +104,7 @@ class VelocityField(SpatialMap):
 
 
     def display_heatmap(self, screen): # drawing a gradient depending on the distance
-        max_distance = np.max(self.cell_distances)
+        max_distance = np.max(list(filter(lambda x: np.isfinite(x), self.cell_distances)))
 
         for i in range(self.noOfRows):
             for j in range(self.noOfCols):
