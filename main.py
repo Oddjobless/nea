@@ -52,32 +52,29 @@ class MainWindow(QMainWindow):
 
         self.email = QLineEdit()
         self.email.setPlaceholderText("Enter email address")
-        self.login_layout.addWidget(self.email, 1, 0, 1, 7)
+        self.login_layout.addWidget(self.email, 6, 0, 1, 7)
 
         self.password = QLineEdit()
         self.password.setPlaceholderText("Enter password")
         self.password.setEchoMode(QLineEdit.EchoMode.Password)
-        self.login_layout.addWidget(self.password, 2, 0, 1, 7)
-
-
+        self.login_layout.addWidget(self.password, 7, 0, 1, 7)
 
 
         self.login_button = QPushButton("Attempt Login")
         self.login_button.released.connect(self.attempt_login)
-        self.login_layout.addWidget(self.login_button, 3, 5, 1, 1)
+        self.login_layout.addWidget(self.login_button,8, 5, 1, 1)
 
-        self.register_button = QPushButton("Attempt Register")
-        self.login_button.released.connect(self.attempt_login)
-        self.login_layout.addWidget(self.register_button, 3, 1, 1, 1)
 
-        # self.register_email_address = QLineEdit()
-        # self.register_email_address.setPlaceholderText("Enter email address")
-        # self.login_layout.addWidget(self.register_email_address, 1, 3, 1, 3)
 
-        self.register_password = QLineEdit()
-        self.register_password.setPlaceholderText("Enter password")
-        self.register_password.setEchoMode(QLineEdit.EchoMode.Password)
-        self.login_layout.replaceWidget(self.password, self.register_password)
+        self.toggle_login = QPushButton("Sign-In Instead")
+        self.toggle_login.released.connect(self.toggle_login_register)
+        self.login_layout.addWidget(self.toggle_login, 8, 1, 1, 1)
+
+
+        # registration widgets
+        self.repeat_password = QLineEdit().setPlaceholderText("Enter Your Password Again")
+        self.repeat_password.setEchoMode(QLineEdit.EchoMode.Password)
+
 
 
 
@@ -91,7 +88,7 @@ class MainWindow(QMainWindow):
                 align: right;
             }
             QLineEdit {
-                margin: 20px 80px 0px 30px;;
+                margin: 20px 50px 0px 30px;;
                 border: 10px solid '#0000ff';
                 font-size: 30px;
                 padding: 10px;
@@ -99,7 +96,7 @@ class MainWindow(QMainWindow):
 
             QTextEdit {
                 border: 2px dashed '#0000ff';
-                margin: 30;
+                margin: 60px;
             }
 
             QPushButton {
@@ -376,7 +373,32 @@ class MainWindow(QMainWindow):
             self.show_toolbar()
             # todo: display success message
         else:
-            return False # todo:
+            print("Fail") # todo:
+
+    def toggle_login_register(self):
+        # self.email, self.password, self.repeat_password, self.register_first_name, self.register_last_name, self.date_of_birth
+
+        if self.toggle_login.text()[0] == "A":
+            self.toggle_login.setText("Don't have an account?\nRegister Instead")
+            self.login_layout.addWidget(self.email, 6, 0, 1, 7)
+            self.login_layout.addWidget(self.password, 7, 0, 1, 7)
+
+        else:
+            self.toggle_login.setText("Already have an account?\nLogin Instead")
+            self.login_layout.addWidget(self.email, 8, 0, 1, 6)
+            self.login_layout.addWidget(self.repeat_password,)
+
+
+    def switch_to_login(self):
+        if self.toggle_login.text()[0] == "A":
+            self.login_layout.addWidget()
+
+        else:
+            pass
+            # self.login_layout.removeWidget() todo: remove widgets from registering
+
+
+
 
     def show_toolbar(self):
         self.toolbar.setVisible(True)
