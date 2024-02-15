@@ -75,7 +75,7 @@ class MainWindow(QMainWindow):
         self.repeat_password = QLineEdit().setPlaceholderText("Enter Your Password Again")
         self.repeat_password.setEchoMode(QLineEdit.EchoMode.Password)
 
-
+        self.full_name = QLineEdit().setPlaceholderText("Enter your full name")
 
 
 
@@ -376,17 +376,21 @@ class MainWindow(QMainWindow):
             print("Fail") # todo:
 
     def toggle_login_register(self):
-        # self.email, self.password, self.repeat_password, self.register_first_name, self.register_last_name, self.date_of_birth
+        # self.email, self.password, self.repeat_password, self.register_first_name, self.date_of_birth
 
         if self.toggle_login.text()[0] == "A":
             self.toggle_login.setText("Don't have an account?\nRegister Instead")
+            self.login_layout.removeWidget(self.email, self.repeat_password, self.password, self.full_name)
             self.login_layout.addWidget(self.email, 6, 0, 1, 7)
             self.login_layout.addWidget(self.password, 7, 0, 1, 7)
 
+
         else:
             self.toggle_login.setText("Already have an account?\nLogin Instead")
-            self.login_layout.addWidget(self.email, 8, 0, 1, 6)
-            self.login_layout.addWidget(self.repeat_password,)
+            self.login_layout.addWidget(self.email, 5, 0, 1, 6)
+            self.login_layout.addWidget(self.repeat_password, 7, 0, 1, 7)
+            self.login_layout.addWidget(self.password, 6, 0, 1, 7)
+            self.login_layout.addWidget(self.full_name, 4, 0, 1, 7)
 
 
     def switch_to_login(self):
