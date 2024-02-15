@@ -33,8 +33,8 @@ class Database:
             id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
             email VARCHAR(256) UNIQUE NOT NULL,
             password_hash CHAR(64) NOT NULL,
-            full_name VARCHAR(32),
-            date_of_birth DATE
+            full_name VARCHAR(64),
+            date_of_birth DATE 
         );
 
         CREATE TABLE user_settings (

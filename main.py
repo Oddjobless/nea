@@ -58,8 +58,8 @@ class MainWindow(QMainWindow):
         self.login_layout.addWidget(self.password, 8, 0, 1, 4)
 
 
-        self.login_button = QPushButton("Attempt Login")
-        self.login_button.released.connect(self.attempt_login)
+        self.login_button = QPushButton("Log in")
+        self.login_button.released.connect(self.login_or_register)
         self.login_layout.addWidget(self.login_button,9, 5, 1, 1)
 
 
@@ -387,19 +387,38 @@ class MainWindow(QMainWindow):
         else:
             print("Fail") # todo:
 
-    def create_new_user(self):
-        self.database.create_new_user(self.email.text(), sha256(self.password.text().encode()).hexdigest())
+    def login_or_register(self):
+        if self.toggle_login.text()[0] == "A":
+            self.create_new_db_user()
+        else:
+            self.attempt_login()
+
+    def create_new_db_user(self):
+        conditions = [
+            len(self.password.text()) >= 6,
+            self.full_name.text() != "",
+            self.date_of_birth.date().addYears(16) <= QDate.currentDate()
+        ]
+        print(conditions)
+        print(self.email.text(), sha256(self.password.text().encode()).hexdigest(), self.full_name.text(), self.date_of_birth.text())
+        if all(conditions):
+            self.database.create_new_user(self.email.text(), sha256(self.password.text().encode()).hexdigest(), self.full_name.text(), self.date_of_birth.date().toString("yyyy-MM-dd"))
+            print("Created new user")
+            return True
+        print("Fail")
+        return False
 
     def toggle_login_register(self):
         if self.toggle_login.text()[0] == "A":
             self.toggle_login.setText("Don't have\n an account?")
+            self.login_button.setText("Log in")
             self.full_name.hide()
             self.date_of_birth.hide()
             self.date_of_birth_label.hide()
 
         else:
             self.toggle_login.setText("Already have\n an account?")
-
+            self.login_button.setText("Register")
             self.full_name.show()
             self.date_of_birth.show()
             self.date_of_birth_label.show()
