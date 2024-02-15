@@ -72,14 +72,18 @@ class Database:
             return True
         except:
             print(email, password_hash, full_name, date_of_birth)
+            print("Could not create user")
             return False
 
     def verify_login(self, email, password_hash):
-        self.conn.execute("""
-        SELECT * FROM users WHERE email = %s AND password_hash = %s;
-        """, (email, password_hash))
-        return self.conn.fetchone()
-
+        try:
+            self.conn.execute("""
+            SELECT * FROM users WHERE email = %s AND password_hash = %s;
+            """, (email, password_hash))
+            return self.conn.fetchone()
+        except:
+            print("Could not verify login")
+            return None
     def get_user_settings(self, user_id):
         self.conn.execute("""
         SELECT * FROM user_settings WHERE user_id = %s;
@@ -98,7 +102,7 @@ class Database:
 
 if __name__ == "__main__":
     db = Database("localhost", "root", "2121", "NEA")
-    db.initialise_default_db()
+    # db.initialise_default_db()
 
-    # db.conn.execute("SELECT * FROM users")
+    db.conn.execute("SELECT * FROM users")
     print(db.conn.fetchall())
