@@ -25,6 +25,7 @@ class MainWindow(QMainWindow):
         self.toolbar = QToolBar("ahshsh")
         self.addToolBar(self.toolbar)
         self.toolbar.setMovable(False)
+        self.toolbar.hide()
 
         self.setFont(QFont("Helvetica", 15))
         self.index.setStyleSheet("""
@@ -143,7 +144,7 @@ class MainWindow(QMainWindow):
 
         ##################################################
 
-        self.cipher1_button = QAction("Caesar Cipher", self)
+        self.cipher1_button = QAction("Projectile Motion", self)
         self.toolbar.addAction(self.cipher1_button)
         self.cipher1_button.triggered.connect(lambda: self.changeIndex(2))
 
@@ -216,7 +217,7 @@ class MainWindow(QMainWindow):
         # self.caesarCipher.setStyleSheet("background-color: '#DFB2F4';")
         ##################################################
 
-        self.cipher2_button = QAction("Transposition Cipher", self)
+        self.cipher2_button = QAction("Vector Field\nPathfinding", self)
         self.toolbar.addAction(self.cipher2_button)
         self.cipher2_button.triggered.connect(lambda: self.changeIndex(3))
 
@@ -383,6 +384,7 @@ class MainWindow(QMainWindow):
         if user_info:
             self.user_info = user_info
             self.show_toolbar()
+            print("Ur in")
             # todo: display success message
         else:
             print("Fail") # todo:
@@ -401,12 +403,12 @@ class MainWindow(QMainWindow):
         ]
         print(conditions)
         print(self.email.text(), sha256(self.password.text().encode()).hexdigest(), self.full_name.text(), self.date_of_birth.text())
+        print(self.date_of_birth.date().toString("yyyy-MM-dd"))
         if all(conditions):
-            self.database.create_new_user(self.email.text(), sha256(self.password.text().encode()).hexdigest(), self.full_name.text(), self.date_of_birth.date().toString("yyyy-MM-dd"))
-            print("Created new user")
-            return True
-        print("Fail")
-        return False
+            print("HI")
+
+            self.database.create_user(self.email.text(), sha256(self.password.text().encode()).hexdigest(), self.full_name.text(), self.date_of_birth.date().toString("yyyy-MM-dd"))
+
 
     def toggle_login_register(self):
         if self.toggle_login.text()[0] == "A":

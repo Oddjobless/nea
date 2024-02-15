@@ -64,13 +64,15 @@ class Database:
         #max length for email is 255 characters apparently
 
     def create_user(self, email, password_hash, full_name, date_of_birth):
-        self.conn.execute("""
-        INSERT INTO users (email, password_hash, full_name, date_of_birth) VALUES 
-        (%s, %s, %s, %s);
-        
-        INSERT INTO user_settings (user_id) VALUES (LAST_INSERT_ID());
-        """, (email, password_hash, full_name, date_of_birth))
-
+        try:
+            self.conn.execute("""
+            INSERT INTO users (email, password_hash, full_name, date_of_birth) VALUES (%s, %s, %s, %s);
+            INSERT INTO user_settings (user_id) VALUES (LAST_INSERT_ID());
+            """, (email, password_hash, full_name, date_of_birth))
+            return True
+        except:
+            print(email, password_hash, full_name, date_of_birth)
+            return False
 
     def verify_login(self, email, password_hash):
         self.conn.execute("""
@@ -96,6 +98,7 @@ class Database:
 
 if __name__ == "__main__":
     db = Database("localhost", "root", "2121", "NEA")
-    # db.initialise_default_db()
-    db.conn.execute("SELECT * FROM user_settings")
+    db.initialise_default_db()
+
+    # db.conn.execute("SELECT * FROM users")
     print(db.conn.fetchall())
