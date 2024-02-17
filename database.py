@@ -25,9 +25,15 @@ class Database:
         try:
             self.conn.execute("""
             DROP TABLE IF EXISTS user_settings;
+            """)
+            self.conn.fetchall()  # Fetch the results before executing another query
 
+            self.conn.execute("""
             DROP TABLE IF EXISTS users;
+            """)
+            self.conn.fetchall()  # Fetch the results before executing another query
 
+            self.conn.execute("""
             CREATE TABLE users (
                 id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
                 email VARCHAR(256) UNIQUE NOT NULL,
@@ -35,7 +41,10 @@ class Database:
                 full_name VARCHAR(64),
                 date_of_birth DATE 
             );
+            """)
+            self.conn.fetchall()  # Fetch the results before executing another query
 
+            self.conn.execute("""
             CREATE TABLE user_settings (
                 id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
                 user_id INT NOT NULL,
@@ -47,18 +56,25 @@ class Database:
                 particle_collision_damping FLOAT DEFAULT 1.0,
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             );
+            """)
+            self.conn.fetchall()  # Fetch the results before executing another query
 
-
+            self.conn.execute("""
             INSERT INTO users (email, password_hash, full_name, date_of_birth) VALUES 
             ('email@email.com', 'password', 'First Last', '2000-01-01'),
             ('passwordGimp@email.com', 'passwordGimp Gimp', 'Grinch', '1975-05-10'),
             ('SamVokes@gmail.com', 'passwordGuppy', 'Sam Vokes', '2006-04-28');
+            """)
+            self.conn.fetchall()  # Fetch the results before executing another query
 
+            self.conn.execute("""
             INSERT INTO user_settings (user_id, pathfinder_rows, pathfinder_cols) VALUES
             (1, 30, 30),
             (2, 32, 18),
             (3, 15, 15);
             """)
+            self.conn.fetchall()  # Fetch the results before executing another query
+
             print("Database initialised successfully.")
         except Exception as e:
             print("Error initialising database:", e)
@@ -114,7 +130,7 @@ if __name__ == "__main__":
     db.initialise_default_db()
 
     try:
-        db.conn.execute("SELECT * FROM users WHERE email = 'SamVokes@gmail.com'")
+        db.conn.execute("SELECT * FROM users")
         results = db.conn.fetchall()
         for row in results:
             print(row)

@@ -64,19 +64,25 @@ class Particle:
             if obstacle.is_platform:
                 self.velocity[0] *= -1 * damping
 
+
+
     def check_obstacle_collision(self, obstacle_pos, width, height, custom_radius=None):
-        # Calculate the closest point on the rectangle to the circle
+
         closest_x = max(obstacle_pos[0], min(self.next_position[0], obstacle_pos[0] + width))
         closest_y = max(obstacle_pos[1], min(self.next_position[1], obstacle_pos[1] + height))
 
-        # Calculate the distance between the circle's center and the closest point on the rectangle
         distance = np.sqrt((self.next_position[0] - closest_x) ** 2 + (self.next_position[1] - closest_y) ** 2)
 
-        # Check if the distance is less than the circle's radius
         if not custom_radius:
             return distance < self.radius
         print(distance, self.radius)
-        return distance < custom_radius
+        return distance < custom_radius##
+
+    def entirely_in_obstacle_check(self, pos, width, height): # is particle full
+        if self.next_position[0] - self.radius > pos[0] and self.next_position[0] + radius < pos[0] + width and self.next_position[1] - self.radius > pos[1] and self.next_position[1] + self.radius < pos[1] + height:
+            return True
+        return False
+
     def update(self, screen):
         if self.next_position[0] > screen.get_width() - (1.5 * self.radius) or self.next_position[
             0] < 1.5 * self.radius:  # or within blocked cell

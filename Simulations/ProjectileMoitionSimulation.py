@@ -145,6 +145,7 @@ class ProjectileParticle(Particle):
         self.acceleration = np.array([0, self.vector_field.g])
         self.floor_damping = floor_damping
         self.colour = (43,132,154)
+        self.hit_goal = False
     def draw(self, screen):
         pygame.draw.circle(screen, self.colour, self.position, self.radius)
 
@@ -171,10 +172,19 @@ class ProjectileParticle(Particle):
 
     def collision_event_goal(self):
         goal = self.vector_field.goal
-        if self.check_obstacle_collision(goal.position, goal.width, goal.height, custom_radius=0.01):
-            self.velocity *= 0
+        if self.entirely_in_obstacle_check(goal.position, goal.width, goal.height):
+            self.velocity = self.velocity * 0.99
+            self.hit_goal = True
             self.colour = (255,255,255)
-            # self.acceleration *= 0
+            self.acceleration *= 0
+
+    """def slow_down_ball(self):
+
+        self.velocity -= self.subtract_speed
+        self.slow_counter -= 1
+        if self.slow_counter == 0:
+            self.hit_goal = False
+            self.velocity = np.array([0,0]) # just in case"""
 
 
     def update(self, screen):
@@ -193,7 +203,8 @@ class ProjectileParticle(Particle):
 
 
 
-
+        if self.hit_goal:
+            self.slow_down_ball()
 
         # print(self.vector_field.grid)
         if self.vector_field.particles.index(self) != self.vector_field.selected_particle:
@@ -245,14 +256,17 @@ class ProjectileParticle(Particle):
 
 
 class Obstacle:
-    def __init__(self, position, width, height):
+    def __init__(self, position, width, height, image=None):
         self.position = np.array(position)
         self.width, self.height = width, height
         self.colour = (255, 0, 0)
         self.is_platform = False
+        self.image = pygame.transform.scale(image, (width, height)) if image else None
 
     def draw(self, screen):
         pygame.draw.rect(screen, self.colour, (self.position[0], self.position[1], self.width, self.height))
+        if self.image:
+            screen.blit(self.image, self.position)
 
 
 class Container(SpatialMap):
@@ -275,15 +289,22 @@ class Container(SpatialMap):
 
         self.obstacles = []
         self.initialise_level("./ProjectileMotionLevels/lvl2")
+        self.initialise_level("lvl2")
+
+
 
 
 
 
 
     def initialise_level(self, file_name):
+        goal_background_image = pygame.image.load("./ProjectileMotionLevels/billboard.png")
+        goal_background_image.convert_alpha()
+        print("£aaf")
         with open(file_name, "r") as file:
             goal = file.readline()
-            self.initialise_goal(goal.split(","))
+            self.initialise_goal(goal.split(","), goal_background_image)
+            print("sdafafsd")
             for line in file:
                 line = line.split(",")
                 object = Obstacle((int(line[0]), int(line[1])), int(line[2]), int(line[3]))
@@ -292,9 +313,9 @@ class Container(SpatialMap):
                     object.is_platform = True
                     object.colour = (37,41,74)
 
-    def initialise_goal(self, goal):
+    def initialise_goal(self, goal, image=None):
         # self.goal = Particle(0, int(goal[0]), self, 0)
-        self.goal = Obstacle((int(goal[0]), int(goal[1])),int(goal[2]), int(goal[3]))
+        self.goal = Obstacle((int(goal[0]), int(goal[1])),int(goal[2]), int(goal[3]), image)
         # self.goal.position = np.array([int(goal[1]), int(goal[2])])
         self.goal.colour = (255,105,180) # hot pink color
 

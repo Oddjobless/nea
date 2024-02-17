@@ -25,7 +25,7 @@ class MainWindow(QMainWindow):
         self.toolbar = QToolBar("ahshsh")
         self.addToolBar(self.toolbar)
         self.toolbar.setMovable(False)
-        self.toolbar.hide()
+        # self.toolbar.hide()
 
         self.setFont(QFont("Helvetica", 15))
         self.index.setStyleSheet("""
