@@ -71,7 +71,7 @@ def run():
         for particle in vector_field.particles:
             particle.collision_event_obstacles()
             particle.collision_event()
-            particle.collision_event_goal()
+            particle.collision_event_goal(screen)
 
 
             particle.draw(screen)
@@ -91,9 +91,13 @@ def run():
         vector_field.colliding_balls_pairs.clear()
 
         if vector_field.draw_line_to_mouse and vector_field.selected_particle != None:
-            pygame.draw.line(screen, (255, 0, 0), vector_field.particles[vector_field.selected_particle].position, pygame.mouse.get_pos())
-            text = font.render(f"{particle.get_real_velocity()[1]:1f}, {(particle.get_position()[0] * vector_field.g_multiplier):1f}", True, (255, 255, 255))
-            screen.blit(text, particle.get_position() - np.array([0, 80]))
+            particle = vector_field.particles[vector_field.selected_particle]
+            pygame.draw.line(screen, (255, 0, 0), particle.position, pygame.mouse.get_pos())
+            text = font.render(
+                f"{int(particle.get_real_velocity()[1])}, {int(particle.get_position()[0] * vector_field.g_multiplier)}",
+                True, (255, 255, 255))
+            screen.blit(text, particle.get_position() - np.array([80, 80]))
+
         else:
             vector_field.draw_line_to_mouse = False
 
@@ -110,12 +114,17 @@ def run():
 
 
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1 and vector_field.selected_particle == None:
+                particle_clicked = vector_field.selected_particle
+                if event.button == 1 and particle_clicked == None:
                     vector_field.drag_particle(event.pos)
                     print("adf")
 
-                elif event.button == 3 and vector_field.selected_particle == None:
+                elif event.button == 3 and particle_clicked == None:
                     vector_field.project_particle(event.pos)
+
+
+
+
 
 
 
@@ -170,15 +179,18 @@ class ProjectileParticle(Particle):
 
 
 
-    def collision_event_goal(self):
+    def collision_event_goal(self, screen):
         goal = self.vector_field.goal
         if self.entirely_in_obstacle_check(goal.position, goal.width, goal.height):
             self.velocity = self.velocity * 0.8
             self.acceleration *= 0
             self.hit_goal = True
             self.colour = (25,125,195)
-            if self.velocity == np.zeros_like(self.velocity):
-                self.vector_field.disassociate_particle(self)
+            if np.allclose(self.velocity, np.zeros_like(self.velocity), atol=2):
+                splatter = self.vector_field.collision_splatters.pop(0)
+                screen.blit(splatter, self.position - np.array([self.radius, self.radius]))
+                self.vector_field.particles.remove(self)
+                # self.vector_field.disassociate_particle(self)
 
         else:
             self.hit_goal = False
@@ -304,6 +316,14 @@ class Container(SpatialMap):
         wall_image = pygame.image.load("./ProjectileMotionLevels/images/wall.png")
         print("Wall loaded")
 
+        splatters = ["splat1, splat2, splat3"]
+        splat_width = 40
+        self.collision_splatters = []
+        for splat in splatters:
+            img = pygame.image.load("./ProjectileMotionLevels/images/" + splat)
+            img.convert_alpha()
+            img = pygame.transform.scale(img, (splat_width, splat_width * img.get_height() // img.get_width()))
+            self.collision_splatters.append(img)
 
         with open(file_name, "r") as file:
             print("Asdf")
@@ -325,7 +345,7 @@ class Container(SpatialMap):
         self.goal.colour = (255,105,180) # hot pink color
 
 
-    def disassociate_particles(self, particle):
+    def disassociate_particle(self, particle):
         self.particles.remove(particle)
 
     def drag_particle(self, mouse_pos):

@@ -448,7 +448,10 @@ class MainWindow(QMainWindow):
         self.toolbar.setVisible(False)
 
     def caesar(self):
-        ProjectileMoitionSimulation.run()
+        try:
+            ProjectileMoitionSimulation.run()
+        except Exception as e:
+            print(e)
 
     def transposition(self):
         simulation.run()
