@@ -1,3 +1,4 @@
+import numpy as np
 import pygame
 from baseClasses import *
 
@@ -10,6 +11,7 @@ def draw_mode():
     level_name = ""
     while True:
         screen.fill((169, 130, 40))
+
 
         for obstacle in obstacles:
             obstacle.draw(screen)
@@ -37,27 +39,23 @@ def draw_mode():
 def run():
 
     pygame.init()
-    # screen_width, screen_height = 1920, 1080
+    screen_width, screen_height = 1920, 1080
+    display_width, display_height = 1920, 1000
     screen = pygame.display.set_mode((screen_width, screen_height))
-    pygame.display.set_caption("Pygame Boilerplate")
+    pygame.display.set_caption("Projectile Motion Simulation")
+    background = pygame.image.load("./ProjectileMotionLevels/images/background1.jpg")
+    background = pygame.transform.scale(background, (screen_width, screen_height))
 
     vector_field = Container(rows, columns)
 
     vector_field.particles.extend([ProjectileParticle(1, 15, vector_field, wall_damping, floor_damping=0.7) for _ in range(6)])  # eccentricity
     font = pygame.font.SysFont("comicsans", 20)
-    frame = 0
-    mouse_rel_refresh = frame_rate * 0.5
 
     clock = pygame.time.Clock()
 
-# force
     while True:
-
-
-
-        ### drawing vectorField
         screen.fill((70, 69, 5))
-
+        screen.blit(background, (0, 0))
         # logic goes here
 
         for index, particle in enumerate(vector_field.particles):
@@ -144,7 +142,7 @@ class ProjectileParticle(Particle):
 
         self.acceleration = np.array([0, self.vector_field.g])
         self.floor_damping = floor_damping
-        self.colour = (43,132,154)
+        self.colour = (168,132,35)
         self.hit_goal = False
     def draw(self, screen):
         pygame.draw.circle(screen, self.colour, self.position, self.radius)
@@ -173,17 +171,19 @@ class ProjectileParticle(Particle):
     def collision_event_goal(self):
         goal = self.vector_field.goal
         if self.entirely_in_obstacle_check(goal.position, goal.width, goal.height):
-            self.velocity = self.velocity * 0.99
+            self.velocity = self.velocity * 0.8
+            self.acceleration *= 0
             self.hit_goal = True
-            self.colour = (255,255,255)
+            self.colour = (25,125,195)
+            if self.velocity == np.zeros_like(self.velocity):
+                self.vector_field.disassociate_particle(self)
 
-    """def slow_down_ball(self):
-
-        self.velocity -= self.subtract_speed
-        self.slow_counter -= 1
-        if self.slow_counter == 0:
+        else:
             self.hit_goal = False
-            self.velocity = np.array([0,0]) # just in case"""
+            self.acceleration = np.array([0, self.vector_field.g])
+
+
+
 
 
     def update(self, screen):
@@ -192,18 +192,16 @@ class ProjectileParticle(Particle):
         if self.next_position[0] > screen.get_width() - (self.radius) or self.next_position[
             0] < self.radius:  # or within blocked cell
             self.velocity[0] *= -1 * self.damping
+
         if self.next_position[1] > screen.get_height() - self.radius or self.next_position[1] < self.radius:
             self.velocity[1] *= -1 * self.floor_damping
+            self.velocity[0] *= 0.99  # friction to slow if on ground
 
         self.next_position = np.clip(self.next_position, (self.radius, self.radius),
                                      (screen.get_width() - self.radius, screen.get_height() - self.radius))
 
         self.position = self.next_position
 
-
-
-        if self.hit_goal:
-            self.slow_down_ball()
 
         # print(self.vector_field.grid)
         if self.vector_field.particles.index(self) != self.vector_field.selected_particle:
@@ -254,6 +252,8 @@ class ProjectileParticle(Particle):
 
 
 
+
+
 class Obstacle:
     def __init__(self, position, width, height, image=None):
         self.position = np.array(position)
@@ -266,7 +266,8 @@ class Obstacle:
         pygame.draw.rect(screen, self.colour, (self.position[0], self.position[1], self.width, self.height))
         if self.image:
             screen.blit(self.image, self.position)
-
+        else:
+            pass
 
 class Container(SpatialMap):
     def __init__(self, rows, columns):
@@ -295,9 +296,12 @@ class Container(SpatialMap):
 
 
     def initialise_level(self, file_name):
-        goal_background_image = pygame.image.load("./ProjectileMotionLevels/billboard.png")
+        goal_background_image = pygame.image.load("./ProjectileMotionLevels/images/billboard.png")
         goal_background_image.convert_alpha()
-        print("£aaf")
+
+        wall_image = pygame.image.load("./ProjectileMotionLevels/images/wall.png")
+        print("Wall loaded")
+
 
         with open(file_name, "r") as file:
             print("Asdf")
@@ -306,7 +310,7 @@ class Container(SpatialMap):
             print("sdafafsd")
             for line in file:
                 line = line.split(",")
-                object = Obstacle((int(line[0]), int(line[1])), int(line[2]), int(line[3]))
+                object = Obstacle((int(line[0]), int(line[1])), int(line[2]), int(line[3]), wall_image)
                 self.obstacles.append(object)
                 if int(line[4]):
                     object.is_platform = True
@@ -319,7 +323,8 @@ class Container(SpatialMap):
         self.goal.colour = (255,105,180) # hot pink color
 
 
-
+    def disassociate_particles(self, particle):
+        self.particles.remove(particle)
 
     def drag_particle(self, mouse_pos):
         for index, particle in enumerate(self.particles):
