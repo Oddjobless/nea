@@ -76,8 +76,7 @@ def run():
 
             particle.draw(screen)
             # pygame.draw.circle(screen, (123, 12, 90), collide_x, self.radius)
-            text = font.render(f"{particle.get_real_velocity()[1]:1f}, {(particle.get_position()[0] * vector_field.g_multiplier):1f}", True, (255, 255, 255))
-            screen.blit(text, particle.get_position() - np.array([0, 80]))
+
 
         for obstacle in vector_field.obstacles:
             obstacle.draw(screen)
@@ -93,8 +92,11 @@ def run():
 
         if vector_field.draw_line_to_mouse and vector_field.selected_particle != None:
             pygame.draw.line(screen, (255, 0, 0), vector_field.particles[vector_field.selected_particle].position, pygame.mouse.get_pos())
+            text = font.render(f"{particle.get_real_velocity()[1]:1f}, {(particle.get_position()[0] * vector_field.g_multiplier):1f}", True, (255, 255, 255))
+            screen.blit(text, particle.get_position() - np.array([0, 80]))
         else:
             vector_field.draw_line_to_mouse = False
+
 
 
         for event in pygame.event.get():
