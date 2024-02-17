@@ -176,7 +176,6 @@ class ProjectileParticle(Particle):
             self.velocity = self.velocity * 0.99
             self.hit_goal = True
             self.colour = (255,255,255)
-            self.acceleration *= 0
 
     """def slow_down_ball(self):
 
@@ -289,8 +288,6 @@ class Container(SpatialMap):
 
         self.obstacles = []
         self.initialise_level("./ProjectileMotionLevels/lvl2")
-        self.initialise_level("lvl2")
-
 
 
 
@@ -301,7 +298,9 @@ class Container(SpatialMap):
         goal_background_image = pygame.image.load("./ProjectileMotionLevels/billboard.png")
         goal_background_image.convert_alpha()
         print("£aaf")
+
         with open(file_name, "r") as file:
+            print("Asdf")
             goal = file.readline()
             self.initialise_goal(goal.split(","), goal_background_image)
             print("sdafafsd")
