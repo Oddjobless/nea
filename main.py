@@ -452,6 +452,7 @@ class MainWindow(QMainWindow):
             ProjectileMoitionSimulation.draw_mode()
         except Exception as e:
             print(e)
+        ProjectileMoitionSimulation.run()
 
     def transposition(self):
         simulation.run()

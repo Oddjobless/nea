@@ -6,7 +6,9 @@ from baseClasses import *
 
 
 def draw_mode():
+
     pygame.init()
+    file_name = "lvlTest"
     screen_width, screen_height = 1920, 1080
     screen = pygame.display.set_mode((screen_width, screen_height))
     obstacles = []
@@ -22,12 +24,21 @@ def draw_mode():
     background = pygame.transform.scale(background, (screen_width, screen_height))
 
     rect_origin = None
+    rect_params = None
+    left_mouse_down = False
+
 
     clock = pygame.time.Clock()
 
     while True:
         screen.fill((169, 130, 40))
         screen.blit(background, (0, 0))
+
+        if rect_origin is not None and rect_params is not None:
+            rect_x = rect_origin[0] - abs(rect_params[0]) if rect_params[0] < 0 else rect_origin[0]
+            rect_y = rect_origin[1] - abs(rect_params[1]) if rect_params[1] < 0 else rect_origin[1]
+            pygame.draw.rect(screen, (255, 0, 0), (rect_x, rect_y, abs(rect_params[0]), abs(rect_params[1])))
+
 
         for obstacle in obstacles:
             obstacle.draw(screen)
@@ -36,21 +47,49 @@ def draw_mode():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 return
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_q:
+                    pygame.quit()
+                    return
+
+                elif event.key == pygame.K_s:
+                    if obstacles:
+                        with open(("./ProjectileMotionLevels/" + file_name + ".txt"), "w") as file:
+                            file.write(f"{obstacles[0].position[0]},{obstacles[0].position[1]},{obstacles[0].width},{obstacles[0].height}")
+                            for obstacle in obstacles[1:]:
+                                file.write(f"\n{obstacle.position[0]},{obstacle.position[1]},{obstacle.width},{obstacle.height},{int(obstacle.is_platform)}")
+                        print("Level saved")
+                    else:
+                        print("Add a goal to save the level")
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     rect_origin = pygame.mouse.get_pos()
+                    left_mouse_down = True
 
             elif event.type == pygame.MOUSEBUTTONUP:
-                if event.button == 1:
-                    rect_end = pygame.mouse.get_pos()
-                    rect_dimensions = (rect_origin[0], rect_origin[1], rect_end[0] - rect_origin[0], rect_end[1] - rect_origin[1])
-                    pygame.draw.rect(screen, (255, 255, 255), rect_dimensions)
-                    pygame.display.update()
+                if event.button == 1 and rect_origin is not None:
+                    rect_params = np.array(pygame.mouse.get_pos()) - rect_origin
+
+                    obstacles.append(Obstacle(np.array([rect_x, rect_y]), abs(rect_params[0]), abs(rect_params[1])))
+                    if len(obstacles) == 1:
+                        obstacles[0].is_platform = True
+                        obstacles[0].colour = (255,255,255)
                     rect_origin = None
+                    rect_params = None
+                    left_mouse_down = False
+
+            if left_mouse_down:
+                rect_params = np.array(pygame.mouse.get_pos()) - rect_origin
 
         pygame.display.update()
-        clock.tick(60)
+        clock.tick(frame_rate)
+
+
+
+
+
+
 
 
 
@@ -325,7 +364,7 @@ class Container(SpatialMap):
         self.px_to_metres_factor = 4
 
         self.obstacles = []
-        self.initialise_level("./ProjectileMotionLevels/lvl2")
+        self.initialise_level("./ProjectileMotionLevels/lvlTest.txt")
 
 
 
