@@ -449,7 +449,7 @@ class MainWindow(QMainWindow):
 
     def caesar(self):
         try:
-            ProjectileMoitionSimulation.run()
+            ProjectileMoitionSimulation.draw_mode()
         except Exception as e:
             print(e)
 

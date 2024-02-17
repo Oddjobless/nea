@@ -33,8 +33,8 @@ class Particle:
 
     def resolve_obstacle_collision(self, obstacle):
         # Calculate the displacement vector from the rectangle to the circle
-        displacement = self.next_position - np.array([max(obstacle.position[0], min(self.next_position[0], obstacle.position[0] + obstacle.width)),
-                                                      max(obstacle.position[1], min(self.next_position[1], obstacle.position[1] + obstacle.height))])
+        displacement = self.position - np.array([max(obstacle.position[0], min(self.position[0], obstacle.position[0] + obstacle.width)),
+                                                      max(obstacle.position[1], min(self.position[1], obstacle.position[1] + obstacle.height))])
 
         # Calculate the penetration depth for both x and y directions
         penetration_x = max(0, self.radius - abs(displacement[0]))

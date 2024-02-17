@@ -4,35 +4,56 @@ from baseClasses import *
 
 
 
-def draw_mode():
 
-    screen = pygame.display.set_mode((1920,1080))
+def draw_mode():
+    pygame.init()
+    screen_width, screen_height = 1920, 1080
+    screen = pygame.display.set_mode((screen_width, screen_height))
     obstacles = []
     level_name = ""
+    goal_background_image = pygame.image.load("./ProjectileMotionLevels/images/images.jpg")
+    goal_background_image.convert_alpha()
+
+    wall_image = pygame.image.load("./ProjectileMotionLevels/images/wall.png")
+    print("Wall loaded")
+
+    pygame.display.set_caption("Create Level")
+    background = pygame.image.load("./ProjectileMotionLevels/images/background1.jpg")
+    background = pygame.transform.scale(background, (screen_width, screen_height))
+
+    rect_origin = None
+
+    clock = pygame.time.Clock()
+
     while True:
         screen.fill((169, 130, 40))
-
+        screen.blit(background, (0, 0))
 
         for obstacle in obstacles:
             obstacle.draw(screen)
-
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 return
 
-
             if event.type == pygame.MOUSEBUTTONDOWN:
-                pass
-
+                if event.button == 1:
+                    rect_origin = pygame.mouse.get_pos()
 
             elif event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 1:
-                    pass
+                    rect_end = pygame.mouse.get_pos()
+                    rect_dimensions = (rect_origin[0], rect_origin[1], rect_end[0] - rect_origin[0], rect_end[1] - rect_origin[1])
+                    pygame.draw.rect(screen, (255, 255, 255), rect_dimensions)
+                    pygame.display.update()
+                    rect_origin = None
 
-                elif event.button == 3:
-                    pass
+        pygame.display.update()
+        clock.tick(60)
+
+
+
 
 
 
@@ -80,6 +101,7 @@ def run():
 
         for obstacle in vector_field.obstacles:
             obstacle.draw(screen)
+        vector_field.draw_splatters(screen)
 
         completed = set()
         for ball_i, ball_j in vector_field.colliding_balls_pairs:
@@ -187,11 +209,12 @@ class ProjectileParticle(Particle):
             self.hit_goal = True
             self.colour = (25,125,195)
             if np.allclose(self.velocity, np.zeros_like(self.velocity), atol=2):
-                splatter = self.vector_field.collision_splatters.pop(0)
-                screen.blit(splatter, self.position - np.array([self.radius, self.radius]))
-                self.vector_field.particles.remove(self)
-                # self.vector_field.disassociate_particle(self)
-
+                self.vector_field.selected_particle = None
+                try:
+                    self.vector_field.particles.remove(self)
+                    self.vector_field.splattered_particles.append(self)
+                except:
+                    return
         else:
             self.hit_goal = False
             self.acceleration = np.array([0, self.vector_field.g])
@@ -306,21 +329,28 @@ class Container(SpatialMap):
 
 
 
+    def draw_splatters(self, screen):
+        length = len(self.collision_splatters)
+        for index, particle in enumerate(self.splattered_particles):
 
-
+            splat = self.collision_splatters[index % length]
+            screen.blit(splat, particle.position - (splat.get_width() // 2, splat.get_height() // 2))
 
     def initialise_level(self, file_name):
-        goal_background_image = pygame.image.load("./ProjectileMotionLevels/images/billboard.png")
+        # goal_background_image = pygame.image.load("./ProjectileMotionLevels/images/billboard.png")
+        goal_background_image = pygame.image.load("./ProjectileMotionLevels/images/images.jpg")
         goal_background_image.convert_alpha()
 
         wall_image = pygame.image.load("./ProjectileMotionLevels/images/wall.png")
         print("Wall loaded")
 
-        splatters = ["splat1, splat2, splat3"]
-        splat_width = 40
+        splatters = ["splat1.png", "splat2.png", "splat3.png"]
+        splat_width = 100
         self.collision_splatters = []
+        self.splattered_particles = []
         for splat in splatters:
             img = pygame.image.load("./ProjectileMotionLevels/images/" + splat)
+
             img.convert_alpha()
             img = pygame.transform.scale(img, (splat_width, splat_width * img.get_height() // img.get_width()))
             self.collision_splatters.append(img)
@@ -345,8 +375,6 @@ class Container(SpatialMap):
         self.goal.colour = (255,105,180) # hot pink color
 
 
-    def disassociate_particle(self, particle):
-        self.particles.remove(particle)
 
     def drag_particle(self, mouse_pos):
         for index, particle in enumerate(self.particles):
