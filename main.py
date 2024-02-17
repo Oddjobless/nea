@@ -380,14 +380,18 @@ class MainWindow(QMainWindow):
 
 
     def attempt_login(self):
-        user_info = self.database.verify_login(self.email.text(), sha256(self.password.text().encode()).hexdigest())
+        email, password = self.email.text().strip(), sha256(self.password.text().encode()).hexdigest()
+        print(email, password)
+        print(self.database.verify_login(email, password))
+        user_info = self.database.verify_login(email, password)
         if user_info:
             self.user_info = user_info
             self.show_toolbar()
-            print("Ur in")
+            print("Logged in successfully")
             # todo: display success message
-        else:
-            print("Fail") # todo:
+            return True
+        print("Gone through to database but not successful") # todo:
+        return False
 
     def login_or_register(self):
         if self.toggle_login.text()[0] == "A":
@@ -405,9 +409,11 @@ class MainWindow(QMainWindow):
         print(self.email.text(), sha256(self.password.text().encode()).hexdigest(), self.full_name.text(), self.date_of_birth.text())
         print(self.date_of_birth.date().toString("yyyy-MM-dd"))
         if all(conditions):
-            print("HI")
+            print("Sending info to database to create new user")
 
             self.database.create_user(self.email.text(), sha256(self.password.text().encode()).hexdigest(), self.full_name.text(), self.date_of_birth.date().toString("yyyy-MM-dd"))
+            return True
+        return False
 
 
     def toggle_login_register(self):
@@ -416,6 +422,7 @@ class MainWindow(QMainWindow):
             self.login_button.setText("Log in")
             self.full_name.hide()
             self.date_of_birth.hide()
+            self.date_of_birth_label.hide()
             self.date_of_birth_label.hide()
 
         else:
