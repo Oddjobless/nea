@@ -64,6 +64,9 @@ class Particle:
             if obstacle.is_platform:
                 self.velocity[0] *= -1 * damping
 
+        if np.isclose(self.velocity[1], 0):
+            self.velocity[1] = 0
+
 
 
     def check_obstacle_collision(self, obstacle_pos, width, height, custom_radius=None):
@@ -78,10 +81,13 @@ class Particle:
         print(distance, self.radius)
         return distance < custom_radius##
 
-    def entirely_in_obstacle_check(self, pos, width, height): # is particle full
+    def entirely_in_obstacle_check(self, pos, width, height): #
         if self.next_position[0] - self.radius > pos[0] and self.next_position[0] + radius < pos[0] + width and self.next_position[1] - self.radius > pos[1] and self.next_position[1] + self.radius < pos[1] + height:
             return True
         return False
+
+    def entirely_in_obstacle_check2(self, pos, radius): # circle
+        distance = self.position
 
     def update(self, screen):
         if self.next_position[0] > screen.get_width() - (1.5 * self.radius) or self.next_position[

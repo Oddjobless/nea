@@ -180,41 +180,20 @@ class MainWindow(QMainWindow):
             }
 
         """)
-        self.caesarCipher_spaces = False
-
-        self.caesarCipher_inputText = QTextEdit()
-        self.caesarCipher_inputText.setFont(QFont("Helvetica", 16))
-        self.caesarCipher_inputText.setObjectName("plaintext")
-        self.caesarCipher_inputText.setPlaceholderText("Enter your text here (Leave blank to use default text)")
-
-        self.caesarCipher_layout.addWidget(self.caesarCipher_inputText, 0, 0, 1, 1)
-
-        self.caesarCipher_inputKey = QLineEdit()
-        self.caesarCipher_inputKey.setPlaceholderText("Enter your key")
-        self.caesarCipher_layout.addWidget(self.caesarCipher_inputKey, 0, 3, 1, 3)
-        self.caesarCipher_inputKey.setFont(QFont("Inconsolata", 20))
-
-        self.caesarCipher_encrypt = QPushButton("Encrypt")
-        self.caesarCipher_layout.addWidget(self.caesarCipher_encrypt, 2, 3, 1, 1)
-        self.caesarCipher_encrypt.setObjectName("encrypt")
-
-        self.caesarCipher_encrypt.released.connect(self.caesar)
-
-        self.caesarCipher_decrypt = QPushButton("Decrypt")
-        self.caesarCipher_layout.addWidget(self.caesarCipher_decrypt, 2, 4)
-        self.caesarCipher_decrypt.setObjectName("decrypt")
-
-        self.caesarCipher_output = QTextEdit()
-        self.caesarCipher_output.setFont(QFont("Helvetica", 16))
-        self.caesarCipher_output.setReadOnly(True)
-
-        self.caesarCipher_layout.addWidget(self.caesarCipher_output, 1, 0, 1, 1)
-
         self.caesarCipher.setLayout(self.caesarCipher_layout)
 
-        self.layout.addWidget(self.caesarCipher)
+        projectile_sim_buttons = [QPushButton("Level\n" + str(x+1)) for x in range(9)]
+        for index, button in enumerate(projectile_sim_buttons):
+            self.caesarCipher_layout.addWidget(button, projectile_sim_buttons.index(button) // 3, projectile_sim_buttons.index(button) % 3)
+            button.released.connect(lambda index=index: self.run_projectile_motion_sim(index + 1))
 
-        # self.caesarCipher.setStyleSheet("background-color: '#DFB2F4';")
+
+
+
+
+
+
+        self.layout.addWidget(self.caesarCipher)
         ##################################################
 
         self.cipher2_button = QAction("Vector Field\nPathfinding", self)
@@ -433,27 +412,20 @@ class MainWindow(QMainWindow):
             self.date_of_birth_label.show()
 
 
-
-
-
-
-
-
-
-
     def show_toolbar(self):
         self.toolbar.setVisible(True)
 
     def hide_toolbar(self):
         self.toolbar.setVisible(False)
 
-    def caesar(self):
+    def run_projectile_motion_sim(self, level_no):
+        print(level_no)
+
         try:
-            ProjectileMoitionSimulation.draw_mode()
+            ProjectileMoitionSimulation.draw_mode(level_no)
+            ProjectileMoitionSimulation.run(level_no)
         except Exception as e:
             print(e)
-        ProjectileMoitionSimulation.run()
-
     def transposition(self):
         simulation.run()
 

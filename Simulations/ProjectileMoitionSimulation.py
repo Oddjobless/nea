@@ -5,7 +5,7 @@ from baseClasses import *
 
 
 
-def draw_mode():
+def draw_mode(level_no):
 
     pygame.init()
     file_name = "lvlTest"
@@ -16,7 +16,7 @@ def draw_mode():
     goal_background_image = pygame.image.load("./ProjectileMotionLevels/images/images.jpg")
     goal_background_image.convert_alpha()
 
-    wall_image = pygame.image.load("./ProjectileMotionLevels/images/wall.png")
+    # wall_image = pygame.image.load("./ProjectileMotionLevels/images/wall.png")
     print("Wall loaded")
 
     pygame.display.set_caption("Create Level")
@@ -25,7 +25,7 @@ def draw_mode():
 
     rect_origin = None
     rect_params = None
-    left_mouse_down = False
+    mouse_hold = False
 
 
     clock = pygame.time.Clock()
@@ -37,8 +37,14 @@ def draw_mode():
         if rect_origin is not None and rect_params is not None:
             rect_x = rect_origin[0] - abs(rect_params[0]) if rect_params[0] < 0 else rect_origin[0]
             rect_y = rect_origin[1] - abs(rect_params[1]) if rect_params[1] < 0 else rect_origin[1]
-            pygame.draw.rect(screen, (255, 0, 0), (rect_x, rect_y, abs(rect_params[0]), abs(rect_params[1])))
+            if obstacles:
 
+                pygame.draw.rect(screen, (255, 0, 0), (rect_x, rect_y, abs(rect_params[0]), abs(rect_params[1])))
+            else:
+                print(rect_origin, rect_params)
+                radius = int(np.sqrt(rect_params[0] ** 2 + rect_params[1] ** 2))
+                print(radius)
+                pygame.draw.circle(screen, (255,255,255), rect_origin, radius)
 
         for obstacle in obstacles:
             obstacle.draw(screen)
@@ -54,7 +60,7 @@ def draw_mode():
 
                 elif event.key == pygame.K_s:
                     if obstacles:
-                        with open(("./ProjectileMotionLevels/" + file_name + ".txt"), "w") as file:
+                        with open(("./ProjectileMotionLevels/lvl" + str(level_no)), "w") as file:
                             file.write(f"{obstacles[0].position[0]},{obstacles[0].position[1]},{obstacles[0].width},{obstacles[0].height}")
                             for obstacle in obstacles[1:]:
                                 file.write(f"\n{obstacle.position[0]},{obstacle.position[1]},{obstacle.width},{obstacle.height},{int(obstacle.is_platform)}")
@@ -63,23 +69,35 @@ def draw_mode():
                         print("Add a goal to save the level")
 
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1:
-                    rect_origin = pygame.mouse.get_pos()
-                    left_mouse_down = True
+                if event.button == 1 or event.button == 3:
+                    rect_origin = np.array(pygame.mouse.get_pos())
+                    mouse_hold = True
+
 
             elif event.type == pygame.MOUSEBUTTONUP:
-                if event.button == 1 and rect_origin is not None:
+                if rect_origin is not None:
                     rect_params = np.array(pygame.mouse.get_pos()) - rect_origin
 
-                    obstacles.append(Obstacle(np.array([rect_x, rect_y]), abs(rect_params[0]), abs(rect_params[1])))
-                    if len(obstacles) == 1:
-                        obstacles[0].is_platform = True
+
+                    if not obstacles:
+                        obstacles.append(Obstacle(rect_origin, radius, radius, goal=True))
                         obstacles[0].colour = (255,255,255)
+                        min_width = min(obstacles[0].width, obstacles[0].height)
+                        obstacles[0].width = min_width
+                        obstacles[0].height = min_width
+
+                    else:
+                        obstacles.append(Obstacle(np.array([rect_x, rect_y]), abs(rect_params[0]), abs(rect_params[1])))
+                        if event.button == 3:
+                            obstacles[-1].is_platform = True
+                            obstacles[-1].colour = (90, 255, 43)
+
+
                     rect_origin = None
                     rect_params = None
-                    left_mouse_down = False
+                    mouse_hold = False
 
-            if left_mouse_down:
+            if mouse_hold:
                 rect_params = np.array(pygame.mouse.get_pos()) - rect_origin
 
         pygame.display.update()
@@ -96,7 +114,7 @@ def draw_mode():
 
 
 
-def run():
+def run(level_no):
 
     pygame.init()
     screen_width, screen_height = 1920, 1080
@@ -106,7 +124,7 @@ def run():
     background = pygame.image.load("./ProjectileMotionLevels/images/background1.jpg")
     background = pygame.transform.scale(background, (screen_width, screen_height))
 
-    vector_field = Container(rows, columns)
+    vector_field = Container(rows, columns, level_no)
 
     vector_field.particles.extend([ProjectileParticle(1, 15, vector_field, wall_damping, floor_damping=0.7) for _ in range(6)])  # eccentricity
     font = pygame.font.SysFont("comicsans", 20)
@@ -243,7 +261,7 @@ class ProjectileParticle(Particle):
     def collision_event_goal(self, screen):
         goal = self.vector_field.goal
         if self.entirely_in_obstacle_check(goal.position, goal.width, goal.height):
-            self.velocity = self.velocity * 0.8
+            self.velocity = self.velocity * 0.9
             self.acceleration *= 0
             self.hit_goal = True
             self.colour = (25,125,195)
@@ -331,22 +349,27 @@ class ProjectileParticle(Particle):
 
 
 class Obstacle:
-    def __init__(self, position, width, height, image=None):
+    def __init__(self, position, width, height, image=None, goal=False):
         self.position = np.array(position)
         self.width, self.height = width, height
         self.colour = (255, 0, 0)
         self.is_platform = False
         self.image = pygame.transform.scale(image, (width, height)) if image else None
+        # self.image = image.subsurface(pygame.Rect(0, 0, self.width, self.height)) if image else None
+        self.goal = goal
 
     def draw(self, screen):
-        pygame.draw.rect(screen, self.colour, (self.position[0], self.position[1], self.width, self.height))
+
         if self.image:
             screen.blit(self.image, self.position)
+        elif self.goal:
+            pygame.draw.circle(screen, self.colour, self.position, self.width)
         else:
-            pass
+            pygame.draw.rect(screen, self.colour, (self.position[0], self.position[1], self.width, self.height))
+
 
 class Container(SpatialMap):
-    def __init__(self, rows, columns):
+    def __init__(self, rows, columns, level_no):
         super().__init__(rows, columns)
         self.particles = []
         self.selected_particle = None
@@ -363,10 +386,22 @@ class Container(SpatialMap):
 
         self.px_to_metres_factor = 4
 
+        self.score = 0
+        self.goal = None
+
         self.obstacles = []
-        self.initialise_level("./ProjectileMotionLevels/lvlTest.txt")
+        if not self.initialise_level("./ProjectileMotionLevels/lvl" + str(level_no)):
+            self.obstacles = []
+            self.initialise_level("./ProjectileMotionLevels/lvl1") #load level one
+        else:
+            print("Level loaded successfully")
 
+    def add_points(self, points):
+        self.score += points
 
+    def calculate_points(self):
+        goal_centre = self.goal.position + self.goal.width / 2
+        distance = self.get_magnitude(goal_centre - self.goal.position)
 
     def draw_splatters(self, screen):
         length = len(self.collision_splatters)
@@ -380,8 +415,6 @@ class Container(SpatialMap):
         goal_background_image = pygame.image.load("./ProjectileMotionLevels/images/images.jpg")
         goal_background_image.convert_alpha()
 
-        wall_image = pygame.image.load("./ProjectileMotionLevels/images/wall.png")
-        print("Wall loaded")
 
         splatters = ["splat1.png", "splat2.png", "splat3.png"]
         splat_width = 100
@@ -394,22 +427,34 @@ class Container(SpatialMap):
             img = pygame.transform.scale(img, (splat_width, splat_width * img.get_height() // img.get_width()))
             self.collision_splatters.append(img)
 
-        with open(file_name, "r") as file:
-            print("Asdf")
-            goal = file.readline()
-            self.initialise_goal(goal.split(","), goal_background_image)
-            print("sdafafsd")
-            for line in file:
-                line = line.split(",")
-                object = Obstacle((int(line[0]), int(line[1])), int(line[2]), int(line[3]), wall_image)
-                self.obstacles.append(object)
-                if int(line[4]):
-                    object.is_platform = True
-                    object.colour = (37,41,74)
+        wall_image = pygame.image.load("./ProjectileMotionLevels/images/wall.png")
+        try:
+            with open(file_name, "r") as file:
+                goal = file.readline()
+                self.initialise_goal(goal.split(","))
+                for line in file:
+
+
+                    line = line.split(",")
+                    object = Obstacle((int(line[0]), int(line[1])), int(line[2]), int(line[3]), wall_image)
+                    self.obstacles.append(object)
+                    if int(line[4]):
+                        object.is_platform = True
+                        object.colour = (37,41,74)
+            return True
+
+        except FileNotFoundError:
+            print("File not found")
+            print(file_name)
+            return False
+
+        except Exception as e:
+            print(e)
+            return False
 
     def initialise_goal(self, goal, image=None):
         # self.goal = Particle(0, int(goal[0]), self, 0)
-        self.goal = Obstacle((int(goal[0]), int(goal[1])),int(goal[2]), int(goal[3]), image)
+        self.goal = Obstacle((int(goal[0]), int(goal[1])),int(goal[2]), int(goal[2]), image, goal=True)
         # self.goal.position = np.array([int(goal[1]), int(goal[2])])
         self.goal.colour = (255,105,180) # hot pink color
 
