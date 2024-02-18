@@ -86,8 +86,7 @@ class Particle:
             return True
         return False
 
-    def entirely_in_obstacle_check2(self, pos, radius): # circle
-        distance = self.position
+
 
     def update(self, screen):
         if self.next_position[0] > screen.get_width() - (1.5 * self.radius) or self.next_position[

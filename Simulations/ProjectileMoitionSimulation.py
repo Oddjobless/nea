@@ -34,6 +34,8 @@ def draw_mode(level_no):
         screen.fill((169, 130, 40))
         screen.blit(background, (0, 0))
 
+
+
         if rect_origin is not None and rect_params is not None:
             rect_x = rect_origin[0] - abs(rect_params[0]) if rect_params[0] < 0 else rect_origin[0]
             rect_y = rect_origin[1] - abs(rect_params[1]) if rect_params[1] < 0 else rect_origin[1]
@@ -134,7 +136,11 @@ def run(level_no):
     while True:
         screen.fill((70, 69, 5))
         screen.blit(background, (0, 0))
-        # logic goes here
+
+        # output score to screen
+        text = font.render("Score: " + str(vector_field.score), True, (255, 255, 255))
+        screen.blit(text, (10, 10))
+
 
         for index, particle in enumerate(vector_field.particles):
 
@@ -196,7 +202,6 @@ def run(level_no):
                 particle_clicked = vector_field.selected_particle
                 if event.button == 1 and particle_clicked == None:
                     vector_field.drag_particle(event.pos)
-                    print("adf")
 
                 elif event.button == 3 and particle_clicked == None:
                     vector_field.project_particle(event.pos)
@@ -260,7 +265,7 @@ class ProjectileParticle(Particle):
 
     def collision_event_goal(self, screen):
         goal = self.vector_field.goal
-        if self.entirely_in_obstacle_check(goal.position, goal.width, goal.height):
+        if self.entirely_in_obstacle_check2(goal.position, goal.width):
             self.velocity = self.velocity * 0.9
             self.acceleration *= 0
             self.hit_goal = True
@@ -268,6 +273,8 @@ class ProjectileParticle(Particle):
             if np.allclose(self.velocity, np.zeros_like(self.velocity), atol=2):
                 self.vector_field.selected_particle = None
                 try:
+                    self.vector_field.calculate_points(self)
+                    print(self.vector_field.score)
                     self.vector_field.particles.remove(self)
                     self.vector_field.splattered_particles.append(self)
                 except:
@@ -276,6 +283,11 @@ class ProjectileParticle(Particle):
             self.hit_goal = False
             self.acceleration = np.array([0, self.vector_field.g])
 
+    def entirely_in_obstacle_check2(self, pos, radius): # circle
+        square_distance = self.vector_field.get_square_magnitude(pos - self.position)
+        if square_distance < radius ** 2:
+            return True
+        return False
 
 
 
@@ -399,9 +411,10 @@ class Container(SpatialMap):
     def add_points(self, points):
         self.score += points
 
-    def calculate_points(self):
-        goal_centre = self.goal.position + self.goal.width / 2
-        distance = self.get_magnitude(goal_centre - self.goal.position)
+    def calculate_points(self, particle):
+        multiplier = abs((self.get_magnitude(self.goal.position - particle.position) / self.goal.width))
+        points = int(100 * (1 - multiplier ** 2))
+        self.add_points(points)
 
     def draw_splatters(self, screen):
         length = len(self.collision_splatters)
