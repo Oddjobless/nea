@@ -16,7 +16,8 @@ class Database:
             host=host_,
             user=user_,
             password=password_,
-            database=database_
+            database=database_,
+            autocommit=True
         )
 
         self.conn = self.db.cursor()
@@ -26,12 +27,12 @@ class Database:
             self.conn.execute("""
             DROP TABLE IF EXISTS user_settings;
             """)
-            self.conn.fetchall()  # Fetch the results before executing another query
+            self.conn.fetchall()  # fetching everytime to debug, will change later
 
             self.conn.execute("""
             DROP TABLE IF EXISTS users;
             """)
-            self.conn.fetchall()  # Fetch the results before executing another query
+            self.conn.fetchall()
 
             self.conn.execute("""
             CREATE TABLE users (
@@ -42,7 +43,7 @@ class Database:
                 date_of_birth DATE 
             );
             """)
-            self.conn.fetchall()  # Fetch the results before executing another query
+            self.conn.fetchall()
 
             self.conn.execute("""
             CREATE TABLE user_settings (
@@ -57,7 +58,7 @@ class Database:
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             );
             """)
-            self.conn.fetchall()  # Fetch the results before executing another query
+            self.conn.fetchall()
 
             self.conn.execute("""
             INSERT INTO users (email, password_hash, full_name, date_of_birth) VALUES 
@@ -73,7 +74,7 @@ class Database:
             (2, 32, 18),
             (3, 15, 15);
             """)
-            self.conn.fetchall()  # Fetch the results before executing another query
+            self.conn.fetchall()
 
             print("Database initialised successfully.")
         except Exception as e:
@@ -127,7 +128,7 @@ class Database:
 
 if __name__ == "__main__":
     db = Database("localhost", "root", "2121", "NEA")
-    db.initialise_default_db()
+    # db.initialise_default_db()
 
     try:
         db.conn.execute("SELECT * FROM users")
@@ -135,4 +136,4 @@ if __name__ == "__main__":
         for row in results:
             print(row)
     except Exception as e:
-        print("Error executing query:", e)
+        print("Error:", e)
