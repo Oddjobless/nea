@@ -25,7 +25,7 @@ class MainWindow(QMainWindow):
         self.toolbar = QToolBar("ahshsh")
         self.addToolBar(self.toolbar)
         self.toolbar.setMovable(False)
-        # self.toolbar.hide()
+        self.toolbar.hide()
 
         self.setFont(QFont("Helvetica", 15))
         self.index.setStyleSheet("""
@@ -135,7 +135,8 @@ class MainWindow(QMainWindow):
         self.home_page_button = QAction("Home Page")
         self.toolbar.addAction(self.home_page_button)
         self.home_page_button.triggered.connect(lambda: self.changeIndex(1))
-        self.home_page = QPushButton("Home page")
+        self.home_page = QPushButton("Log Off")
+        self.home_page.released.connect(self.log_off)
         self.home_page.setFont(QFont("Gadzoox", 30))
         self.layout.addWidget(self.home_page)
         self.toolbar.addSeparator()
@@ -144,13 +145,13 @@ class MainWindow(QMainWindow):
 
         ##################################################
 
-        self.cipher1_button = QAction("Projectile Motion", self)
-        self.toolbar.addAction(self.cipher1_button)
-        self.cipher1_button.triggered.connect(lambda: self.changeIndex(2))
+        self.projectile_button = QAction("Projectile Motion", self)
+        self.toolbar.addAction(self.projectile_button)
+        self.projectile_button.triggered.connect(lambda: self.changeIndex(2))
 
-        self.caesarCipher_layout = QGridLayout()
-        self.caesarCipher = QWidget()
-        self.caesarCipher.setStyleSheet("""
+        self.projectile_widget_layout = QGridLayout()
+        self.projectile_widget = QWidget()
+        self.projectile_widget.setStyleSheet("""
             QLineEdit {
                 margin: 60;
                 border: 3px solid '#0000ff';
@@ -180,12 +181,13 @@ class MainWindow(QMainWindow):
             }
 
         """)
-        self.caesarCipher.setLayout(self.caesarCipher_layout)
+        self.projectile_widget.setLayout(self.projectile_widget_layout)
 
         projectile_sim_buttons = [QPushButton("Level\n" + str(x+1)) for x in range(9)]
         for index, button in enumerate(projectile_sim_buttons):
-            self.caesarCipher_layout.addWidget(button, projectile_sim_buttons.index(button) // 3, projectile_sim_buttons.index(button) % 3)
+            self.projectile_widget_layout.addWidget(button, projectile_sim_buttons.index(button) // 3, projectile_sim_buttons.index(button) % 3)
             button.released.connect(lambda index=index: self.run_projectile_motion_sim(index + 1))
+            button.setMaximumWidth(200)
 
 
 
@@ -193,16 +195,16 @@ class MainWindow(QMainWindow):
 
 
 
-        self.layout.addWidget(self.caesarCipher)
+        self.layout.addWidget(self.projectile_widget)
         ##################################################
 
-        self.cipher2_button = QAction("Vector Field\nPathfinding", self)
-        self.toolbar.addAction(self.cipher2_button)
-        self.cipher2_button.triggered.connect(lambda: self.changeIndex(3))
+        self.pathfinding_button = QAction("Vector Field\nPathfinding", self)
+        self.toolbar.addAction(self.pathfinding_button)
+        self.pathfinding_button.triggered.connect(lambda: self.changeIndex(3))
 
-        self.transpositionCipher_layout = QGridLayout()
-        self.transpositionCipher = QWidget()
-        self.transpositionCipher.setStyleSheet("""
+        self.pathfinding_layout = QGridLayout()
+        self.pathfinding = QWidget()
+        self.pathfinding.setStyleSheet("""
             QLineEdit {
                 margin: 60;
                 border: 3px solid '#00ff00';
@@ -222,7 +224,7 @@ class MainWindow(QMainWindow):
                 display: inline-block;
                 position: fixed;
                 margin: 0 0 0 0;
-                transition-duration: 0.4s;
+                transition: 0.4s;
                 border: 3px solid;
             }
 
@@ -233,45 +235,33 @@ class MainWindow(QMainWindow):
 
         """)
 
-        self.transpositionCipher_inputText = QTextEdit()
-        self.transpositionCipher_inputText.setFont(QFont("Helvetica", 16))
-        self.transpositionCipher_inputText.setObjectName("plaintext")
-        self.transpositionCipher_inputText.setPlaceholderText("Enter your text here (Leave blank to use default text)")
+   
 
-        self.transpositionCipher_layout.addWidget(self.transpositionCipher_inputText, 0, 0, 1, 1)
+   
+        self.pathfinding_encrypt = QPushButton("Run")
+        self.pathfinding_layout.addWidget(self.pathfinding_encrypt, 2, 3, 1, 1)
 
-        self.transpositionCipher_inputKey = QLineEdit()
-        self.transpositionCipher_inputKey.setPlaceholderText("Enter your key")
-        self.transpositionCipher_layout.addWidget(self.transpositionCipher_inputKey, 0, 3, 1, 3)
-        self.transpositionCipher_inputKey.setFont(QFont("Inconsolata", 20))
-        self.transpositionCipher_encrypt = QPushButton("Encrypt")
-        self.transpositionCipher_layout.addWidget(self.transpositionCipher_encrypt, 2, 3, 1, 1)
-        # self.transpositionCipher_encrypt.setObjectName("encrypt")
-        self.transpositionCipher_encrypt.released.connect(self.transposition)
+        self.pathfinding_encrypt.released.connect(self.transposition)
 
-        self.transpositionCipher_decrypt = QPushButton("Decrypt")
-        self.transpositionCipher_layout.addWidget(self.transpositionCipher_decrypt, 2, 4)
-        # self.transpositionCipher_decrypt.setObjectName("decrypt")
+        self.pathfinding_decrypt = QPushButton("Admin Mode")
+        self.pathfinding_layout.addWidget(self.pathfinding_decrypt, 2, 4)
 
 
-        self.transpositionCipher_output = QTextEdit()
-        self.transpositionCipher_output.setFont(QFont("Helvetica", 16))
-        self.transpositionCipher_output.setReadOnly(True)
 
-        self.transpositionCipher_layout.addWidget(self.transpositionCipher_output, 1, 0, 1, 1)
-        self.transpositionCipher.setLayout(self.transpositionCipher_layout)
 
-        self.layout.addWidget(self.transpositionCipher)
+        self.pathfinding.setLayout(self.pathfinding_layout)
+
+        self.layout.addWidget(self.pathfinding)
 
         ##################################################
 
-        self.cipher3_button = QAction("One Time Pad", self)
-        self.toolbar.addAction(self.cipher3_button)
-        self.cipher3_button.triggered.connect(lambda: self.changeIndex(4))
+        self.suspension_button = QAction("One Time Pad", self)
+        self.toolbar.addAction(self.suspension_button)
+        self.suspension_button.triggered.connect(lambda: self.changeIndex(4))
 
-        self.oneTimeCipher_layout = QGridLayout()
-        self.oneTimeCipher = QWidget()
-        self.oneTimeCipher.setStyleSheet("""
+        self.suspension_layout = QGridLayout()
+        self.suspension = QWidget()
+        self.suspension.setStyleSheet("""
         
             QLineEdit {
                 margin: 60;
@@ -303,47 +293,41 @@ class MainWindow(QMainWindow):
 
         """)
 
-        self.oneTimeCipher_inputText = QTextEdit()
-        self.oneTimeCipher_inputText.setFont(QFont("Helvetica", 16))
-        self.oneTimeCipher_inputText.setObjectName("plaintext")
-        self.oneTimeCipher_inputText.setPlaceholderText("Enter your text here (Leave blank to use default text)")
 
-        self.oneTimeCipher_spaces = False
 
-        self.oneTimeCipher_layout.addWidget(self.oneTimeCipher_inputText, 0, 0, 1, 1)
 
         self.Test_Sim = QPushButton("Test")
-        self.Test_Sim.released.connect(self.oneTime)
-        self.oneTimeCipher_layout.addWidget(self.Test_Sim, 0, 1, 1, 1)
+        self.Test_Sim.released.connect(self.run_suspension_sim)
+        self.suspension_layout.addWidget(self.Test_Sim, 0, 1, 1, 1)
 
 
 
 
 
-        self.oneTimeCipher.setLayout(self.oneTimeCipher_layout)
+        self.suspension.setLayout(self.suspension_layout)
 
-        self.layout.addWidget(self.oneTimeCipher)
+        self.layout.addWidget(self.suspension)
 
 
         ##################################################
         self.toolbar.addSeparator()
 
-        self.cipher4_button = QAction("Square Multiply", self)
-        self.toolbar.addAction(self.cipher4_button)
-        self.cipher4_button.triggered.connect(lambda: self.changeIndex(5))
+        self.ideal_gas_button = QAction("Ideal Gas\nSimulation", self)
+        self.toolbar.addAction(self.ideal_gas_button)
+        self.ideal_gas_button.triggered.connect(lambda: self.changeIndex(5))
 
-        self.squareMultiply_layout = QGridLayout()
-        self.squareMultiply = QWidget()
-        self.squareMultiply.setLayout(self.squareMultiply_layout)
-        self.layout.addWidget(self.squareMultiply)
+        self.ideal_gas_layout = QGridLayout()
+        self.ideal_gas = QWidget()
+        self.ideal_gas.setLayout(self.ideal_gas_layout)
+        self.layout.addWidget(self.ideal_gas)
 
         self.runCool = QPushButton("Run ideal gas simulation")
-        self.squareMultiply_layout.addWidget(self.runCool, 0, 0, 1, 1)
+        self.ideal_gas_layout.addWidget(self.runCool, 0, 0, 1, 1)
         self.runCool.released.connect(self.particleSim)
 
 
         self.runPoo = QPushButton("DO NOT CLICK THIS. DO NOT CLICK THIS. DO NOT CLICK THIS. DO NOT CLICK THIS. DO NOT CLICK THIS.")
-        self.squareMultiply_layout.addWidget(self.runPoo, 1, 1, 1,3)
+        self.ideal_gas_layout.addWidget(self.runPoo, 1, 1, 1,3)
         self.runPoo.released.connect(self.brokenSim)
 
 
@@ -351,6 +335,8 @@ class MainWindow(QMainWindow):
         ##################################################
         self.setStyleSheet("""
             {
+            QPushButton {
+                cursor: pointer;
             }
         """)
 
@@ -430,7 +416,7 @@ class MainWindow(QMainWindow):
         simulation.run()
 
 
-    def oneTime(self):
+    def run_suspension_sim(self):
         test.run()
 
     def particleSim(self):
@@ -442,10 +428,14 @@ class MainWindow(QMainWindow):
 
     def keyPressEvent(self, event):
         if event.key() == 16777217:
-            self.squareMultiply_layout.setCurrentIndex((self.squareMultiply_layout.currentIndex() + 1) % len(self.slides))
+            self.ideal_gas_layout.setCurrentIndex((self.ideal_gas_layout.currentIndex() + 1) % len(self.slides))
 
     def nextSlide(self):
         print()
+
+    def log_off(self):
+        self.database.conn.close()
+        self.close()
 
 
 
