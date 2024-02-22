@@ -506,9 +506,6 @@ class Container(SpatialMap):
         self.draw_line_to_mouse = False
         self.selected_particle = None
 
-    def apply_air_resistance(self):
-        for particle in self.particles:
-            particle.apply_resistance()
 
 
 if __name__ == "__main__":

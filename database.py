@@ -16,7 +16,8 @@ class Database:
             host=host_,
             user=user_,
             password=password_,
-            database=database_
+            database=database_,
+            autocommit=True
         )
 
         self.conn = self.db.cursor()
