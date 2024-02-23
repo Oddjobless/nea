@@ -179,7 +179,7 @@ def run(level_no):
             particle = vector_field.particles[vector_field.selected_particle]
             pygame.draw.line(screen, (255, 0, 0), particle.position, pygame.mouse.get_pos())
             text = font.render(
-                f"{int(particle.get_real_velocity()[1])}, {int(particle.get_position()[0] * vector_field.g_multiplier)}",
+                f"{int(particle.get_real_velocity()[0])}, {int(particle.get_real_velocity()[1])}",
                 True, (255, 255, 255))
             screen.blit(text, particle.get_position() - np.array([80, 80]))
 
@@ -255,9 +255,13 @@ class ProjectileParticle(Particle):
     def get_real_acceleration(self):
         return self.px_to_metres(self.acceleration)
 
-    def get_real_velocity(self, ):
+    def get_real_velocity(self):
         return self.px_to_metres(self.velocity)
-
+    """
+    centre login
+    have all of it one page
+    simulation in each corner
+    """
     def get_real_distance(self, val):
         return self.px_to_metres(val)
 
@@ -499,6 +503,10 @@ class Container(SpatialMap):
                 self.draw_line_to_mouse = True
                 self.selected_particle = index
                 return
+
+    def real_velocity(self):
+
+        pass
 
     def release_projected_particle(self, mouse_pos):
         particle = self.particles[self.selected_particle]

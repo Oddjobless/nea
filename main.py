@@ -182,10 +182,11 @@ class MainWindow(QMainWindow):
         """)
         self.projectile.setLayout(self.projectile_layout)
 
-        projectile_sim_buttons = [QPushButton("Level\n" + str(x+1)) for x in range(9)]
+        projectile_sim_buttons = [QPushButton(str(x+1)) for x in range(9)]
         for index, button in enumerate(projectile_sim_buttons):
             self.projectile_layout.addWidget(button, projectile_sim_buttons.index(button) // 3, projectile_sim_buttons.index(button) % 3)
             button.released.connect(lambda index=index: self.run_projectile_motion_sim(index + 1))
+
 
 
 
@@ -244,9 +245,8 @@ class MainWindow(QMainWindow):
         # self.pathfinder_decrypt.setObjectName("decrypt")
 
 
-  
 
-        self.pathfinder_layout.addWidget(self.pathfinder_output, 1, 0, 1, 1)
+
         self.pathfinder.setLayout(self.pathfinder_layout)
 
         self.layout.addWidget(self.pathfinder)
@@ -295,7 +295,6 @@ class MainWindow(QMainWindow):
 
         
 
-        self.suspension_layout.addWidget(self.suspension_inputText, 0, 0, 1, 1)
 
         self.Test_Sim = QPushButton("Test")
         self.Test_Sim.released.connect(self.oneTime)
