@@ -193,10 +193,10 @@ def run(level_no):
         else:
             vector_field.draw_line_to_mouse = False
 
-        if vector_field.show_coordinates:
-            coordinates = pygame.mouse.get_pos()
-            text = font_30.render(f"({coordinates[0]}, {coordinates[1]})", True, (255, 255, 255))
-            screen.blit(text, (screen_width - 200, 10))
+        mouse_pos = pygame.mouse.get_pos()
+        coordinates = np.array([mouse_pos[0], screen_height - mouse_pos[1]]) / vector_field.px_to_metres_factor
+        text = font_30.render(f"({int(coordinates[0])}, {int(coordinates[1])})", True, (255, 255, 255))
+        screen.blit(text, (screen_width - 180, 10))
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -408,7 +408,7 @@ class Container(SpatialMap):
 
         self.g = 9.8
 
-        self.px_to_metres_factor = 6
+        self.px_to_metres_factor = 2
         self.penetration_factor = 0.1
         self.toggle_velocity_display = False
         self.show_coordinates = False
@@ -546,4 +546,4 @@ class Container(SpatialMap):
 
 if __name__ == "__main__":
     print("piss")
-    run()
+    run(2)
