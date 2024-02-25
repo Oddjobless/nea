@@ -20,6 +20,8 @@ class FluidParticle(Particle):
                                   randint(2 * self.radius, screen_height - 2 * self.radius)], dtype=float)
 
         self.pressure_force = np.zeros(2, dtype=float)
+        self.density = None
+        self.pressure = None
         self.calculate_density()
         self.calculate_pressure()
 

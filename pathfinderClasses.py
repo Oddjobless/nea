@@ -32,7 +32,7 @@ class Pathfinder(Particle):
             return True
         return False
 
-    def collision_event(self, obstacle_pos, obstacle_width):
+    def collision_event_obstacles(self, obstacle_pos, obstacle_width):
         if self.check_for_collision_X(obstacle_pos[0], obstacle_width):
             self.velocity[0] *= -1
 
@@ -146,7 +146,7 @@ class VelocityField(SpatialMap):
 
     def generate_heatmap(self, goal_coords):
         self.cell_distances = np.empty_like(self.grid)
-        # Initialize distances with a large value, obstacles with -1
+        # initialise cell distances with infinity, obstacles with -1
         for cell_index, cell in enumerate(self.cell_distances):
             cell_coord = self.index_to_coord(cell_index)
             if cell_coord in self.blocked_cells:
@@ -155,13 +155,13 @@ class VelocityField(SpatialMap):
                 self.cell_distances[cell_index] = float('inf')
 
 
-        # Set distance to the goal cell to 0
+        # set distance to the goal cell to 0
         goal_index = self.coord_to_index(goal_coords)
         self.cell_distances[goal_index] = 0
 
         self.cell_distances[goal_index] = 0
 
-        # Queue for breadth-first search
+        # queue needed for breadth-first search
         queue = [goal_coords]
 
         while queue:
@@ -173,7 +173,7 @@ class VelocityField(SpatialMap):
             for next_coord in neighbouring_coords:
                 next_index = self.coord_to_index(next_coord)
                 if next_coord not in self.blocked_cells and self.cell_distances[next_index] == float('inf'):
-                    # Only update distance if the cell is not blocked and not yet visited
+                    # update distance if  cell is not blocked and not visited
                     self.cell_distances[next_index] = current_distance + 1
                     queue.append(next_coord)
 
@@ -221,17 +221,6 @@ class VelocityField(SpatialMap):
                         dist_copy[3] = distances[2] + 2
 
 
-
-
-            """if maximum in distances:
-                if distances[0] == maximum:
-                    distances[0] = distances[1] + 4
-                if distances[1] == maximum:
-                    distances[1] = distances[0] + 4
-                if distances[2] == maximum:
-                    distances[2] = distances[3] + 4
-                if distances[3] == maximum:
-                    distances[3] = distances[2] + 4"""
 
 
 
@@ -312,7 +301,7 @@ class VelocityField(SpatialMap):
 
                 if coord in self.blocked_cells:
 
-                    eachParticle.collision_event(coord, box_width)
+                    eachParticle.collision_event_obstacles(coord, box_width)
 
 
 
