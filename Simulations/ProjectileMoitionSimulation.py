@@ -129,7 +129,10 @@ def run(level_no):
     vector_field = Container(rows, columns, level_no)
 
     vector_field.particles.extend([ProjectileParticle(1, 15, vector_field, wall_damping, floor_damping=0.7) for _ in range(6)])  # eccentricity
+    for particle in vector_field.particles:
+        particle.position = np.array([randint(140,210), randint(780,980)])
     font = pygame.font.SysFont("comicsans", 20)
+    font_30 = pygame.font.SysFont("comicsans", 30)
 
     clock = pygame.time.Clock()
 
@@ -156,9 +159,9 @@ def run(level_no):
             particle.collision_event_obstacles()
             particle.collision_event()
             particle.collision_event_goal(screen)
-
-
             particle.draw(screen)
+
+
             # pygame.draw.circle(screen, (123, 12, 90), collide_x, self.radius)
 
 
@@ -178,15 +181,22 @@ def run(level_no):
         if vector_field.draw_line_to_mouse and vector_field.selected_particle != None:
             particle = vector_field.particles[vector_field.selected_particle]
             pygame.draw.line(screen, (255, 0, 0), particle.position, pygame.mouse.get_pos())
-            text = font.render(
-                f"{int(particle.get_real_velocity()[0])}, {int(particle.get_real_velocity()[1])}",
-                True, (255, 255, 255))
+            projected_velocity = (particle.position - np.array(pygame.mouse.get_pos())) * vector_field.projected_particle_velocity_multiplier / vector_field.px_to_metres_factor
+            if vector_field.toggle_velocity_display:
+                display_params = f"{int(projected_velocity[0])}i\u0302 + {int(-projected_velocity[1])}j\u0302"
+            else:
+                display_params = f"{vector_field.get_magnitude(projected_velocity).astype(int)} m/s | \u03B1 = {int(np.arctan2(projected_velocity[1], projected_velocity[0]) * -180 / np.pi)}\u00B0"
+            text = font.render(display_params, True, (255, 255, 255))
             screen.blit(text, particle.get_position() - np.array([80, 80]))
+            print(vector_field.g / vector_field.px_to_metres_factor)
 
         else:
             vector_field.draw_line_to_mouse = False
 
-
+        if vector_field.show_coordinates:
+            coordinates = pygame.mouse.get_pos()
+            text = font_30.render(f"({coordinates[0]}, {coordinates[1]})", True, (255, 255, 255))
+            screen.blit(text, (screen_width - 200, 10))
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -196,22 +206,19 @@ def run(level_no):
                 if event.key == pygame.K_q:
                     pygame.quit()
                     return
+                if event.key == pygame.K_v:
+                    vector_field.toggle_velocity_display = not vector_field.toggle_velocity_display
 
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 particle_clicked = vector_field.selected_particle
-                if event.button == 1 and particle_clicked == None:
-                    vector_field.drag_particle(event.pos)
+                if event.button == 1:
+                    vector_field.show_coordinates = not vector_field.show_coordinates
+                    if particle_clicked == None:
+                        vector_field.drag_particle(event.pos)
 
                 elif event.button == 3 and particle_clicked == None:
                     vector_field.project_particle(event.pos)
-
-
-
-
-
-
-
 
             elif event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 1 and vector_field.selected_particle != None:
@@ -250,7 +257,7 @@ class ProjectileParticle(Particle):
         # acceleration downwards should be 9.8 m/s^2. so if i use 2 px/s^, it's a conversion to 9.8:
 
     def px_to_metres(self, pixel_val):
-        return self.vector_field.g_multiplier * pixel_val
+        return pixel_val / self.vector_field.px_to_metres_factor
 
     def get_real_acceleration(self):
         return self.px_to_metres(self.acceleration)
@@ -270,7 +277,7 @@ class ProjectileParticle(Particle):
     def collision_event_goal(self, screen):
         goal = self.vector_field.goal
         if self.entirely_in_obstacle_check2(goal.position, goal.width):
-            self.velocity = self.velocity * 0.9
+            self.velocity = self.velocity * (1 - self.vector_field.penetration_factor)
             self.acceleration *= 0
             self.hit_goal = True
             self.colour = (25,125,195)
@@ -334,6 +341,8 @@ class ProjectileParticle(Particle):
         self.next_position -= overlap * (self.next_position - next_particle.next_position) / distance
 
         next_particle.next_position += overlap * (self.next_position - next_particle.next_position) / distance
+        if np.isclose(self.velocity, np.zeros_like(self.velocity), atol=1).all():
+            self.velocity = np.zeros_like(self.velocity)
 
     def collision_event(self):
         for particle in self.vector_field.particles:
@@ -389,7 +398,7 @@ class Container(SpatialMap):
         super().__init__(rows, columns)
         self.particles = []
         self.selected_particle = None
-        self.projected_particle_velocity_multiplier = 3
+        self.projected_particle_velocity_multiplier = 4
 
         self.draw_line_to_mouse = False
         self.colliding_balls_pairs = []
@@ -398,9 +407,11 @@ class Container(SpatialMap):
         self.drag_coefficient = 0.000000001
 
         self.g = 9.8
-        self.g_multiplier = 9.8 / self.g
 
-        self.px_to_metres_factor = 4
+        self.px_to_metres_factor = 6
+        self.penetration_factor = 0.1
+        self.toggle_velocity_display = False
+        self.show_coordinates = False
 
         self.score = 0
         self.goal = None
@@ -411,6 +422,8 @@ class Container(SpatialMap):
             self.initialise_level("./ProjectileMotionLevels/lvl1") #load level one
         else:
             print("Level loaded successfully")
+
+
 
     def add_points(self, points):
         self.score += points
@@ -430,7 +443,22 @@ class Container(SpatialMap):
     def initialise_level(self, file_name):
         # goal_background_image = pygame.image.load("./ProjectileMotionLevels/images/billboard.png")
         goal_background_image = pygame.image.load("./ProjectileMotionLevels/images/images.jpg")
+        ball_box_image = None
         goal_background_image.convert_alpha()
+
+        # box_dimensions = [((100, 1055), 160, 25),
+        #        ((100, 980), 30, 100),
+        #        ((230, 980), 30, 100)]
+
+        box_dimensions = [
+            ((100,1055),150,25),
+            ((100,970),25,110),
+            ((225,970),25,110)]
+        for row in box_dimensions:
+            plank = Obstacle(*row, ball_box_image)
+            plank.is_platform = True
+            self.obstacles.append(plank)
+
 
 
         splatters = ["splat1.png", "splat2.png", "splat3.png"]

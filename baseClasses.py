@@ -46,7 +46,7 @@ class Particle:
 
 
         if obstacle.is_platform:
-            damping = 0.1
+            damping = 0.4
         else:
             damping = self.damping
 
@@ -56,15 +56,15 @@ class Particle:
             self.next_position[0] += penetration_x * direction_x
             self.velocity[0] *= -1 * damping
             if obstacle.is_platform:
-                self.velocity[1] *= -1 * damping
+                self.velocity[1] *= damping
         else:
             # Collided in y-direction
             self.next_position[1] += penetration_y * direction_y
             self.velocity[1] *= -1 * damping
             if obstacle.is_platform:
-                self.velocity[0] *= -1 * damping
+                self.velocity[0] *= damping
 
-        if np.isclose(self.velocity[1], 0):
+        if np.isclose(self.velocity[1], 0, atol=2):
             self.velocity[1] = 0
 
 
