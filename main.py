@@ -185,7 +185,7 @@ class MainWindow(QMainWindow):
         self.layout.addWidget(self.projectile_widget)
         ##################################################
 
-        self.pathfinding_button = QAction("Vector Field\nPathfinding", self)
+        self.pathfinding_button = QAction("Vector Field Pathfinding", self)
         self.toolbar.addAction(self.pathfinding_button)
         self.pathfinding_button.triggered.connect(lambda: self.changeIndex(3))
 
@@ -222,16 +222,16 @@ class MainWindow(QMainWindow):
 
         """)
 
-        self.pathfinding_encrypt = QPushButton("Run")
-        self.pathfinding_layout.addWidget(self.pathfinding_encrypt, 2, 3, 1, 1)
-
-        self.pathfinding_encrypt.released.connect(self.transposition)
+        self.pathfinding_run = QPushButton("Run")
+        self.pathfinding_layout.addWidget(self.pathfinding_run, 2, 3, 1, 1)
+        self.pathfinding_run.released.connect(self.transposition)
 
         self.pathfinding_decrypt = QPushButton("Admin Mode")
         self.pathfinding_layout.addWidget(self.pathfinding_decrypt, 2, 4)
 
-        self.pathfinding.setLayout(self.pathfinding_layout)
+        # self.noOfRows = Q
 
+        self.pathfinding.setLayout(self.pathfinding_layout)
         self.layout.addWidget(self.pathfinding)
 
         ##################################################
@@ -285,7 +285,7 @@ class MainWindow(QMainWindow):
         ##################################################
         self.toolbar.addSeparator()
 
-        self.ideal_gas_button = QAction("Ideal Gas\nSimulation", self)
+        self.ideal_gas_button = QAction("Ideal Gas Simulation", self)
         self.toolbar.addAction(self.ideal_gas_button)
         self.ideal_gas_button.triggered.connect(lambda: self.changeIndex(5))
 
@@ -374,17 +374,15 @@ class MainWindow(QMainWindow):
         self.toolbar.setVisible(False)
 
     def run_projectile_motion_sim(self, level_no):
-        self.hide()
 
         ProjectileMoitionSimulation.draw_mode(level_no)
         score = ProjectileMoitionSimulation.run(level_no)
         if score:
-            if score > 300:
+            if score > 100:
                 print("You win!")
                 print(level_no)
                 button = self.projectile_sim_buttons[level_no]
                 self.enable_projectile_button(button, level_no)
-        self.show()
 
     def transposition(self):
         simulation.run()
@@ -427,17 +425,25 @@ class MainWindow(QMainWindow):
         print()
 
     def log_off(self):
-        max_level = 1
-        for index, level in enumerate(self.projectile_sim_button):
-            if level.object_name == "free_button":
-                max_level = index + 1
-        self.user_settings[-1] = max_level
+        print(self.user_settings)
+        self.user_settings = list(self.user_settings)
+        print(self.user_settings.copy())
+        print("Poo")
+        try:
+            max_level = 1
+            for index, button in enumerate(self.projectile_sim_buttons):
+                print(button.objectName())
+                if button.objectName() == "free_button":
+                    max_level = index + 1
+            self.user_settings[-1] = max_level
+            print(max_level, self.user_settings)
 
-        self.database.save_user_settings(self.user_settings)
-        self.database.conn.close()
+            self.database.save_user_settings(self.user_settings)
+            self.database.conn.close()
 
-        self.close()
-
+            self.close()
+        except Exception as e:
+            print(e)
 
 app = QApplication(sys.argv)
 window = MainWindow()

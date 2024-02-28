@@ -121,10 +121,17 @@ class Database:
         result = self.conn.fetchone()
         return result
 
-    def save_user_settings(self, settings):
+    def save_user_settings(self, user_settings):
+        settings = user_settings.copy()
+        print(settings, "this")
+
+        settings.append(settings[0])
+        print(settings)
+        print(settings[2:])
         self.conn.execute("""
         UPDATE user_settings SET pathfinder_rows = %s, pathfinder_cols = %s, wall_collision_damping = %s, particle_collision_damping = %s, projectile_max_level = %s WHERE user_id = %s;
-        """, settings[1:] + settings[0])
+        """, settings[2:])
+        self.conn.fetchall()
 
 
 
@@ -136,9 +143,11 @@ if __name__ == "__main__":
     # db.initialise_default_db()
 
     try:
+
         db.conn.execute("SELECT * FROM user_settings")
         results = db.conn.fetchall()
         for row in results:
             print(row)
+
     except Exception as e:
         print("Error:", e)
