@@ -6,6 +6,7 @@ from Simulations import simulation, ProjectileMoitionSimulation, test, coolParti
 from database import Database
 from hashlib import sha256
 
+
 # from matplotlib import pyplot
 
 
@@ -14,10 +15,9 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.database = Database("localhost", "root", "2121", "NEA")
 
-
         self.setWindowTitle("ARGHHHHHHHHHH")
         self.setGeometry(0, 0, 1920, 1080)
-        self.showFullScreen() # todo: fullscreen
+        self.showFullScreen()  # todo: fullscreen
         self.layout = QStackedLayout()
         self.index = QWidget()
         self.index.setLayout(self.layout)
@@ -48,7 +48,6 @@ class MainWindow(QMainWindow):
         self.login_label = QLabel("Login")
         self.login_layout.addWidget(self.login_label, 0, 1, 1, 1)
 
-
         self.email = QLineEdit()
         self.email.setPlaceholderText("Enter email address")
         self.login_layout.addWidget(self.email, 7, 0, 1, 7)
@@ -58,21 +57,15 @@ class MainWindow(QMainWindow):
         self.password.setEchoMode(QLineEdit.EchoMode.Password)
         self.login_layout.addWidget(self.password, 8, 0, 1, 4)
 
-
         self.login_button = QPushButton("Log in")
         self.login_button.released.connect(self.login_or_register)
-        self.login_layout.addWidget(self.login_button,9, 5, 1, 1)
-
-
-
+        self.login_layout.addWidget(self.login_button, 9, 5, 1, 1)
 
         self.toggle_login = QPushButton("Don't Have\nAn Account?")
         self.toggle_login.released.connect(self.toggle_login_register)
         self.login_layout.addWidget(self.toggle_login, 9, 1, 1, 1)
 
-
         # registration widgets
-
 
         self.full_name = QLineEdit()
         self.full_name.setPlaceholderText("Enter your full name")
@@ -87,8 +80,6 @@ class MainWindow(QMainWindow):
         self.date_of_birth_label = QLabel("Date of\n Birth")
         self.login_layout.addWidget(self.date_of_birth_label, 6, 0, 1, 1)
         self.date_of_birth_label.hide()
-
-
 
         self.layout.addWidget(self.login)
         self.login.setStyleSheet("""
@@ -142,7 +133,6 @@ class MainWindow(QMainWindow):
         self.toolbar.addSeparator()
         self.home_page.setStyleSheet("background-color: '#F49097';")
 
-
         ##################################################
 
         self.projectile_button = QAction("Projectile Motion", self)
@@ -183,19 +173,14 @@ class MainWindow(QMainWindow):
         """)
         self.projectile_widget.setLayout(self.projectile_widget_layout)
 
-        self.projectile_sim_buttons = [QPushButton("Level\n" + str(x+1)) for x in range(9)]
+        self.projectile_sim_buttons = [QPushButton("Level\n" + str(x + 1)) for x in range(9)]
         for index, button in enumerate(self.projectile_sim_buttons):
             button.setCheckable(False)
             button.setCursor(QCursor(Qt.CursorShape.ForbiddenCursor))
-            self.projectile_widget_layout.addWidget(button, self.projectile_sim_buttons.index(button) // 3, self.projectile_sim_buttons.index(button) % 3)
+            self.projectile_widget_layout.addWidget(button, self.projectile_sim_buttons.index(button) // 3,
+                                                    self.projectile_sim_buttons.index(button) % 3)
 
             button.setMaximumWidth(200)
-
-
-
-
-
-
 
         self.layout.addWidget(self.projectile_widget)
         ##################################################
@@ -237,9 +222,6 @@ class MainWindow(QMainWindow):
 
         """)
 
-   
-
-   
         self.pathfinding_encrypt = QPushButton("Run")
         self.pathfinding_layout.addWidget(self.pathfinding_encrypt, 2, 3, 1, 1)
 
@@ -247,9 +229,6 @@ class MainWindow(QMainWindow):
 
         self.pathfinding_decrypt = QPushButton("Admin Mode")
         self.pathfinding_layout.addWidget(self.pathfinding_decrypt, 2, 4)
-
-
-
 
         self.pathfinding.setLayout(self.pathfinding_layout)
 
@@ -264,7 +243,7 @@ class MainWindow(QMainWindow):
         self.suspension_layout = QGridLayout()
         self.suspension = QWidget()
         self.suspension.setStyleSheet("""
-        
+
             QLineEdit {
                 margin: 60;
                 border: 3px solid '#ff0000';
@@ -295,21 +274,13 @@ class MainWindow(QMainWindow):
 
         """)
 
-
-
-
         self.Test_Sim = QPushButton("Test")
         self.Test_Sim.released.connect(self.run_suspension_sim)
         self.suspension_layout.addWidget(self.Test_Sim, 0, 1, 1, 1)
 
-
-
-
-
         self.suspension.setLayout(self.suspension_layout)
 
         self.layout.addWidget(self.suspension)
-
 
         ##################################################
         self.toolbar.addSeparator()
@@ -327,12 +298,10 @@ class MainWindow(QMainWindow):
         self.ideal_gas_layout.addWidget(self.runCool, 0, 0, 1, 1)
         self.runCool.released.connect(self.particleSim)
 
-
-        self.runPoo = QPushButton("DO NOT CLICK THIS. DO NOT CLICK THIS. DO NOT CLICK THIS. DO NOT CLICK THIS. DO NOT CLICK THIS.")
-        self.ideal_gas_layout.addWidget(self.runPoo, 1, 1, 1,3)
+        self.runPoo = QPushButton(
+            "DO NOT CLICK THIS. DO NOT CLICK THIS. DO NOT CLICK THIS. DO NOT CLICK THIS. DO NOT CLICK THIS.")
+        self.ideal_gas_layout.addWidget(self.runPoo, 1, 1, 1, 3)
         self.runPoo.released.connect(self.brokenSim)
-
-
 
         ##################################################
         self.setStyleSheet("""
@@ -375,7 +344,8 @@ class MainWindow(QMainWindow):
             self.date_of_birth.date().addYears(16) <= QDate.currentDate()
         ]
         if all(conditions):
-            self.database.create_user(self.email.text(), sha256(self.password.text().encode()).hexdigest(), self.full_name.text(), self.date_of_birth.date().toString("yyyy-MM-dd"))
+            self.database.create_user(self.email.text(), sha256(self.password.text().encode()).hexdigest(),
+                                      self.full_name.text(), self.date_of_birth.date().toString("yyyy-MM-dd"))
             return True
         else:
             QMessageBox.warning(self, "Registration Failed", "Please enter valid information.")
@@ -397,7 +367,6 @@ class MainWindow(QMainWindow):
             self.date_of_birth.show()
             self.date_of_birth_label.show()
 
-
     def show_toolbar(self):
         self.toolbar.setVisible(True)
 
@@ -406,7 +375,6 @@ class MainWindow(QMainWindow):
 
     def run_projectile_motion_sim(self, level_no):
         self.hide()
-
 
         ProjectileMoitionSimulation.draw_mode(level_no)
         score = ProjectileMoitionSimulation.run(level_no)
@@ -421,7 +389,6 @@ class MainWindow(QMainWindow):
     def transposition(self):
         simulation.run()
 
-
     def run_suspension_sim(self):
         test.run()
 
@@ -431,22 +398,21 @@ class MainWindow(QMainWindow):
     def brokenSim(self):
         fluidFlowSimulation.run()
 
-
     def keyPressEvent(self, event):
         if event.key() == 16777217:
             self.ideal_gas_layout.setCurrentIndex((self.ideal_gas_layout.currentIndex() + 1) % len(self.slides))
 
     def initialise_program(self, user_settings):
-        admin = False # temp
+        admin = False  # temp
         if admin:
             max_level = len(self.projectile_sim_buttons)
         else:
             max_level = user_settings[-1]
         print(max_level)
-        
+
         for index, button in enumerate(self.projectile_sim_buttons[:max_level]):
             self.enable_projectile_button(button, index)
-    
+
     def enable_projectile_button(self, button, index):
         button.setCheckable(True)
         button.released.connect(lambda index=index: self.run_projectile_motion_sim(index + 1))
@@ -457,7 +423,6 @@ class MainWindow(QMainWindow):
             }
         """)
 
-
     def nextSlide(self):
         print()
 
@@ -466,13 +431,12 @@ class MainWindow(QMainWindow):
         for index, level in enumerate(self.projectile_sim_button):
             if level.object_name == "free_button":
                 max_level = index + 1
+        self.user_settings[-1] = max_level
 
-        self.user_settings = self.user_settings[0]
         self.database.save_user_settings(self.user_settings)
         self.database.conn.close()
 
         self.close()
-
 
 
 app = QApplication(sys.argv)
