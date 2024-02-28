@@ -55,6 +55,7 @@ class Database:
                 pathfinder_cols INT DEFAULT 20,
                 wall_collision_damping FLOAT DEFAULT 0.8,
                 particle_collision_damping FLOAT DEFAULT 1.0,
+                projectile_max_level INT DEFAULT 0,
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             );
             """)
@@ -85,8 +86,12 @@ class Database:
             self.conn.execute("""
             INSERT INTO users (email, password_hash, full_name, date_of_birth) VALUES (%s, %s, %s, %s);
             """, (email, password_hash, full_name, date_of_birth))
-            self.conn.fetchall()  # Fetch results after executing each query
+            self.conn.fetchall()
 
+            self.conn.execute("""
+            INSERT INTO user_settings (user_id) VALUES (LAST_INSERT_ID());
+            """)
+            self.conn.fetchall()
 
             print("\n\nUser Created.", email, password_hash)
             return True
@@ -103,7 +108,8 @@ class Database:
             """, (email, password_hash))
             print("Successful log in")
             result = self.conn.fetchall()
-            return result
+            print(result, result[0])
+            return result[0]
         except Exception as e:
             print("\nError verifying login", email, password_hash)
             print(e)
@@ -128,11 +134,11 @@ class Database:
 
 if __name__ == "__main__":
     db = Database("localhost", "root", "2121", "NEA")
-    # db.initialise_default_db()
+    db.initialise_default_db()
 
     try:
-        db.conn.execute("SELECT * FROM users")
-        results = db.conn.fetchall()
+        # db.conn.execute("SELECT * FROM user_settings WHERE user_id = 2")
+        results = db.get_user_settings(3)
         for row in results:
             print(row)
     except Exception as e:

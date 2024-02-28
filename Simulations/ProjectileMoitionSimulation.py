@@ -205,7 +205,7 @@ def run(level_no):
             elif event.type == pygame.KEYUP:
                 if event.key == pygame.K_q:
                     pygame.quit()
-                    return
+                    return vector_field.score
                 if event.key == pygame.K_v:
                     vector_field.toggle_velocity_display = not vector_field.toggle_velocity_display
 

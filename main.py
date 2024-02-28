@@ -183,9 +183,11 @@ class MainWindow(QMainWindow):
         """)
         self.projectile_widget.setLayout(self.projectile_widget_layout)
 
-        projectile_sim_buttons = [QPushButton("Level\n" + str(x+1)) for x in range(9)]
-        for index, button in enumerate(projectile_sim_buttons):
-            self.projectile_widget_layout.addWidget(button, projectile_sim_buttons.index(button) // 3, projectile_sim_buttons.index(button) % 3)
+        self.projectile_sim_buttons = [QPushButton("Level\n" + str(x+1)) for x in range(9)]
+        for index, button in enumerate(self.projectile_sim_buttons):
+            button.setDisabled(True)
+            button.setCursor(QCursor(Qt.CursorShape.ForbiddenCursor))
+            self.projectile_widget_layout.addWidget(button, self.projectile_sim_buttons.index(button) // 3, self.projectile_sim_buttons.index(button) % 3)
             button.released.connect(lambda index=index: self.run_projectile_motion_sim(index + 1))
             button.setMaximumWidth(200)
 
@@ -346,11 +348,16 @@ class MainWindow(QMainWindow):
 
     def attempt_login(self):
         email, password = self.email.text().strip(), sha256(self.password.text().encode()).hexdigest()
-        print(email, password)
-        print(self.database.verify_login(email, password))
         user_info = self.database.verify_login(email, password)
         if user_info:
+            print("arse")
+            print(user_info)
             self.user_info = user_info
+
+            self.user_settings = self.database.get_user_settings(self.user_info[0])
+
+            print(self.user_settings, "jdfjtfj")
+            self.initialise_program(self.user_settings)
             self.show_toolbar()
             print("Logged in successfully")
             # todo: display success message
@@ -362,7 +369,10 @@ class MainWindow(QMainWindow):
         if self.toggle_login.text()[0] == "A":
             self.create_new_db_user()
         else:
-            self.attempt_login()
+            try:
+                self.attempt_login()
+            except Exception as e:
+                print(e)
 
     def create_new_db_user(self):
         conditions = [
@@ -429,6 +439,18 @@ class MainWindow(QMainWindow):
     def keyPressEvent(self, event):
         if event.key() == 16777217:
             self.ideal_gas_layout.setCurrentIndex((self.ideal_gas_layout.currentIndex() + 1) % len(self.slides))
+
+    def initialise_program(self, user_settings):
+        admin = False # temp
+        if admin:
+            max_level = len(self.projectile_sim_buttons)
+        else:
+            max_level = user_settings[-1]
+        print(max_level)
+        
+        for button in self.projectile_sim_buttons[:max_level]:
+            button.setEnabled(True)
+            button.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
 
     def nextSlide(self):
         print()
