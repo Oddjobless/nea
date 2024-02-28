@@ -176,7 +176,7 @@ class MainWindow(QMainWindow):
             }
 
             QPushButton:hover {
-                background-color: '#0000ff';
+                background-color: '#ffb468';
                 color: white;
             }
 
@@ -185,10 +185,10 @@ class MainWindow(QMainWindow):
 
         self.projectile_sim_buttons = [QPushButton("Level\n" + str(x+1)) for x in range(9)]
         for index, button in enumerate(self.projectile_sim_buttons):
-            button.setDisabled(True)
+            button.setCheckable(False)
             button.setCursor(QCursor(Qt.CursorShape.ForbiddenCursor))
             self.projectile_widget_layout.addWidget(button, self.projectile_sim_buttons.index(button) // 3, self.projectile_sim_buttons.index(button) % 3)
-            button.released.connect(lambda index=index: self.run_projectile_motion_sim(index + 1))
+
             button.setMaximumWidth(200)
 
 
@@ -345,25 +345,19 @@ class MainWindow(QMainWindow):
     def changeIndex(self, newIndex):  # FIX THIS
         self.layout.setCurrentIndex(newIndex)
 
-
     def attempt_login(self):
         email, password = self.email.text().strip(), sha256(self.password.text().encode()).hexdigest()
         user_info = self.database.verify_login(email, password)
         if user_info:
-            print("arse")
-            print(user_info)
             self.user_info = user_info
-
             self.user_settings = self.database.get_user_settings(self.user_info[0])
-
-            print(self.user_settings, "jdfjtfj")
             self.initialise_program(self.user_settings)
             self.show_toolbar()
             print("Logged in successfully")
-            # todo: display success message
             return True
-        print("Gone through to database but not successful") # todo:
-        return False
+        else:
+            QMessageBox.warning(self, "Login Failed, Invalid email or password.")
+            return False
 
     def login_or_register(self):
         if self.toggle_login.text()[0] == "A":
@@ -380,16 +374,12 @@ class MainWindow(QMainWindow):
             self.full_name.text() != "",
             self.date_of_birth.date().addYears(16) <= QDate.currentDate()
         ]
-        print(conditions)
-        print(self.email.text(), sha256(self.password.text().encode()).hexdigest(), self.full_name.text(), self.date_of_birth.text())
-        print(self.date_of_birth.date().toString("yyyy-MM-dd"))
         if all(conditions):
-            print("Sending info to database to create new user")
-
             self.database.create_user(self.email.text(), sha256(self.password.text().encode()).hexdigest(), self.full_name.text(), self.date_of_birth.date().toString("yyyy-MM-dd"))
             return True
-        return False
-
+        else:
+            QMessageBox.warning(self, "Registration Failed", "Please enter valid information.")
+            return False
 
     def toggle_login_register(self):
         if self.toggle_login.text()[0] == "A":
@@ -415,13 +405,19 @@ class MainWindow(QMainWindow):
         self.toolbar.setVisible(False)
 
     def run_projectile_motion_sim(self, level_no):
-        print(level_no)
+        self.hide()
 
-        try:
-            ProjectileMoitionSimulation.draw_mode(level_no)
-            ProjectileMoitionSimulation.run(level_no)
-        except Exception as e:
-            print(e)
+
+        ProjectileMoitionSimulation.draw_mode(level_no)
+        score = ProjectileMoitionSimulation.run(level_no)
+        if score:
+            if score > 300:
+                print("You win!")
+                print(level_no)
+                button = self.projectile_sim_buttons[level_no]
+                self.enable_projectile_button(button, level_no)
+        self.show()
+
     def transposition(self):
         simulation.run()
 
@@ -448,15 +444,33 @@ class MainWindow(QMainWindow):
             max_level = user_settings[-1]
         print(max_level)
         
-        for button in self.projectile_sim_buttons[:max_level]:
-            button.setEnabled(True)
-            button.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+        for index, button in enumerate(self.projectile_sim_buttons[:max_level]):
+            self.enable_projectile_button(button, index)
+    
+    def enable_projectile_button(self, button, index):
+        button.setCheckable(True)
+        button.released.connect(lambda index=index: self.run_projectile_motion_sim(index + 1))
+        button.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+        button.setObjectName("free_button")
+        button.setStyleSheet("""QPushButton:hover{
+                background-color: #83f28f;
+            }
+        """)
+
 
     def nextSlide(self):
         print()
 
     def log_off(self):
+        max_level = 1
+        for index, level in enumerate(self.projectile_sim_button):
+            if level.object_name == "free_button":
+                max_level = index + 1
+
+        self.user_settings = self.user_settings[0]
+        self.database.save_user_settings(self.user_settings)
         self.database.conn.close()
+
         self.close()
 
 

@@ -49,13 +49,11 @@ class Database:
             CREATE TABLE user_settings (
                 id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
                 user_id INT NOT NULL,
-                pathfinder_heatmap BOOLEAN DEFAULT FALSE,
-                pathfinder_grid BOOLEAN DEFAULT FALSE,
                 pathfinder_rows INT DEFAULT 20,
                 pathfinder_cols INT DEFAULT 20,
                 wall_collision_damping FLOAT DEFAULT 0.8,
                 particle_collision_damping FLOAT DEFAULT 1.0,
-                projectile_max_level INT DEFAULT 0,
+                projectile_max_level INT DEFAULT 1,
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             );
             """)
@@ -88,9 +86,10 @@ class Database:
             """, (email, password_hash, full_name, date_of_birth))
             self.conn.fetchall()
 
+            user_id = self.conn.lastrowid
             self.conn.execute("""
-            INSERT INTO user_settings (user_id) VALUES (LAST_INSERT_ID());
-            """)
+            INSERT INTO user_settings (user_id) VALUES (%s);
+            """, (user_id,))
             self.conn.fetchall()
 
             print("\n\nUser Created.", email, password_hash)
@@ -107,9 +106,9 @@ class Database:
             SELECT * FROM users WHERE email = %s AND password_hash = %s;
             """, (email, password_hash))
             print("Successful log in")
-            result = self.conn.fetchall()
-            print(result, result[0])
-            return result[0]
+            result = self.conn.fetchone()
+            print(result, "this")
+            return result
         except Exception as e:
             print("\nError verifying login", email, password_hash)
             print(e)
@@ -119,13 +118,13 @@ class Database:
         self.conn.execute("""
         SELECT * FROM user_settings WHERE user_id = %s;
         """, (user_id,))
-        result = self.conn.fetchall()
+        result = self.conn.fetchone()
         return result
 
-    def save_user_settings(self, user_id, settings):
+    def save_user_settings(self, settings):
         self.conn.execute("""
-        UPDATE user_settings SET pathfinder_heatmap = %s, pathfinder_grid = %s, pathfinder_rows = %s, pathfinder_cols = %s, wall_collision_damping = %s, particle_collision_damping = %s WHERE user_id = %s;
-        """, settings + (user_id,))
+        UPDATE user_settings SET pathfinder_rows = %s, pathfinder_cols = %s, wall_collision_damping = %s, particle_collision_damping = %s, projectile_max_level = %s WHERE user_id = %s;
+        """, settings[1:] + settings[0])
 
 
 
@@ -134,11 +133,11 @@ class Database:
 
 if __name__ == "__main__":
     db = Database("localhost", "root", "2121", "NEA")
-    db.initialise_default_db()
+    # db.initialise_default_db()
 
     try:
-        # db.conn.execute("SELECT * FROM user_settings WHERE user_id = 2")
-        results = db.get_user_settings(3)
+        db.conn.execute("SELECT * FROM user_settings")
+        results = db.conn.fetchall()
         for row in results:
             print(row)
     except Exception as e:
