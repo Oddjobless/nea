@@ -67,7 +67,7 @@ class FluidParticle(Particle):
 
         self.velocity += dt * np.array((self.force / self.mass), dtype=float)
 
-    def calculate_density(self):  # can i use self instead?
+    def calculate_density(self):
         density = 0
         neighbouring_particles = self.vector_field.get_neighbouring_particles(self)
 

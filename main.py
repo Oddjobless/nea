@@ -46,22 +46,27 @@ class MainWindow(QMainWindow):
         self.login.setLayout(self.login_layout)
 
         self.login_label = QLabel("Login")
-        self.login_layout.addWidget(self.login_label, 0, 1, 1, 1)
+        self.login_layout.addWidget(self.login_label, 0, 1, 1,1)
+
 
         self.email = QLineEdit()
         self.email.setPlaceholderText("Enter email address")
-        self.login_layout.addWidget(self.email, 7, 0, 1, 7)
+        self.email.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.login_layout.addWidget(self.email, 7, 0, 1, 4)
 
         self.password = QLineEdit()
         self.password.setPlaceholderText("Enter password")
         self.password.setEchoMode(QLineEdit.EchoMode.Password)
+        self.password.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.login_layout.addWidget(self.password, 8, 0, 1, 4)
 
         self.login_button = QPushButton("Log in")
         self.login_button.released.connect(self.login_or_register)
-        self.login_layout.addWidget(self.login_button, 9, 5, 1, 1)
+        self.login_button.setMaximumWidth(350)
+        self.login_layout.addWidget(self.login_button, 9, 2, 1, 1)
 
         self.toggle_login = QPushButton("Don't Have\nAn Account?")
+        self.toggle_login.setMaximumWidth(350)
         self.toggle_login.released.connect(self.toggle_login_register)
         self.login_layout.addWidget(self.toggle_login, 9, 1, 1, 1)
 
@@ -69,16 +74,22 @@ class MainWindow(QMainWindow):
 
         self.full_name = QLineEdit()
         self.full_name.setPlaceholderText("Enter your full name")
-        self.login_layout.addWidget(self.full_name, 4, 0, 1, 4)
+        self.full_name.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.login_layout.addWidget(self.full_name, 4, 1, 1, 2)
         self.full_name.hide()
 
         self.date_of_birth = QDateEdit()
+        self.date_of_birth.setStyleSheet("padding-right: 100px;")
         self.date_of_birth.setDisplayFormat("dd/MM/yyyy")
+        # self.date_of_birth.setMaximumWidth(600)
+        self.date_of_birth.setAlignment(Qt.AlignmentFlag.AlignRight)
         self.date_of_birth.setCalendarPopup(True)
         self.login_layout.addWidget(self.date_of_birth, 6, 1, 1, 2)
         self.date_of_birth.hide()
-        self.date_of_birth_label = QLabel("Date of\n Birth")
-        self.login_layout.addWidget(self.date_of_birth_label, 6, 0, 1, 1)
+        self.date_of_birth_label = QLabel("Date of Birth")
+
+        self.login_layout.addWidget(self.date_of_birth_label, 6, 1, 1, 1)
+
         self.date_of_birth_label.hide()
 
         self.layout.addWidget(self.login)
@@ -90,13 +101,16 @@ class MainWindow(QMainWindow):
                 align: right;
                 margin-left: 30px;
             }
+      
+            
             QLineEdit {
-                margin: 20px 50px 0px 30px;;
+                margin: 20px 200px 0px 200px;;
                 border: 10px solid '#0000ff';
                 font-size: 30px;
                 padding: 10px;
+                width: 600px;
             }
-
+            
             QTextEdit {
                 border: 2px dashed '#0000ff';
                 margin: 60px;
