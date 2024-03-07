@@ -55,7 +55,6 @@ def run():
                 elif event.key == pygame.K_c: # toggle collisions, laggy
                     vector_field.enable_collision_between_particles = not vector_field.enable_collision_between_particles
                 elif event.key == pygame.K_EQUALS:
-                    print("asdfdfsa")
                     vector_field.particle_to_add_radius += 1
                 elif event.key == pygame.K_MINUS:
                     vector_field.particle_to_add_radius = max(vector_field.particle_to_add_radius - 1, 3)

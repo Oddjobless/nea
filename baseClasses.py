@@ -135,7 +135,7 @@ class Cell:
     def __init__(self):
         self.cellList = set()
         self.velocity = np.array([randint(-1,1), randint(-1,1)], dtype=float)
-        self.isBlocked = False
+
 
 
 class SpatialMap:
