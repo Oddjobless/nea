@@ -12,7 +12,7 @@ def run():
 
     vector_field = Container(rows, columns)
 
-    vector_field.particles.extend([Particle(1, 20, vector_field, 1.00) for _ in range(100)])  # eccentricity
+    vector_field.particles.extend([GasParticle(1, 20, vector_field, 1.00) for _ in range(100)])  # eccentricity
     font = pygame.font.SysFont("comicsans", int(box_width // 2.6))
     frame = 0
     mouse_rel_refresh = frame_rate * 0.5
@@ -74,7 +74,7 @@ def run():
                 if event.button == 3 and vector_field.selected_wall_check(event.pos):
                     pygame.mouse.get_rel()
                     vector_field.wall_selected = vector_field.selected_wall_index(event.pos)
-                elif vector_field.temp_slider.click_check(event.pos):
+                elif event.button == 1 and vector_field.temp_slider.click_check(event.pos):
                     vector_field.temp_slider.is_clicked = True
                 elif event.button == 1 and vector_field.selected_particle == None:
                     vector_field.drag_particle(event.pos)
@@ -101,6 +101,7 @@ def run():
             if vector_field.wall_selected != None:
                 vector_field.change_wall_dimensions(pygame.mouse.get_rel())
 
+
             elif vector_field.selected_particle != None and not vector_field.draw_line_to_mouse:
                 vector_field.move_selected_particle(event.pos)
 
@@ -114,10 +115,12 @@ def run():
 
 #
 
+class GasParticle(Particle):
+    def __init__(self, mass, particle_radius, vector_field, _wall_damping):
+        super().__init__(mass, particle_radius, vector_field, _wall_damping)
 
-
-
-
+    def update(self, screen, custom_dimensions=None, vector_field=False):
+        super().update(screen, custom_dimensions=custom_dimensions, vector_field=vector_field)
 
 
 class Widget:
@@ -149,6 +152,8 @@ class Widget:
     def update(self):
         if self.is_clicked:
             self.knob[0] = pygame.mouse.get_pos()[0]
+            self.knob_value = (self.knob_rest_pos[0] - self.knob[0]) / self.size[0]
+            print(self.knob_value)
         else:
             difference = self.knob_rest_pos - self.knob
             self.knob += difference * 0.1
@@ -176,9 +181,11 @@ class Container(SpatialMap):
         self.wall_selected = None
         self.wall_radius = 20
         self.temp_slider = Widget((1400,900), (400,30), (140,140,140), slider=True)
+        self.temperature = 10
 
     def draw_slider(self, screen):
         self.temp_slider.draw(screen)
+
 
 
     def draw_walls(self, screen):
