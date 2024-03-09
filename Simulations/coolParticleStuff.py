@@ -12,7 +12,7 @@ def run():
 
     vector_field = Container(rows, columns)
 
-    vector_field.particles.extend([GasParticle(1, 20, vector_field, 1.00) for _ in range(100)])  # eccentricity
+    vector_field.particles.extend([GasParticle(1, 5, vector_field, 1.00) for _ in range(100)])  # eccentricity
     font = pygame.font.SysFont("comicsans", int(box_width // 2.6))
     frame = 0
     mouse_rel_refresh = frame_rate * 0.5
@@ -191,13 +191,14 @@ class Container(SpatialMap):
     def draw_walls(self, screen):
         dim = self.dimensions
         radius = self.wall_radius
-
+        width = dim[2] - dim[0]
+        height = dim[3] - dim[1]
         pygame.draw.rect(screen, (200,200,200), (
-            dim[0] - radius, dim[1] - radius, dim[2] - dim[0] + 2* radius,
-            dim[3] - dim[1] + 2*radius))
+            dim[0] - radius, dim[1] - radius, width + 2 * radius,
+            height + 2*radius))
         pygame.draw.rect(screen, (255,255,255), (
-        dim[0], dim[1], dim[2] - dim[0],
-        dim[3] - dim[1]))
+        dim[0], dim[1], width,
+        height))
 
     def selected_wall_check(self, mouse_pos):
         dim = self.dimensions
