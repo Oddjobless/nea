@@ -12,7 +12,7 @@ def run():
 
     vector_field = Container(rows, columns)
 
-    vector_field.particles.extend([ProjectileParticle(1, 20, vector_field, wall_damping, floor_damping=1.00) for _ in range(100)])  # eccentricity
+    vector_field.particles.extend([ProjectileParticle(1, 20, vector_field, _wall_damping=1.00, floor_damping=1.00) for _ in range(100)])  # eccentricity
     font = pygame.font.SysFont("comicsans", int(box_width // 2.6))
     frame = 0
     mouse_rel_refresh = frame_rate * 0.5
@@ -23,15 +23,17 @@ def run():
 
 
 
-        ### drawing vectorField
+
         screen.fill((70, 69, 5))
 
-        # logic goes here
+
+        # draw gas container walls
+        vector_field.draw_walls(screen)
 
         for index, particle in enumerate(vector_field.particles):
-            print(vector_field.dimensions)
             particle.update(screen, custom_dimensions=vector_field.dimensions, vector_field=False)
             if vector_field.air_resistance:
+                print("oh no")
                 particle.apply_air_resistance()
 
         for particle in vector_field.particles:
@@ -45,7 +47,6 @@ def run():
         for ball_i, ball_j in vector_field.colliding_balls_pairs:
             completed.add(ball_i)
             if ball_j not in completed:
-                print("Ball", ball_i, "collides with", ball_j)
                 ball_i.resolve_dynamic_collision(ball_j)
                 pygame.draw.line(screen, (0, 255, 0), ball_i.position, ball_j.position)
         vector_field.colliding_balls_pairs.clear()
@@ -67,9 +68,12 @@ def run():
 
 
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1 and vector_field.selected_particle == None:
+
+                if event.button == 3 and vector_field.selected_wall_check(event.pos):
+                    pygame.mouse.get_rel()
+                    vector_field.wall_selected = vector_field.selected_wall_index(event.pos)
+                elif event.button == 1 and vector_field.selected_particle == None:
                     vector_field.drag_particle(event.pos)
-                    print("adf")
 
                 elif event.button == 3 and vector_field.selected_particle == None:
                     vector_field.project_particle(event.pos)
@@ -78,14 +82,22 @@ def run():
 
 
             elif event.type == pygame.MOUSEBUTTONUP:
+                if event.button == 3 and vector_field.wall_selected != None:
+                    vector_field.wall_selected = None
+
+
                 if event.button == 1 and vector_field.selected_particle != None:
                     vector_field.drop_particle()
 
                 elif event.button == 3 and vector_field.selected_particle != None:
                     vector_field.release_projected_particle(event.pos)
 
-            if vector_field.selected_particle != None and not vector_field.draw_line_to_mouse:
+            if vector_field.wall_selected != None:
+                vector_field.change_wall_dimensions(pygame.mouse.get_rel())
+
+            elif vector_field.selected_particle != None and not vector_field.draw_line_to_mouse:
                 vector_field.move_selected_particle(event.pos)
+
 
 
 
@@ -151,13 +163,63 @@ class Container(SpatialMap):
         self.particles = []
         self.selected_particle = None
         self.projected_particle_velocity_multiplier = 80
-        self.dimensions = [300,300,800,800]
+        self.dimensions = np.array([200,200,900,600]) # left, top, right, bottom
 
         self.draw_line_to_mouse = False
         self.colliding_balls_pairs = []
+        self.wall_selected = None
+        self.wall_radius = 20
 
+    def draw_walls(self, screen):
+        dim = self.dimensions
+        radius = self.wall_radius
 
+        pygame.draw.rect(screen, (200,200,200), (
+            dim[0] - radius, dim[1] - radius, dim[2] - dim[0] + 2* radius,
+            dim[3] - dim[1] + 2*radius))
+        pygame.draw.rect(screen, (255,255,255), (
+        dim[0], dim[1], dim[2] - dim[0],
+        dim[3] - dim[1]))
 
+    def selected_wall_check(self, mouse_pos):
+        dim = self.dimensions
+        radius = self.wall_radius
+        checks = np.array([
+            dim[0] - radius < mouse_pos[0] < dim[2] + radius and not dim[0] < mouse_pos[0] < dim[2],
+            dim[1] - radius < mouse_pos[1] < dim[3] + radius and not dim[1] < mouse_pos[1] < dim[3]
+        ])
+        if checks.any():
+            return True
+
+        return False
+    
+    def selected_wall_index(self, mouse_pos):
+        dim = self.dimensions
+        radius = self.wall_radius
+        if dim[0] - radius < mouse_pos[0] < dim[0]: # left wall
+            print("left wall")
+            return 0
+
+        elif dim[1] - radius < mouse_pos[1] < dim[1]: # top wall
+            print("top wall")
+            return 1
+
+        elif dim[2] < mouse_pos[0] < dim[2] + radius: # right wall
+            print("right wall")
+            return 2
+
+        elif dim[3] < mouse_pos[1] < dim[3] + radius: # bottom wall
+            print("bottom wall")
+            return 3
+        else:
+            print(ValueError("no wall selected, but collision event"))
+            return None # should never happen
+    def change_wall_dimensions(self, change):
+        index = self.wall_selected
+        if index % 2:
+            self.dimensions[index] += change[1]
+        else:
+            self.dimensions[index] += change[0]
 
 
 

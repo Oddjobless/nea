@@ -103,17 +103,17 @@ class Particle:
 
     def update(self, screen, custom_dimensions=None, vector_field=True):
         if custom_dimensions is None:
-            dimensions = [0, 0, screen.get_width(), screen.get_height()]
+            dim = [0, 0, screen.get_width(), screen.get_height()]
         else:
-            dimensions = custom_dimensions
-        if self.next_position[0] > dimensions[2] - (self.radius) or self.next_position[0] < dimensions[0] + self.radius:  # or within blocked cell
+            dim = custom_dimensions
+        if self.next_position[0] > dim[2] - (self.radius) or self.next_position[0] < dim[0] + self.radius:  # or within blocked cell
             self.velocity[0] *= -1 * self.damping
-        if self.next_position[1] > dimensions[3] - (self.radius) or self.next_position[1] < dimensions[1] + self.radius:
+        if self.next_position[1] > dim[3] - (self.radius) or self.next_position[1] < dim[1] + self.radius:
             self.velocity[1] *= -1 * self.damping
 
 
-        self.next_position = np.clip(self.next_position, (dimensions[0] + self.radius, dimensions[1] + self.radius),
-                                         (dimensions[2] - self.radius, dimensions[3] - self.radius))
+        self.next_position = np.clip(self.next_position, (dim[0:2] + self.radius),
+                                         (dim[2:4] - self.radius))
 
         if vector_field:
             self.vector_field.remove_particle(self)
