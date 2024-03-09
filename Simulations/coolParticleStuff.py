@@ -120,7 +120,6 @@ def run():
 class GasParticle(Particle):
     def __init__(self, mass, particle_radius, vector_field, _wall_damping, velocity=None):
         super().__init__(mass, particle_radius, vector_field, _wall_damping, velocity=velocity)
-        self.initial_velocity = velocity
 
     def update(self, screen, custom_dimensions=None, vector_field=False):
         super().update(screen, custom_dimensions=custom_dimensions, vector_field=vector_field)
@@ -157,10 +156,8 @@ class Widget:
     def update(self):
         if self.is_clicked:
             self.knob[0] = pygame.mouse.get_pos()[0]
-            self.knob_value += 0.0001 * (self.knob_rest_pos[0] - self.knob[0])
-            print(self.knob_value)
+            self.knob_value += 0.005 * (self.knob_rest_pos[0] - self.knob[0])
             self.parent.temperature_change(self.knob_value)
-            print(self.knob_value)
         else:
             difference = self.knob_rest_pos - self.knob
             self.knob += difference * 0.2
@@ -189,25 +186,28 @@ class Container(SpatialMap):
         self.wall_selected = None
         self.wall_radius = 20
         self.temp_slider = Widget((1400,900), (400,30), (140,140,140), slider=True, parent=self)
-        self.initial_temperature = 100
-        self.temperature = 10
-        self.B = 1.38*10^-23 # boltzmann constant in m^2 kg s^-2 K^-1, or j/K
+
+        self.temperature = 100
 
     def temperature_change(self, new_temperature):
-        # Update temperature
-        self.temperature = new_temperature
+        change = new_temperature - self.temperature
+        if abs(change) > 2:
+            old_temperature = self.temperature
+            self.temperature = new_temperature
 
-        # Calculate current RMS velocity
-        current_rms_velocity = self.calculate_rms_velocity()
+            temperature_ratio = new_temperature / old_temperature
 
-        # Calculate new RMS velocity based on the new temperature
-        new_rms_velocity = np.sqrt((3 / 2) * self.boltzmann_constant * self.temperature)
+            # print(old_temperature)
+            # print(new_temperature)
+            # print(temperature_ratio)
 
-        # Scale the velocity vectors of all gas particles proportionally to adjust to the new RMS velocity
-        velocity_scale_factor = new_rms_velocity / current_rms_velocity
-        for particle in self.particles:
-            particle.velocity *= velocity_scale_factor
+            for index,particle in enumerate(self.particles):
+                # if index == 0: print("Old Velocity:", particle.velocity)
 
+                particle.velocity *= temperature_ratio
+
+
+                # if index == 0: print("New Velocity:", particle.velocity)
     def calculate_rms_velocity(self):
         # Calculate the root mean square (RMS) velocity of the gas particles
         total_squared_velocity = sum(np.sum(particle.velocity ** 2) for particle in self.particles)
