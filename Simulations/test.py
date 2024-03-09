@@ -177,41 +177,8 @@ class ProjectileParticle(Particle):
 
 
 
-    def is_collision(self, next_particle):
-        distance = self.vector_field.get_square_magnitude(next_particle.next_position - self.next_position)
-        if self != next_particle:
-            if 0 < distance <= (self.radius + next_particle.radius)**2:
-                self.vector_field.colliding_balls_pairs.append((self, next_particle))
-                return True
-        return False
-
-    def resolve_static_collision(self, next_particle):
-        distance = self.vector_field.get_magnitude(next_particle.next_position - self.next_position)
-
-        overlap = 0.5 * (distance - (self.radius + next_particle.radius))
-        self.next_position -= overlap * (self.next_position - next_particle.next_position) / distance
-
-        next_particle.next_position += overlap * (self.next_position - next_particle.next_position) / distance
-
-    def collision_event(self):
-        for particle in self.vector_field.particles:
-            if self.is_collision(particle):
-                self.resolve_static_collision(particle)
 
 
-    def resolve_dynamic_collision(self, next_particle):
-        distance = self.vector_field.get_magnitude(next_particle.next_position - self.next_position)
-        normal = self.vector_field.normalise_vector(next_particle.next_position - self.next_position)
-        tangent = np.array([-normal[1], normal[0]])
-
-        tangential_vel_i = tangent * np.dot(self.velocity, tangent)
-        tangential_vel_j = tangent * np.dot(next_particle.velocity, tangent)
-
-        normal_vel_i = normal * ((np.dot(self.velocity, normal) * (self.mass - next_particle.mass) + 2 * next_particle.mass * np.dot(next_particle.velocity, normal)) / (self.mass + next_particle.mass))
-        normal_vel_j = normal * ((np.dot(next_particle.velocity, normal) * (next_particle.mass - self.mass) + 2 * self.mass * np.dot(self.velocity, normal)) / (self.mass + next_particle.mass))
-
-        self.velocity = tangential_vel_i + normal_vel_i
-        next_particle.velocity = tangential_vel_j + normal_vel_j
 
 
 class Container(SpatialMap):

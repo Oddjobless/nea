@@ -12,11 +12,13 @@ def run():
 
     vector_field = Container(rows, columns)
 
-    vector_field.particles.extend([ProjectileParticle(1, 20, vector_field, _wall_damping=1.00, floor_damping=1.00) for _ in range(100)])  # eccentricity
+    vector_field.particles.extend([GasParticle(1, 20, vector_field, _wall_damping=1.00, floor_damping=1.00) for _ in range(100)])  # eccentricity
     font = pygame.font.SysFont("comicsans", int(box_width // 2.6))
-    temp_slider = pygame
+    temp_slider = Widget((1000,1000), (400,30), (140,140), slider=True)
     frame = 0
     mouse_rel_refresh = frame_rate * 0.5
+
+
 
 
     clock = pygame.time.Clock()
@@ -27,9 +29,11 @@ def run():
 
         screen.fill((70, 69, 5))
 
-
+        vector_field.draw_slider(screen)
         # draw gas container walls
         vector_field.draw_walls(screen)
+
+        vector_field.temp_slider.update()
 
         for index, particle in enumerate(vector_field.particles):
             particle.update(screen, custom_dimensions=vector_field.dimensions, vector_field=False)
@@ -39,9 +43,8 @@ def run():
 
         for particle in vector_field.particles:
             particle.collision_event()
-
             pygame.draw.circle(screen, (123, 12, 90), particle.position, particle.radius)
-            # pygame.draw.circle(screen, (123, 12, 90), collide_x, self.radius)
+
 
 
         completed = set()
@@ -69,10 +72,11 @@ def run():
 
 
             if event.type == pygame.MOUSEBUTTONDOWN:
-
                 if event.button == 3 and vector_field.selected_wall_check(event.pos):
                     pygame.mouse.get_rel()
                     vector_field.wall_selected = vector_field.selected_wall_index(event.pos)
+                elif vector_field.temp_slider.click_check(event.pos):
+                    vector_field.temp_slider.is_clicked = True
                 elif event.button == 1 and vector_field.selected_particle == None:
                     vector_field.drag_particle(event.pos)
 
@@ -89,6 +93,8 @@ def run():
 
                 if event.button == 1 and vector_field.selected_particle != None:
                     vector_field.drop_particle()
+                elif event.button == 1:
+                    vector_field.temp_slider.is_clicked = False
 
                 elif event.button == 3 and vector_field.selected_particle != None:
                     vector_field.release_projected_particle(event.pos)
@@ -108,54 +114,62 @@ def run():
 
 
 #
-class ProjectileParticle(Particle):
+class GasParticle(Particle):
     def __init__(self, mass, particle_radius, vector_field, _wall_damping, floor_damping):
         super().__init__(mass, particle_radius, vector_field, _wall_damping)
         g = 0
-        self.acceleration = np.array([0, g])
+
         self.floor_damping = floor_damping
-        self.T_slider = [1000,1000, 400, 20, 100]
-
-    def draw_slider(self):
 
 
-    def is_collision(self, next_particle):
-        distance = self.vector_field.get_square_magnitude(next_particle.next_position - self.next_position)
-        if self != next_particle:
-            if 0 < distance <= (self.radius + next_particle.radius)**2:
-                self.vector_field.colliding_balls_pairs.append((self, next_particle))
+
+
+
+
+
+
+class Widget:
+    def __init__(self, position, size, colour, slider=False):
+        self.position = np.array(position, dtype=float)
+        self.size = np.array(size)
+        self.colour = colour
+        self.slider = slider
+        if slider:
+            self.knob = self.position + self.size // 2
+            self.knob_rest_pos = self.knob.copy()
+            self.knob_value = 1
+
+        self.is_clicked = False
+
+    def draw(self, screen):
+
+        pygame.draw.rect(screen, self.colour, tuple(self.position) + tuple(self.size))
+        if self.slider:
+
+            pygame.draw.circle(screen, self.colour, (self.position[0], self.position[1] + self.size[1] // 2),
+                               self.size[1] // 2)
+            pygame.draw.circle(screen, self.colour, (self.position[0] + self.size[0], self.position[1] + self.size[1] // 2) ,
+                               self.size[1] // 2)
+            pygame.draw.circle(screen, (180, 180, 230), self.knob, self.size[1])
+
+
+
+    def update(self):
+        if self.is_clicked:
+            self.knob[0] = pygame.mouse.get_pos()[0]
+        else:
+            difference = self.knob_rest_pos - self.knob
+            self.knob += difference * 0.1
+    def click_check(self, pos):
+        if self.slider:
+            distance = np.sqrt((self.knob[0] - pos[0])**2 + (self.knob[1] - pos[1])**2)
+            if distance < self.size[1]:
+                print("Click")
+                return True
+        else:
+            if self.position[0] < pos[0] < self.position[0] + self.size[0] and self.position[1] < pos[1] < self.position[1] + self.size[1]:
                 return True
         return False
-
-    def resolve_static_collision(self, next_particle):
-        distance = self.vector_field.get_magnitude(next_particle.next_position - self.next_position)
-
-        overlap = 0.5 * (distance - (self.radius + next_particle.radius))
-        self.next_position -= overlap * (self.next_position - next_particle.next_position) / distance
-
-        next_particle.next_position += overlap * (self.next_position - next_particle.next_position) / distance
-
-    def collision_event(self):
-        for particle in self.vector_field.particles:
-            if self.is_collision(particle):
-                self.resolve_static_collision(particle)
-
-
-
-    def resolve_dynamic_collision(self, next_particle):
-        distance = self.vector_field.get_magnitude(next_particle.next_position - self.next_position)
-        normal = self.vector_field.normalise_vector(next_particle.next_position - self.next_position)
-        tangent = np.array([-normal[1], normal[0]])
-
-        tangential_vel_i = tangent * np.dot(self.velocity, tangent)
-        tangential_vel_j = tangent * np.dot(next_particle.velocity, tangent)
-
-        normal_vel_i = normal * ((np.dot(self.velocity, normal) * (self.mass - next_particle.mass) + 2 * next_particle.mass * np.dot(next_particle.velocity, normal)) / (self.mass + next_particle.mass))
-        normal_vel_j = normal * ((np.dot(next_particle.velocity, normal) * (next_particle.mass - self.mass) + 2 * self.mass * np.dot(self.velocity, normal)) / (self.mass + next_particle.mass))
-
-        self.velocity = tangential_vel_i + normal_vel_i
-        next_particle.velocity = tangential_vel_j + normal_vel_j
-
 
 class Container(SpatialMap):
     def __init__(self, rows, columns):
@@ -169,6 +183,11 @@ class Container(SpatialMap):
         self.colliding_balls_pairs = []
         self.wall_selected = None
         self.wall_radius = 20
+        self.temp_slider = Widget((1000,1000), (400,30), (140,140,140), slider=True)
+
+    def draw_slider(self, screen):
+        self.temp_slider.draw(screen)
+
 
     def draw_walls(self, screen):
         dim = self.dimensions
