@@ -12,7 +12,7 @@ def run():
 
     vector_field = Container(rows, columns)
 
-    vector_field.particles.extend([GasParticle(1, 10, vector_field, 1.00) for _ in range(100)])  # eccentricity
+    vector_field.particles.extend([GasParticle(1, 10, vector_field, 1.00, velocity=np.array([randint(-3, 3), randint(-3,3)])) for _ in range(100)])  # eccentricity
 
     frame = 0
     mouse_rel_refresh = frame_rate * 0.5
@@ -90,7 +90,7 @@ def run():
                     vector_field.wall_selected = None
 
 
-                if event.button == 1 and vector_field.selected_particle != None:
+                if event.button == 1:
                     vector_field.temp_slider.is_clicked = False
                     if vector_field.selected_particle != None:
                         vector_field.drop_particle()
@@ -155,7 +155,7 @@ class Widget:
     def update(self):
         if self.is_clicked:
             self.knob[0] = pygame.mouse.get_pos()[0]
-            self.knob_value = (self.knob_rest_pos[0] - self.knob[0]) / self.size[0]
+            self.knob_value = (self.knob_rest_pos[0] - self.knob[0])
             print(self.knob_value)
         else:
             difference = self.knob_rest_pos - self.knob

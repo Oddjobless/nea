@@ -3,14 +3,14 @@ import numpy as np
 from random import randint, randrange
 
 class Particle:
-    def __init__(self, mass, _radius, vector_field, damping, position=None):
+    def __init__(self, mass, _radius, vector_field, damping, position=None, velocity=None):
         self.damping = damping
         self.radius = _radius  # visual only
         self.mass = mass
         self.vector_field = vector_field
 
         # self.velocity = np.array([randint(-100, 100), randint(-100, 100)], dtype=float)
-        self.velocity = np.zeros(2, dtype=float)
+        self.velocity = np.zeros(2, dtype=float) if velocity is None else velocity
         if position is not None:
             self.position = position
         else:
