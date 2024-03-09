@@ -12,7 +12,7 @@ def run():
 
     vector_field = Container(rows, columns)
 
-    vector_field.particles.extend([GasParticle(1, 10, vector_field, 1.00, velocity=np.array([randint(-3, 3), randint(-3,3)])) for _ in range(100)])  # eccentricity
+    vector_field.particles.extend([GasParticle(1, 10, vector_field, 1.00, np.array([randint(-100, 100), randint(-100,100)])) for _ in range(100)])  # eccentricity
 
     frame = 0
     mouse_rel_refresh = frame_rate * 0.5
@@ -118,19 +118,20 @@ def run():
 #
 
 class GasParticle(Particle):
-    def __init__(self, mass, particle_radius, vector_field, _wall_damping):
-        super().__init__(mass, particle_radius, vector_field, _wall_damping)
+    def __init__(self, mass, particle_radius, vector_field, _wall_damping, velocity=None):
+        super().__init__(mass, particle_radius, vector_field, _wall_damping, velocity=velocity)
 
     def update(self, screen, custom_dimensions=None, vector_field=False):
         super().update(screen, custom_dimensions=custom_dimensions, vector_field=vector_field)
 
 
 class Widget:
-    def __init__(self, position, size, colour, text=None, slider=False):
+    def __init__(self, position, size, colour, text=None, slider=False, parent=None):
         self.position = np.array(position, dtype=float)
         self.size = np.array(size)
         self.colour = colour
         self.slider = slider
+        self.parent = parent
         if slider:
             self.knob = self.position + self.size // 2
             self.knob_rest_pos = self.knob.copy()
@@ -155,7 +156,8 @@ class Widget:
     def update(self):
         if self.is_clicked:
             self.knob[0] = pygame.mouse.get_pos()[0]
-            self.knob_value = (self.knob_rest_pos[0] - self.knob[0])
+            self.knob_value += 0.0001 * (self.knob_rest_pos[0] - self.knob[0])
+            self.parent.
             print(self.knob_value)
         else:
             difference = self.knob_rest_pos - self.knob
@@ -184,7 +186,7 @@ class Container(SpatialMap):
         self.colliding_balls_pairs = []
         self.wall_selected = None
         self.wall_radius = 20
-        self.temp_slider = Widget((1400,900), (400,30), (140,140,140), slider=True)
+        self.temp_slider = Widget((1400,900), (400,30), (140,140,140), slider=True, parent=self)
         self.initial_temperature = 100
         self.temperature = 10
 
@@ -217,7 +219,7 @@ class Container(SpatialMap):
 
         text = self.font.render(f"Temperature", True, (10,10,10))
         screen.blit(text, (0.9 * screen_width - 0.5 * text.get_width(), 0.2 * screen_height))
-        text = self.font.render(f"{self.temperature}", True, (10,10,10))
+        text = self.font.render(f"{round(self.temp_slider.knob_value,1)}", True, (10,10,10))
         screen.blit(text, (0.9 * screen_width - 0.5 * text.get_width(), 0.25 * screen_height))
 
 
