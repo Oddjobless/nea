@@ -12,8 +12,8 @@ def run():
 
     vector_field = Container(rows, columns)
 
-    vector_field.particles.extend([GasParticle(1, 5, vector_field, 1.00) for _ in range(100)])  # eccentricity
-    font = pygame.font.SysFont("comicsans", int(box_width // 2.6))
+    vector_field.particles.extend([GasParticle(1, 10, vector_field, 1.00) for _ in range(100)])  # eccentricity
+
     frame = 0
     mouse_rel_refresh = frame_rate * 0.5
 
@@ -27,10 +27,10 @@ def run():
 
 
         screen.fill((70, 69, 5))
-
+        vector_field.draw_walls(screen)
         vector_field.draw_slider(screen)
         # draw gas container walls
-        vector_field.draw_walls(screen)
+
 
         vector_field.temp_slider.update()
 
@@ -91,9 +91,11 @@ def run():
 
 
                 if event.button == 1 and vector_field.selected_particle != None:
-                    vector_field.drop_particle()
-                elif event.button == 1:
                     vector_field.temp_slider.is_clicked = False
+                    if vector_field.selected_particle != None:
+                        vector_field.drop_particle()
+
+
 
                 elif event.button == 3 and vector_field.selected_particle != None:
                     vector_field.release_projected_particle(event.pos)
@@ -124,7 +126,7 @@ class GasParticle(Particle):
 
 
 class Widget:
-    def __init__(self, position, size, colour, slider=False):
+    def __init__(self, position, size, colour, text=None, slider=False):
         self.position = np.array(position, dtype=float)
         self.size = np.array(size)
         self.colour = colour
@@ -132,7 +134,8 @@ class Widget:
         if slider:
             self.knob = self.position + self.size // 2
             self.knob_rest_pos = self.knob.copy()
-            self.knob_value = 1
+            self.knob_value = 100
+
 
         self.is_clicked = False
 
@@ -156,7 +159,7 @@ class Widget:
             print(self.knob_value)
         else:
             difference = self.knob_rest_pos - self.knob
-            self.knob += difference * 0.1
+            self.knob += difference * 0.2
     def click_check(self, pos):
         if self.slider:
             distance = np.sqrt((self.knob[0] - pos[0])**2 + (self.knob[1] - pos[1])**2)
@@ -165,6 +168,7 @@ class Widget:
                 return True
         else:
             if self.position[0] < pos[0] < self.position[0] + self.size[0] and self.position[1] < pos[1] < self.position[1] + self.size[1]:
+
                 return True
         return False
 
@@ -175,13 +179,23 @@ class Container(SpatialMap):
         self.selected_particle = None
         self.projected_particle_velocity_multiplier = 80
         self.dimensions = np.array([200,200,900,600]) # left, top, right, bottom
-
+        self.font = pygame.font.SysFont("comicsans", int(box_width // 2.6))
         self.draw_line_to_mouse = False
         self.colliding_balls_pairs = []
         self.wall_selected = None
         self.wall_radius = 20
         self.temp_slider = Widget((1400,900), (400,30), (140,140,140), slider=True)
+        self.initial_temperature = 100
         self.temperature = 10
+
+    def temperature_change(self, new_temperature):
+        change = new_temperature - self.initial_temperature
+        if abs(change) > 2:
+            self.temperature = new_temperature
+            factor = np.sqrt(self.temperature/self.initial_temperature)
+            for particle in self.particles:
+                particle.velocity *= factor
+
 
     def draw_slider(self, screen):
         self.temp_slider.draw(screen)
@@ -193,12 +207,21 @@ class Container(SpatialMap):
         radius = self.wall_radius
         width = dim[2] - dim[0]
         height = dim[3] - dim[1]
+        pygame.draw.rect(screen, (150,80,150), (0.8 * screen_width, 0, 0.2 * screen_width, screen_height))
         pygame.draw.rect(screen, (200,200,200), (
             dim[0] - radius, dim[1] - radius, width + 2 * radius,
             height + 2*radius))
         pygame.draw.rect(screen, (255,255,255), (
         dim[0], dim[1], width,
         height))
+
+        text = self.font.render(f"Temperature", True, (10,10,10))
+        screen.blit(text, (0.9 * screen_width - 0.5 * text.get_width(), 0.2 * screen_height))
+        text = self.font.render(f"{self.temperature}", True, (10,10,10))
+        screen.blit(text, (0.9 * screen_width - 0.5 * text.get_width(), 0.25 * screen_height))
+
+
+
 
     def selected_wall_check(self, mouse_pos):
         dim = self.dimensions
