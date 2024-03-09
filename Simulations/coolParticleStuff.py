@@ -14,6 +14,7 @@ def run():
 
     vector_field.particles.extend([ProjectileParticle(1, 20, vector_field, _wall_damping=1.00, floor_damping=1.00) for _ in range(100)])  # eccentricity
     font = pygame.font.SysFont("comicsans", int(box_width // 2.6))
+    temp_slider = pygame
     frame = 0
     mouse_rel_refresh = frame_rate * 0.5
 
@@ -113,10 +114,9 @@ class ProjectileParticle(Particle):
         g = 0
         self.acceleration = np.array([0, g])
         self.floor_damping = floor_damping
+        self.T_slider = [1000,1000, 400, 20, 100]
 
-
-
-
+    def draw_slider(self):
 
 
     def is_collision(self, next_particle):
