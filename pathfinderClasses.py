@@ -41,24 +41,7 @@ class Pathfinder(Particle):
         self.next_position = self.position + self.velocity * -1 * dt
 
 
-    def is_collision(self, next_particle):
-        distance = self.vector_field.get_square_magnitude(next_particle.next_position - self.next_position)
-        if self != next_particle:
-            if 0 < distance <= (self.radius + next_particle.radius)**2:
-                # self.vector_field.colliding_balls_pairs.append((self, next_particle))
-                return True
-        return False
 
-    def resolve_static_collision(self, next_particle):
-        distance = self.vector_field.get_magnitude(next_particle.next_position - self.next_position)
-
-        overlap = 0.5 * (distance - (self.radius + next_particle.radius))
-        if abs(overlap) > 2 * (self.radius + next_particle.radius):
-            print("OH NO")
-            raise
-        self.next_position -= overlap * (self.next_position - next_particle.next_position) / distance
-
-        next_particle.next_position += overlap * (self.next_position - next_particle.next_position) / distance
 
     def collision_event_particles(self):
         try:

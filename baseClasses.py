@@ -30,15 +30,17 @@ class Particle:
             if self.check_obstacle_collision(obstacle.position, obstacle.width, obstacle.height):
 
                 return self.resolve_obstacle_collision(obstacle)
-    def collision_event(self):
+    def collision_event(self, save_collision=True):
         for particle in self.vector_field.particles:
             if self.is_collision(particle):
-                self.resolve_static_collision(particle)
-    def is_collision(self, next_particle):
+                self.resolve_static_collision(particle, save_collision)
+
+    def is_collision(self, next_particle, save_collisions=True):
         distance = self.vector_field.get_square_magnitude(next_particle.next_position - self.next_position)
         if self != next_particle:
-            if 0 < distance <= (self.radius + next_particle.radius)**2:
-                self.vector_field.colliding_balls_pairs.append((self, next_particle))
+            if 0 < distance <= (self.radius + next_particle.radius) ** 2:
+                if save_collisions:
+                    self.vector_field.colliding_balls_pairs.append((self, next_particle))
                 return True
         return False
 

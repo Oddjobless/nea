@@ -9,7 +9,7 @@ from hashlib import sha256
 
 # from matplotlib import pyplot
 
-
+ #
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
