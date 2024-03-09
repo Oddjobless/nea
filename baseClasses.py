@@ -30,6 +30,19 @@ class Particle:
             if self.check_obstacle_collision(obstacle.position, obstacle.width, obstacle.height):
 
                 return self.resolve_obstacle_collision(obstacle)
+    def collision_event(self):
+        for particle in self.vector_field.particles:
+            if self.is_collision(particle):
+                self.resolve_static_collision(particle)
+    def resolve_static_collision(self, next_particle):
+        distance = self.vector_field.get_magnitude(next_particle.next_position - self.next_position)
+
+        overlap = 0.5 * (distance - (self.radius + next_particle.radius))
+        self.next_position -= overlap * (self.next_position - next_particle.next_position) / distance
+
+        next_particle.next_position += overlap * (self.next_position - next_particle.next_position) / distance
+        if np.isclose(self.velocity, np.zeros_like(self.velocity), atol=1).all():
+            self.velocity = np.zeros_like(self.velocity)
 
     def resolve_obstacle_collision(self, obstacle):
         # Calculate the displacement vector from the rectangle to the circle
@@ -88,21 +101,25 @@ class Particle:
 
 
 
-    def update(self, screen):
-        if self.next_position[0] > screen.get_width() - (1.5 * self.radius) or self.next_position[
-            0] < 1.5 * self.radius:  # or within blocked cell
+    def update(self, screen, custom_dimensions=None, vector_field=True):
+        if custom_dimensions is None:
+            dimensions = [0, 0, screen.get_width(), screen.get_height()]
+        else:
+            dimensions = custom_dimensions
+        if self.next_position[0] > dimensions[2] - (self.radius) or self.next_position[0] < dimensions[0] + self.radius:  # or within blocked cell
             self.velocity[0] *= -1 * self.damping
-        if self.next_position[1] > screen.get_height() - 1.5 * self.radius or self.next_position[1] < 1.5 * self.radius:
-
+        if self.next_position[1] > dimensions[3] - (self.radius) or self.next_position[1] < dimensions[1] + self.radius:
             self.velocity[1] *= -1 * self.damping
 
-        self.next_position = np.clip(self.next_position, (1.5 * self.radius, 1.5 * self.radius),
-                                     (screen.get_width() - 1.5 * self.radius, screen.get_height() - 1.5 * self.radius))
 
+        self.next_position = np.clip(self.next_position, (dimensions[0] + self.radius, dimensions[1] + self.radius),
+                                         (dimensions[2] - self.radius, dimensions[3] - self.radius))
 
-        self.vector_field.remove_particle(self)
+        if vector_field:
+            self.vector_field.remove_particle(self)
         self.position = self.next_position
-        self.vector_field.insert_particle(self)
+        if vector_field:
+            self.vector_field.insert_particle(self)
 
         # print(self.vector_field.grid)
 
@@ -119,7 +136,11 @@ class Particle:
         self.vector_field.insert_particle(self)
 
 
-
+    def apply_air_resistance(self):
+        vel = self.vector_field.get_magnitude(self.velocity)
+        vel_normalised = self.vector_field.normalise_vector(self.velocity)
+        drag_force = -self.vector_field.drag_coefficient * np.pi * self.radius ** 2 * vel ** 2
+        self.velocity += (drag_force * vel_normalised) / self.mass
 
 
 
@@ -145,6 +166,8 @@ class SpatialMap:
         self.draw_grid = True
         self.grid = np.array([Cell() for _ in
                      range(noOfRows * noOfCols)])
+        self.air_resistance = False
+        self.drag_coefficient = 0.000000001
         # I WANT TO MAKE SELF.HASH INTO A 1D ARRAY
         # self.grid = np.empty((noOfRows, noOfCols))
         # self.grid.fill(set()) # would like to test speed difference
@@ -259,6 +282,39 @@ class SpatialMap:
             # print("WARNING: DIVIDE BY ZERO!!!\n\n\nWHEN NORMALISING VELOCITY FIELD, THERE WAS A VECTOR WITH ZERO MAGNITUDE")
             return vector
         return vector / self.get_magnitude(vector)
+
+    def drag_particle(self, mouse_pos):
+        for index, particle in enumerate(self.particles):
+            if not particle.radius < mouse_pos[0] < screen_width - particle.radius and particle.radius < mouse_pos[1] < screen_height - particle.radius:
+                continue
+            distance = particle.vector_field.get_magnitude(np.array(mouse_pos) - particle.position)
+            if distance < particle.radius:
+                particle.velocity = particle.velocity * 0
+                self.selected_particle = index
+                return
+    def drop_particle(self):
+        self.particles[self.selected_particle].velocity *= 0
+        self.selected_particle = None
+
+    def move_selected_particle(self, mouse_position):
+        self.particles[self.selected_particle].position = mouse_position
+
+    def project_particle(self, mouse_pos):
+        for index, particle in enumerate(self.particles):
+            if not particle.radius < mouse_pos[0] < screen_width - particle.radius and particle.radius < mouse_pos[1] < screen_height - particle.radius:
+                continue
+            distance = particle.vector_field.get_magnitude(np.array(mouse_pos) - particle.position)
+            if distance < particle.radius:
+                particle.velocity = particle.velocity * 0
+                self.draw_line_to_mouse = True
+                self.selected_particle = index
+                return
+
+    def release_projected_particle(self, mouse_pos):
+        particle = self.particles[self.selected_particle]
+        particle.velocity = (particle.position - np.array(mouse_pos)) * self.projected_particle_velocity_multiplier
+        self.draw_line_to_mouse = False
+        self.selected_particle = None
 
 
 

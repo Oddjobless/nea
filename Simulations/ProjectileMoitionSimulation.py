@@ -349,11 +349,7 @@ class ProjectileParticle(Particle):
             if self.is_collision(particle):
                 self.resolve_static_collision(particle)
 
-    def apply_air_resistance(self):
-        vel = self.vector_field.get_magnitude(self.velocity)
-        vel_normalised = self.vector_field.normalise_vector(self.velocity)
-        drag_force = -self.vector_field.drag_coefficient * np.pi * self.radius ** 2 * vel ** 2
-        self.velocity += (drag_force * vel_normalised) / self.mass
+
 
     def resolve_dynamic_collision(self, next_particle):
         distance = self.vector_field.get_magnitude(next_particle.next_position - self.next_position)
@@ -403,7 +399,7 @@ class Container(SpatialMap):
         self.draw_line_to_mouse = False
         self.colliding_balls_pairs = []
 
-        self.air_resistance = False
+
         self.drag_coefficient = 0.000000001
 
         self.g = 9.8
@@ -505,42 +501,14 @@ class Container(SpatialMap):
 
 
 
-    def drag_particle(self, mouse_pos):
-        for index, particle in enumerate(self.particles):
-            if not particle.radius < mouse_pos[0] < screen_width - particle.radius and particle.radius < mouse_pos[1] < screen_height - particle.radius:
-                continue
-            distance = particle.vector_field.get_magnitude(np.array(mouse_pos) - particle.position)
-            if distance < particle.radius:
-                particle.velocity = particle.velocity * 0
-                self.selected_particle = index
-                return
-    def drop_particle(self):
-        self.particles[self.selected_particle].velocity *= 0
-        self.selected_particle = None
 
-    def move_selected_particle(self, mouse_position):
-        self.particles[self.selected_particle].position = mouse_position
 
-    def project_particle(self, mouse_pos):
-        for index, particle in enumerate(self.particles):
-            if not particle.radius < mouse_pos[0] < screen_width - particle.radius and particle.radius < mouse_pos[1] < screen_height - particle.radius:
-                continue
-            distance = particle.vector_field.get_magnitude(np.array(mouse_pos) - particle.position)
-            if distance < particle.radius:
-                particle.velocity = particle.velocity * 0
-                self.draw_line_to_mouse = True
-                self.selected_particle = index
-                return
+
 
     def real_velocity(self):
 
         pass
 
-    def release_projected_particle(self, mouse_pos):
-        particle = self.particles[self.selected_particle]
-        particle.velocity = (particle.position - np.array(mouse_pos)) * self.projected_particle_velocity_multiplier
-        self.draw_line_to_mouse = False
-        self.selected_particle = None
 
 
 

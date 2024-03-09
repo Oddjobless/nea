@@ -12,7 +12,7 @@ def run():
 
     vector_field = Container(rows, columns)
 
-    vector_field.particles.extend([ProjectileParticle(1, 30, vector_field, wall_damping, floor_damping=1.00) for _ in range(100)])  # eccentricity
+    vector_field.particles.extend([ProjectileParticle(1, 20, vector_field, wall_damping, floor_damping=1.00) for _ in range(100)])  # eccentricity
     font = pygame.font.SysFont("comicsans", int(box_width // 2.6))
     frame = 0
     mouse_rel_refresh = frame_rate * 0.5
@@ -29,8 +29,8 @@ def run():
         # logic goes here
 
         for index, particle in enumerate(vector_field.particles):
-
-            particle.update(screen)
+            print(vector_field.dimensions)
+            particle.update(screen, custom_dimensions=vector_field.dimensions, vector_field=False)
             if vector_field.air_resistance:
                 particle.apply_air_resistance()
 
@@ -102,27 +102,8 @@ class ProjectileParticle(Particle):
         self.acceleration = np.array([0, g])
         self.floor_damping = floor_damping
 
-    def update(self, screen):
-
-        self.next_position = self.position + self.velocity * dt
-        if self.next_position[0] > screen.get_width() - (self.radius) or self.next_position[
-            0] < self.radius:  # or within blocked cell
-            self.velocity[0] *= -1 * self.damping
-        if self.next_position[1] > screen.get_height() - self.radius or self.next_position[1] < self.radius:
-            self.velocity[1] *= -1 * self.floor_damping
-
-        self.next_position = np.clip(self.next_position, (self.radius, self.radius),
-                                     (screen.get_width() - self.radius, screen.get_height() - self.radius))
-
-        self.position = self.next_position
 
 
-
-
-
-        # print(self.vector_field.grid)
-        if self.vector_field.particles.index(self) != self.vector_field.selected_particle:
-            self.velocity = self.velocity + self.acceleration * self.mass
 
 
 
@@ -147,11 +128,7 @@ class ProjectileParticle(Particle):
             if self.is_collision(particle):
                 self.resolve_static_collision(particle)
 
-    def apply_air_resistance(self):
-        vel = self.vector_field.get_magnitude(self.velocity)
-        vel_normalised = self.vector_field.normalise_vector(self.velocity)
-        drag_force = -self.vector_field.drag_coefficient * np.pi * self.radius ** 2 * vel ** 2
-        self.velocity += (drag_force * vel_normalised) / self.mass
+
 
     def resolve_dynamic_collision(self, next_particle):
         distance = self.vector_field.get_magnitude(next_particle.next_position - self.next_position)
@@ -174,49 +151,16 @@ class Container(SpatialMap):
         self.particles = []
         self.selected_particle = None
         self.projected_particle_velocity_multiplier = 80
+        self.dimensions = [300,300,800,800]
 
         self.draw_line_to_mouse = False
         self.colliding_balls_pairs = []
 
-        self.air_resistance = True
-        self.drag_coefficient = 0.000000001
 
-    def drag_particle(self, mouse_pos):
-        for index, particle in enumerate(self.particles):
-            if not particle.radius < mouse_pos[0] < screen_width - particle.radius and particle.radius < mouse_pos[1] < screen_height - particle.radius:
-                continue
-            distance = particle.vector_field.get_magnitude(np.array(mouse_pos) - particle.position)
-            if distance < particle.radius:
-                particle.velocity = particle.velocity * 0
-                self.selected_particle = index
-                return
-    def drop_particle(self):
-        self.particles[self.selected_particle].velocity *= 0
-        self.selected_particle = None
 
-    def move_selected_particle(self, mouse_position):
-        self.particles[self.selected_particle].position = mouse_position
 
-    def project_particle(self, mouse_pos):
-        for index, particle in enumerate(self.particles):
-            if not particle.radius < mouse_pos[0] < screen_width - particle.radius and particle.radius < mouse_pos[1] < screen_height - particle.radius:
-                continue
-            distance = particle.vector_field.get_magnitude(np.array(mouse_pos) - particle.position)
-            if distance < particle.radius:
-                particle.velocity = particle.velocity * 0
-                self.draw_line_to_mouse = True
-                self.selected_particle = index
-                return
 
-    def release_projected_particle(self, mouse_pos):
-        particle = self.particles[self.selected_particle]
-        particle.velocity = (particle.position - np.array(mouse_pos)) * self.projected_particle_velocity_multiplier
-        self.draw_line_to_mouse = False
-        self.selected_particle = None
 
-    def apply_air_resistance(self):
-        for particle in self.particles:
-            particle.apply_resistance()
 
 
 if __name__ == "__main__":
