@@ -12,7 +12,7 @@ def run():
 
     vector_field = Container(rows, columns)
 
-    vector_field.particles.extend([GasParticle(1, 10, vector_field, 1.00, np.array([randint(-100, 100), randint(-100,100)])) for _ in range(100)])  # eccentricity
+    vector_field.particles.extend([GasParticle(1, 10, vector_field, 1.00, np.array([randint(-100, 100), randint(-100,100)], dtype=float)) for _ in range(100)])  # eccentricity
 
     frame = 0
     mouse_rel_refresh = frame_rate * 0.5
@@ -120,6 +120,7 @@ def run():
 class GasParticle(Particle):
     def __init__(self, mass, particle_radius, vector_field, _wall_damping, velocity=None):
         super().__init__(mass, particle_radius, vector_field, _wall_damping, velocity=velocity)
+        self.initial_velocity = velocity
 
     def update(self, screen, custom_dimensions=None, vector_field=False):
         super().update(screen, custom_dimensions=custom_dimensions, vector_field=vector_field)
@@ -157,7 +158,8 @@ class Widget:
         if self.is_clicked:
             self.knob[0] = pygame.mouse.get_pos()[0]
             self.knob_value += 0.0001 * (self.knob_rest_pos[0] - self.knob[0])
-            self.parent.
+            print(self.knob_value)
+            self.parent.temperature_change(self.knob_value)
             print(self.knob_value)
         else:
             difference = self.knob_rest_pos - self.knob
@@ -189,15 +191,28 @@ class Container(SpatialMap):
         self.temp_slider = Widget((1400,900), (400,30), (140,140,140), slider=True, parent=self)
         self.initial_temperature = 100
         self.temperature = 10
+        self.B = 1.38*10^-23 # boltzmann constant in m^2 kg s^-2 K^-1, or j/K
 
     def temperature_change(self, new_temperature):
-        change = new_temperature - self.initial_temperature
-        if abs(change) > 2:
-            self.temperature = new_temperature
-            factor = np.sqrt(self.temperature/self.initial_temperature)
-            for particle in self.particles:
-                particle.velocity *= factor
+        # Update temperature
+        self.temperature = new_temperature
 
+        # Calculate current RMS velocity
+        current_rms_velocity = self.calculate_rms_velocity()
+
+        # Calculate new RMS velocity based on the new temperature
+        new_rms_velocity = np.sqrt((3 / 2) * self.boltzmann_constant * self.temperature)
+
+        # Scale the velocity vectors of all gas particles proportionally to adjust to the new RMS velocity
+        velocity_scale_factor = new_rms_velocity / current_rms_velocity
+        for particle in self.particles:
+            particle.velocity *= velocity_scale_factor
+
+    def calculate_rms_velocity(self):
+        # Calculate the root mean square (RMS) velocity of the gas particles
+        total_squared_velocity = sum(np.sum(particle.velocity ** 2) for particle in self.particles)
+        rms_velocity = np.sqrt(total_squared_velocity / len(self.particles))
+        return rms_velocity
 
     def draw_slider(self, screen):
         self.temp_slider.draw(screen)
