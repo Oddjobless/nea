@@ -32,8 +32,8 @@ class Particle:
                 return self.resolve_obstacle_collision(obstacle)
     def collision_event(self, save_collision=True):
         for particle in self.vector_field.particles:
-            if self.is_collision(particle):
-                self.resolve_static_collision(particle, save_collision)
+            if self.is_collision(particle, save_collisions=save_collision):
+                self.resolve_static_collision(particle)
 
     def is_collision(self, next_particle, save_collisions=True):
         distance = self.vector_field.get_square_magnitude(next_particle.next_position - self.next_position)
@@ -126,7 +126,7 @@ class Particle:
 
     def update(self, screen, custom_dimensions=None, vector_field=True):
         if custom_dimensions is None:
-            dim = [0, 0, screen.get_width(), screen.get_height()]
+            dim = np.array([0, 0, screen.get_width(), screen.get_height()])
         else:
             dim = custom_dimensions
         if self.next_position[0] > dim[2] - (self.radius) or self.next_position[0] < dim[0] + self.radius:  # or within blocked cell

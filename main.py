@@ -388,27 +388,46 @@ class MainWindow(QMainWindow):
         self.toolbar.setVisible(False)
 
     def run_projectile_motion_sim(self, level_no):
+        try:
+            ProjectileMoitionSimulation.draw_mode(level_no)
+            score = ProjectileMoitionSimulation.run(level_no)
+            if score:
+                if score > 100:
+                    print("You win!")
+                    print(level_no)
+                    button = self.projectile_sim_buttons[level_no]
+                    self.enable_projectile_button(button, level_no)
+        except Exception as e:
+            print(e)
 
-        ProjectileMoitionSimulation.draw_mode(level_no)
-        score = ProjectileMoitionSimulation.run(level_no)
-        if score:
-            if score > 100:
-                print("You win!")
-                print(level_no)
-                button = self.projectile_sim_buttons[level_no]
-                self.enable_projectile_button(button, level_no)
 
     def transposition(self):
-        simulation.run()
+        try:
+            simulation.run()
+        except Exception as e:
+            print(e)
+
 
     def run_suspension_sim(self):
-        test.run()
+        try:
+            test.run()
+        except Exception as e:
+            print(e)
+
 
     def particleSim(self):
-        coolParticleStuff.run()
+        try:
+            coolParticleStuff.run()
+        except Exception as e:
+            print(e)
+
 
     def brokenSim(self):
-        fluidFlowSimulation.run()
+        try:
+            fluidFlowSimulation.run()
+        except Exception as e:
+            print(e)
+
 
     def keyPressEvent(self, event):
         if event.key() == 16777217:

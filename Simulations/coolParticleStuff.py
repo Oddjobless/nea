@@ -12,9 +12,8 @@ def run():
 
     vector_field = Container(rows, columns)
 
-    vector_field.particles.extend([GasParticle(1, 20, vector_field, _wall_damping=1.00, floor_damping=1.00) for _ in range(100)])  # eccentricity
+    vector_field.particles.extend([Particle(1, 20, vector_field, 1.00) for _ in range(100)])  # eccentricity
     font = pygame.font.SysFont("comicsans", int(box_width // 2.6))
-    temp_slider = Widget((1000,1000), (400,30), (140,140), slider=True)
     frame = 0
     mouse_rel_refresh = frame_rate * 0.5
 
@@ -114,13 +113,6 @@ def run():
 
 
 #
-class GasParticle(Particle):
-    def __init__(self, mass, particle_radius, vector_field, _wall_damping, floor_damping):
-        super().__init__(mass, particle_radius, vector_field, _wall_damping)
-        g = 0
-
-        self.floor_damping = floor_damping
-
 
 
 
@@ -183,7 +175,7 @@ class Container(SpatialMap):
         self.colliding_balls_pairs = []
         self.wall_selected = None
         self.wall_radius = 20
-        self.temp_slider = Widget((1000,1000), (400,30), (140,140,140), slider=True)
+        self.temp_slider = Widget((1400,900), (400,30), (140,140,140), slider=True)
 
     def draw_slider(self, screen):
         self.temp_slider.draw(screen)

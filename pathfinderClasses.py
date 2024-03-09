@@ -43,17 +43,18 @@ class Pathfinder(Particle):
 
 
 
-    def collision_event_particles(self):
+    def collision_event_particles(self, track_collisions=False):
         try:
             cell_index = self.vector_field.hash_position(self.next_position)
             particles_to_check = self.vector_field.grid[cell_index].cellList
             for particle in particles_to_check:
-                if self.is_collision(particle):
+                if self.is_collision(particle, save_collisions=track_collisions):
                     self.resolve_static_collision(particle)
                     return
 
-        except:
-            print(Exception("Collision unresolved"))
+        except Exception as e:
+            print(e)
+            raise Exception
 
 class VelocityField(SpatialMap):
     def __init__(self, noOfRows, noOfCols):
