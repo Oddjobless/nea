@@ -1,3 +1,4 @@
+import numpy as np
 import pygame
 from baseClasses import *
 # ported from projectile sim. could make a ideal gas sim, with adjustable volume and more particles and higher temperature
@@ -11,8 +12,6 @@ def run():
     pygame.display.set_caption("Pygame Boilerplate")
 
     vector_field = Container(rows, columns)
-
-    vector_field.particles.extend([GasParticle(1, 10, vector_field, 1.00, np.array([randint(-100, 100), randint(-100,100)], dtype=float)) for _ in range(100)])  # eccentricity
 
     frame = 0
     mouse_rel_refresh = frame_rate * 0.5
@@ -28,11 +27,11 @@ def run():
 
         screen.fill((70, 69, 5))
         vector_field.draw_walls(screen)
-        vector_field.draw_slider(screen)
+        vector_field.draw_slider(screen, pygame.mouse.get_pos())
         # draw gas container walls
 
 
-        vector_field.temp_slider.update()
+
 
         for index, particle in enumerate(vector_field.particles):
             particle.update(screen, custom_dimensions=vector_field.dimensions, vector_field=False)
@@ -51,8 +50,11 @@ def run():
             completed.add(ball_i)
             if ball_j not in completed:
                 ball_i.resolve_dynamic_collision(ball_j)
-                pygame.draw.line(screen, (0, 255, 0), ball_i.position, ball_j.position)
-        vector_field.colliding_balls_pairs.clear()
+                vector_field.collision_count += 1
+                if vector_field.collision_spark:
+                    pygame.draw.line(screen, (0, 255, 0), ball_i.position, ball_j.position)
+        if vector_field.collision_spark:
+            vector_field.colliding_balls_pairs.clear()
 
         if vector_field.draw_line_to_mouse and vector_field.selected_particle != None:
             pygame.draw.line(screen, (255, 0, 0), vector_field.particles[vector_field.selected_particle].position, pygame.mouse.get_pos())
@@ -70,18 +72,32 @@ def run():
                     return
 
 
+
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 3 and vector_field.selected_wall_check(event.pos):
-                    pygame.mouse.get_rel()
-                    vector_field.wall_selected = vector_field.selected_wall_index(event.pos)
-                elif event.button == 1 and vector_field.temp_slider.click_check(event.pos):
-                    vector_field.temp_slider.is_clicked = True
-                elif event.button == 1 and vector_field.selected_particle == None:
-                    vector_field.drag_particle(event.pos)
+                if event.button == 3 :
+                    if vector_field.selected_wall_check(event.pos):
+                        pygame.mouse.get_rel()
+                        vector_field.wall_selected = vector_field.selected_wall_index(event.pos)
+                    elif vector_field.selected_particle == None:
+                        vector_field.project_particle(event.pos)
 
-                elif event.button == 3 and vector_field.selected_particle == None:
-                    vector_field.project_particle(event.pos)
 
+                elif event.button == 1:
+                    if vector_field.reset_button.click_check(event.pos):
+                        print("sadf")
+                        vector_field.initialise_container()
+
+
+                    if vector_field.within_wall_check(event.pos):
+                        vector_field.add_particle(event.pos)
+
+                    elif vector_field.selected_particle == None:
+                        vector_field.drag_particle(event.pos)
+
+                    for widget in vector_field.widgets:
+                        if widget.click_check(event.pos):
+                            widget.is_clicked = True
+                            break
 
 
 
@@ -94,8 +110,6 @@ def run():
                     vector_field.temp_slider.is_clicked = False
                     if vector_field.selected_particle != None:
                         vector_field.drop_particle()
-
-
 
                 elif event.button == 3 and vector_field.selected_particle != None:
                     vector_field.release_projected_particle(event.pos)
@@ -118,31 +132,37 @@ def run():
 #
 
 class GasParticle(Particle):
-    def __init__(self, mass, particle_radius, vector_field, _wall_damping, velocity=None):
-        super().__init__(mass, particle_radius, vector_field, _wall_damping, velocity=velocity)
+    def __init__(self, mass, particle_radius, vector_field, _wall_damping, velocity=None, position=None):
+        super().__init__(mass, particle_radius, vector_field, _wall_damping, velocity=velocity, position=position)
 
     def update(self, screen, custom_dimensions=None, vector_field=False):
         super().update(screen, custom_dimensions=custom_dimensions, vector_field=vector_field)
 
 
 class Widget:
-    def __init__(self, position, size, colour, text=None, slider=False, parent=None):
+    def __init__(self, position, size, colour, text=None, slider=False, parent=None, hover=True, alt_text=None):
         self.position = np.array(position, dtype=float)
         self.size = np.array(size)
-        self.colour = colour
+        self.colour = np.array(colour)
+        self.default_colour = self.colour.copy()
         self.slider = slider
         self.parent = parent
+        self.text = text
+        self.alt_text = alt_text
+        self.font = pygame.font.SysFont("Arial", 30)
+        self.hover = hover
         if slider:
             self.knob = self.position + self.size // 2
             self.knob_rest_pos = self.knob.copy()
-            self.knob_value = 100
+            self.knob_value = 273
 
 
         self.is_clicked = False
 
-    def draw(self, screen):
+    def draw(self, screen, mouse_pos):
 
         pygame.draw.rect(screen, self.colour, tuple(self.position) + tuple(self.size))
+
         if self.slider:
 
             pygame.draw.circle(screen, self.colour, (self.position[0], self.position[1] + self.size[1] // 2),
@@ -150,17 +170,30 @@ class Widget:
             pygame.draw.circle(screen, self.colour, (self.position[0] + self.size[0], self.position[1] + self.size[1] // 2) ,
                                self.size[1] // 2)
             pygame.draw.circle(screen, (180, 180, 230), self.knob, self.size[1])
-
+        else:
+            if self.hover and self.position[0] < mouse_pos[0] < self.position[0] + self.size[0] and self.position[1] < mouse_pos[1] < self.position[1] + self.size[1]:
+                pygame.draw.rect(screen, self.colour * 0.9, (self.position[0], self.position[1], self.size[0], self.size[1]))
+            text = self.font.render(self.text, True, (0, 0, 0))
+            pos = self.position + self.size // 2
+            screen.blit(text, (pos[0] - text.get_width() // 2, pos[1] - text.get_height() // 2))
 
 
     def update(self):
+
         if self.is_clicked:
-            self.knob[0] = pygame.mouse.get_pos()[0]
-            self.knob_value += 0.005 * (self.knob_rest_pos[0] - self.knob[0])
-            self.parent.temperature_change(self.knob_value)
-        else:
+            if self.slider:
+                self.knob[0] = max(min(pygame.mouse.get_pos()[0], self.knob_rest_pos[0] + 0.5 * self.size[0]), self.position[0])
+                self.knob_value += 0.005 * (self.knob_rest_pos[0] - self.knob[0])
+                self.knob_value = max(1, self.knob_value)
+                self.parent.temperature_change(self.knob_value)
+
+
+
+        elif self.slider:
             difference = self.knob_rest_pos - self.knob
             self.knob += difference * 0.2
+
+
     def click_check(self, pos):
         if self.slider:
             distance = np.sqrt((self.knob[0] - pos[0])**2 + (self.knob[1] - pos[1])**2)
@@ -169,10 +202,14 @@ class Widget:
                 return True
         else:
             if self.position[0] < pos[0] < self.position[0] + self.size[0] and self.position[1] < pos[1] < self.position[1] + self.size[1]:
-
+                print("Hey")
+                print(self.alt_text)
+                if self.alt_text:
+                    print("Switch")
+                    self.text, self.alt_text = self.alt_text, self.text
+                self.colour = self.default_colour
                 return True
         return False
-
 class Container(SpatialMap):
     def __init__(self, rows, columns):
         super().__init__(rows, columns)
@@ -181,17 +218,49 @@ class Container(SpatialMap):
         self.projected_particle_velocity_multiplier = 80
         self.dimensions = np.array([200,200,900,600]) # left, top, right, bottom
         self.font = pygame.font.SysFont("comicsans", int(box_width // 2.6))
+        self.collision_count = 0
+        self.collision_spark = True
         self.draw_line_to_mouse = False
         self.colliding_balls_pairs = []
         self.wall_selected = None
         self.wall_radius = 20
-        self.temp_slider = Widget((1400,900), (400,30), (140,140,140), slider=True, parent=self)
+        dim = self.dimensions
 
-        self.temperature = 100
+        pressure_sizes = 200, 100
+        pressure_pos = ((dim[0] + dim[2] - pressure_sizes[0]) // 2, dim[1] - pressure_sizes[1] - self.wall_radius)
+        self.pressure_display = Widget(pressure_pos, pressure_sizes, (255, 255, 200))
+        self.temp_slider = Widget((1480,900), (400,30), (140,140,140), slider=True, parent=self)
+        self.particle_button = Widget((1560,400), (250,100), (140,140,140), text="Heavy Particles", alt_text="Light Particles")
+        self.collision_counter = Widget((1480,500), (400,100), (140,140,140), text="Collision Count")
+        self.reset_button = Widget((1480,700), (400,100), (140,140,140), text="Reset")
+        self.stopwatch_button = Widget((1480,50), (300,150), (140,140,140), hover=False)
+        self.pause_button = Widget((1480, 70), (150, 100), (200,80,30), text="Pause", alt_text="Start")
+        self.widgets = [self.pressure_display, self.temp_slider, self.particle_button,self.pause_button, self.collision_counter, self.reset_button, self.stopwatch_button ]
+        self.temperature = 293
+        self.initial_temperature = 293
+        self.pressure = 0
+        self.initialise_container()
 
+    def initialise_container(self):
+        dim = self.dimensions
+        base_v = 200
+        self.temp_slider.knob_value = self.initial_temperature
+        self.temperature = self.initial_temperature
+
+        self.particles.clear()
+        self.particles.extend([GasParticle(1, 10, self, 1.00, position=np.array(
+            [randint(dim[0], dim[2]), randint(dim[1], dim[3])]), velocity=np.array(
+            [randint(-base_v, base_v), randint(-base_v, base_v)], dtype=float)) for _ in range(50)])  # eccentricity
+
+    def add_particle(self, mouse_position):
+        if self.particle_button.is_clicked:
+            obj = GasParticle(0.5, 5, self, 1.0, position=np.array(mouse_position, dtype=float))
+        else:
+            obj = GasParticle(1, 10, self, 1.0, position=np.array(mouse_position, dtype=float))
+        self.particles.append(obj)
     def temperature_change(self, new_temperature):
         change = new_temperature - self.temperature
-        if abs(change) > 2:
+        if abs(change) > 1:
             old_temperature = self.temperature
             self.temperature = new_temperature
 
@@ -201,7 +270,7 @@ class Container(SpatialMap):
             # print(new_temperature)
             # print(temperature_ratio)
 
-            for index,particle in enumerate(self.particles):
+            for index, particle in enumerate(self.particles):
                 # if index == 0: print("Old Velocity:", particle.velocity)
 
                 particle.velocity *= temperature_ratio
@@ -214,28 +283,33 @@ class Container(SpatialMap):
         rms_velocity = np.sqrt(total_squared_velocity / len(self.particles))
         return rms_velocity
 
-    def draw_slider(self, screen):
-        self.temp_slider.draw(screen)
+    def draw_slider(self, screen, mouse_pos):
 
+        for widget in self.widgets:
+            widget.draw(screen, mouse_pos)
+            widget.update()
 
+    def stopwatch(self):
+        pass
 
     def draw_walls(self, screen):
         dim = self.dimensions
         radius = self.wall_radius
         width = dim[2] - dim[0]
         height = dim[3] - dim[1]
-        pygame.draw.rect(screen, (150,80,150), (0.8 * screen_width, 0, 0.2 * screen_width, screen_height))
+        pygame.draw.rect(screen, (150,80,150), (0.75 * screen_width, 0, 0.25 * screen_width, screen_height))
         pygame.draw.rect(screen, (200,200,200), (
             dim[0] - radius, dim[1] - radius, width + 2 * radius,
             height + 2*radius))
-        pygame.draw.rect(screen, (255,255,255), (
-        dim[0], dim[1], width,
-        height))
+        pygame.draw.rect(screen, (255,255,255), (dim[0], dim[1], width, height))
 
-        text = self.font.render(f"Temperature", True, (10,10,10))
-        screen.blit(text, (0.9 * screen_width - 0.5 * text.get_width(), 0.2 * screen_height))
-        text = self.font.render(f"{round(self.temp_slider.knob_value,1)}", True, (10,10,10))
-        screen.blit(text, (0.9 * screen_width - 0.5 * text.get_width(), 0.25 * screen_height))
+
+        # text = self.font.render(f"Temperature", True, (10,10,10))
+        # screen.blit(text, (0.875 * screen_width - 0.5 * text.get_width(), 0.2 * screen_height))
+        text = self.font.render(f"{round(self.temp_slider.knob_value,1)} K", True, (10,10,10))
+        screen.blit(text, (0.875 * screen_width - 0.5 * text.get_width(), 0.25 * screen_height))
+        text = self.font.render(f"{round(self.calculate_rms_velocity(),1)} m/s", True, (10,10,10))
+        screen.blit(text, (0.875 * screen_width - 0.5 * text.get_width(), 0.3 * screen_height))
 
 
 
@@ -251,7 +325,13 @@ class Container(SpatialMap):
             return True
 
         return False
-    
+
+    def within_wall_check(self, mouse_pos):
+        dim = self.dimensions
+        if dim[0] < mouse_pos[0] < dim[2] and dim[1] < mouse_pos[1] < dim[3]:
+            return True
+        return False
+
     def selected_wall_index(self, mouse_pos):
         dim = self.dimensions
         radius = self.wall_radius
