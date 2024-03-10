@@ -246,7 +246,12 @@ class Container(SpatialMap):
         self.temperature = 293
         self.initial_temperature = 293
 
+
         self.initialise_container()
+
+    # def calculate_volume(self):
+    #     width, height = self.dimensions[2] - self.dimensions[0], self.dimensions[3] - self.dimensions[1]
+    #     return 0.00001 * width * height
 
     def calculate_pressure(self):
         total_mass = 0
@@ -280,6 +285,8 @@ class Container(SpatialMap):
             obj = GasParticle(1, 8, self, 1.0, position=np.array(mouse_position, dtype=float))
 
         self.particles.append(obj)
+        self.calculate_rms_velocity()
+        self.pressure_display.text = f"{round(self.calculate_pressure())} Pa"
     def temperature_change(self, new_temperature):
         change = new_temperature - self.temperature
         if abs(change) > 0.5:

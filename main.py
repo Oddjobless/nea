@@ -5,7 +5,7 @@ from PyQt6.QtCore import *
 from Simulations import simulation, ProjectileMoitionSimulation, test, coolParticleStuff, fluidFlowSimulation
 from database import Database
 from hashlib import sha256
-
+import re
 
 # from matplotlib import pyplot
 
@@ -336,6 +336,7 @@ class MainWindow(QMainWindow):
             self.user_settings = self.database.get_user_settings(self.user_info[0])
             self.initialise_program(self.user_settings)
             self.show_toolbar()
+            self.changeIndex(1)
             print("Logged in successfully")
             return True
         else:
@@ -355,7 +356,8 @@ class MainWindow(QMainWindow):
         conditions = [
             len(self.password.text()) >= 6,
             self.full_name.text() != "",
-            self.date_of_birth.date().addYears(16) <= QDate.currentDate()
+            self.date_of_birth.date().addYears(16) <= QDate.currentDate(),
+            re.match(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", self.email.text())
         ]
         if all(conditions):
             self.database.create_user(self.email.text(), sha256(self.password.text().encode()).hexdigest(),

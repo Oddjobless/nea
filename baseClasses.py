@@ -229,7 +229,6 @@ class SpatialMap:
         try:
             return (index % self.noOfCols, index // self.noOfCols)
         except TypeError:
-            print("AAAAAAAAAAAAARFGHGBFHD")
             raise Exception("index_to_coord")
     def get_square_magnitude(self, vector):
         return (vector[0] ** 2 + vector[1] ** 2)

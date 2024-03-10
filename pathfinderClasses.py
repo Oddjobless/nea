@@ -45,7 +45,7 @@ class Pathfinder(Particle):
 
     def collision_event_particles(self, track_collisions=False):
         try:
-            cell_index = self.vector_field.hash_position(self.next_position)
+            cell_index = self.vector_field.hash_position(self.position)
             particles_to_check = self.vector_field.grid[cell_index].cellList
             for particle in particles_to_check:
                 if self.is_collision(particle, save_collisions=track_collisions):
