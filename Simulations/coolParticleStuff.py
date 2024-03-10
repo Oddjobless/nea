@@ -41,7 +41,7 @@ def run():
 
         for particle in vector_field.particles:
             particle.collision_event()
-            pygame.draw.circle(screen, (123, 12, 90), particle.position, particle.radius)
+            pygame.draw.circle(screen, particle.colour, particle.position, particle.radius)
 
 
 
@@ -53,8 +53,8 @@ def run():
                 vector_field.collision_count += 1
                 if vector_field.collision_spark:
                     pygame.draw.line(screen, (0, 255, 0), ball_i.position, ball_j.position)
-        if vector_field.collision_spark:
-            vector_field.colliding_balls_pairs.clear()
+
+        vector_field.colliding_balls_pairs.clear()
 
         if vector_field.draw_line_to_mouse and vector_field.selected_particle != None:
             pygame.draw.line(screen, (255, 0, 0), vector_field.particles[vector_field.selected_particle].position, pygame.mouse.get_pos())
@@ -96,7 +96,8 @@ def run():
 
                     for widget in vector_field.widgets:
                         if widget.click_check(event.pos):
-                            widget.is_clicked = True
+                            widget.is_clicked = not widget.is_clicked
+                            print(widget.text, widget.is_clicked)
                             break
 
 
@@ -132,15 +133,15 @@ def run():
 #
 
 class GasParticle(Particle):
-    def __init__(self, mass, particle_radius, vector_field, _wall_damping, velocity=None, position=None):
+    def __init__(self, mass, particle_radius, vector_field, _wall_damping, velocity=None, position=None, colour=(123, 12, 255)):
         super().__init__(mass, particle_radius, vector_field, _wall_damping, velocity=velocity, position=position)
-
+        self.colour = colour
     def update(self, screen, custom_dimensions=None, vector_field=False):
         super().update(screen, custom_dimensions=custom_dimensions, vector_field=vector_field)
 
 
 class Widget:
-    def __init__(self, position, size, colour, text=None, slider=False, parent=None, hover=True, alt_text=None):
+    def __init__(self, position, size, colour, text=None, slider=False, parent=None, hover=True, alt_text=None, dynamic=False):
         self.position = np.array(position, dtype=float)
         self.size = np.array(size)
         self.colour = np.array(colour)
@@ -151,6 +152,7 @@ class Widget:
         self.alt_text = alt_text
         self.font = pygame.font.SysFont("Arial", 30)
         self.hover = hover
+        self.dynamic = dynamic
         if slider:
             self.knob = self.position + self.size // 2
             self.knob_rest_pos = self.knob.copy()
@@ -193,6 +195,10 @@ class Widget:
             difference = self.knob_rest_pos - self.knob
             self.knob += difference * 0.2
 
+        if self.dynamic and self.parent:
+            dim = self.parent.dimensions
+            pressure_sizes = 200, 100
+            self.position = np.array([(dim[0] + dim[2] - pressure_sizes[0]) // 2, dim[1] - pressure_sizes[1] - self.parent.wall_radius])
 
     def click_check(self, pos):
         if self.slider:
@@ -224,11 +230,12 @@ class Container(SpatialMap):
         self.colliding_balls_pairs = []
         self.wall_selected = None
         self.wall_radius = 20
+
         dim = self.dimensions
 
         pressure_sizes = 200, 100
         pressure_pos = ((dim[0] + dim[2] - pressure_sizes[0]) // 2, dim[1] - pressure_sizes[1] - self.wall_radius)
-        self.pressure_display = Widget(pressure_pos, pressure_sizes, (255, 255, 200))
+        self.pressure_display = Widget(pressure_pos, pressure_sizes, (255, 255, 200), parent=self, dynamic=True)
         self.temp_slider = Widget((1480,900), (400,30), (140,140,140), slider=True, parent=self)
         self.particle_button = Widget((1560,400), (250,100), (140,140,140), text="Heavy Particles", alt_text="Light Particles")
         self.collision_counter = Widget((1480,500), (400,100), (140,140,140), text="Collision Count")
@@ -238,8 +245,16 @@ class Container(SpatialMap):
         self.widgets = [self.pressure_display, self.temp_slider, self.particle_button,self.pause_button, self.collision_counter, self.reset_button, self.stopwatch_button ]
         self.temperature = 293
         self.initial_temperature = 293
-        self.pressure = 0
+
         self.initialise_container()
+
+    def calculate_pressure(self):
+        total_mass = 0
+        for particle in self.particles:
+            total_mass += particle.mass
+        width, height = self.dimensions[2] - self.dimensions[0], self.dimensions[3] - self.dimensions[1]
+        pressure = (total_mass * self.temperature) / (0.00001*width*height)
+        return pressure
 
     def initialise_container(self):
         dim = self.dimensions
@@ -248,38 +263,40 @@ class Container(SpatialMap):
         self.temperature = self.initial_temperature
 
         self.particles.clear()
-        self.particles.extend([GasParticle(1, 10, self, 1.00, position=np.array(
+        self.particles.extend([GasParticle(1, 8, self, 1.00, position=np.array(
             [randint(dim[0], dim[2]), randint(dim[1], dim[3])]), velocity=np.array(
             [randint(-base_v, base_v), randint(-base_v, base_v)], dtype=float)) for _ in range(50)])  # eccentricity
+        self.rms_velocity = self.calculate_rms_velocity()
+        self.pressure_display.text = f"{round(self.calculate_pressure())} Pa"
+
+
 
     def add_particle(self, mouse_position):
         if self.particle_button.is_clicked:
-            obj = GasParticle(0.5, 5, self, 1.0, position=np.array(mouse_position, dtype=float))
+            obj = GasParticle(0.75, 6, self, 1.0, position=np.array(mouse_position, dtype=float))
+            obj.colour = np.array([255, 60, 60])
+            print(obj.colour)
         else:
-            obj = GasParticle(1, 10, self, 1.0, position=np.array(mouse_position, dtype=float))
+            obj = GasParticle(1, 8, self, 1.0, position=np.array(mouse_position, dtype=float))
+
         self.particles.append(obj)
     def temperature_change(self, new_temperature):
         change = new_temperature - self.temperature
-        if abs(change) > 1:
+        if abs(change) > 0.5:
             old_temperature = self.temperature
             self.temperature = new_temperature
 
             temperature_ratio = new_temperature / old_temperature
+            self.rms_velocity = self.calculate_rms_velocity()
 
-            # print(old_temperature)
-            # print(new_temperature)
-            # print(temperature_ratio)
+            self.pressure_display.text = f"{round(self.calculate_pressure())} Pa"
 
             for index, particle in enumerate(self.particles):
-                # if index == 0: print("Old Velocity:", particle.velocity)
 
                 particle.velocity *= temperature_ratio
 
-
-                # if index == 0: print("New Velocity:", particle.velocity)
     def calculate_rms_velocity(self):
-        # Calculate the root mean square (RMS) velocity of the gas particles
-        total_squared_velocity = sum(np.sum(particle.velocity ** 2) for particle in self.particles)
+        total_squared_velocity = sum(np.sum(particle.velocity ** 2) * 0.5 * particle.mass for particle in self.particles)
         rms_velocity = np.sqrt(total_squared_velocity / len(self.particles))
         return rms_velocity
 
@@ -308,7 +325,7 @@ class Container(SpatialMap):
         # screen.blit(text, (0.875 * screen_width - 0.5 * text.get_width(), 0.2 * screen_height))
         text = self.font.render(f"{round(self.temp_slider.knob_value,1)} K", True, (10,10,10))
         screen.blit(text, (0.875 * screen_width - 0.5 * text.get_width(), 0.25 * screen_height))
-        text = self.font.render(f"{round(self.calculate_rms_velocity(),1)} m/s", True, (10,10,10))
+        text = self.font.render(f"{round(self.rms_velocity,1)} m/s", True, (10,10,10))
         screen.blit(text, (0.875 * screen_width - 0.5 * text.get_width(), 0.3 * screen_height))
 
 
@@ -355,10 +372,17 @@ class Container(SpatialMap):
             return None # should never happen
     def change_wall_dimensions(self, change):
         index = self.wall_selected
+        dim = self.dimensions.copy()
         if index % 2:
-            self.dimensions[index] += change[1]
+            dim[index] += change[1]
         else:
-            self.dimensions[index] += change[0]
+            dim[index] += change[0]
+        if not dim[2] + self.wall_radius < screen_width * 0.75:
+            dim[2] = screen_width * 0.75 - self.wall_radius
+        if 20 < dim[2] - dim[0] and dim[3] - dim[1] > 20 :
+
+            self.dimensions = dim
+        self.pressure_display.text = f"{round(self.calculate_pressure())} Pa"
 
 
 
