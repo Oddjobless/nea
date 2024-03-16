@@ -170,13 +170,12 @@ def run(level_no):
         vector_field.draw_splatters(screen)
 
         completed = set()
-        for ball_i, ball_j in vector_field.colliding_balls_pairs:
+        for ball_i, ball_j in vector_field.colliding_balls_pairs: # loop over all collision
             completed.add(ball_i)
-            if ball_j not in completed:
-                # print("Ball", ball_i, "collides with", ball_j)
+            if ball_j not in completed: # ensure that the particle in question hasn't already been resolved
                 ball_i.resolve_dynamic_collision(ball_j)
                 pygame.draw.line(screen, (0, 255, 0), ball_i.position, ball_j.position)
-        vector_field.colliding_balls_pairs.clear()
+        vector_field.colliding_balls_pairs.clear() # reset the list for the next time step
 
         if vector_field.draw_line_to_mouse and vector_field.selected_particle != None:
             particle = vector_field.particles[vector_field.selected_particle]
