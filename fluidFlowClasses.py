@@ -6,12 +6,12 @@ from baseClasses import *
 #
 
 class FluidParticle(Particle):
-    def __init__(self, mass, radius, vector_field, damping):
-        super().__init__(mass, radius, vector_field, damping)
+    def __init__(self, mass, radius, spatial_map, damping):
+        super().__init__(mass, radius, spatial_map, damping)
         self.damping = damping
         self.radius = radius  # visual only
         self.mass = mass
-        self.vector_field = vector_field
+        self.spatial_map = spatial_map
         self.force = np.zeros(2, dtype=float)
 
         # self.velocity = np.array([randrange(-200, 200), randrange(-200, 200)]) # poo
@@ -41,11 +41,11 @@ class FluidParticle(Particle):
                                      (screen.get_width() - self.radius, screen.get_height() - self.radius))
 
 
-        self.vector_field.remove_particle(self)
+        self.spatial_map.remove_particle(self)
         self.position = self.next_position
-        self.vector_field.insert_particle(self)
+        self.spatial_map.insert_particle(self)
 
-        # print(self.vector_field.grid)
+        # print(self.spatial_map.grid)
 
         # self.velocity = self.velocity + self.acceleration * self.mass
 
@@ -69,12 +69,12 @@ class FluidParticle(Particle):
 
     def calculate_density(self):
         density = 0
-        neighbouring_particles = self.vector_field.get_neighbouring_particles(self)
+        neighbouring_particles = self.spatial_map.get_neighbouring_particles(self)
 
         for neighbour_particle in neighbouring_particles:
             if neighbour_particle != self:
-                distance = self.vector_field.get_magnitude(neighbour_particle.position - self.position)
-                influence = self.vector_field.kernel.calculate_density_contribution(distance)
+                distance = self.spatial_map.get_magnitude(neighbour_particle.position - self.position)
+                influence = self.spatial_map.kernel.calculate_density_contribution(distance)
                 density += influence * neighbour_particle.mass
 
         # print(self.density == density)
@@ -91,15 +91,15 @@ class FluidParticle(Particle):
         return self.pressure
 
     def calculate_pressure(self):  # ideal gas law
-        self.pressure = stiffness_constant * (self.density - self.vector_field.rest_density)
+        self.pressure = stiffness_constant * (self.density - self.spatial_map.rest_density)
 
     def calculate_property(self):
         property = 0
-        neighbouring_particles = self.vector_field.get_neighbouring_particles(self)
+        neighbouring_particles = self.spatial_map.get_neighbouring_particles(self)
 
         for neighbour_particle in neighbouring_particles:
-            distance = self.vector_field.get_magnitude(neighbour_particle.position - self.position)
-            influence = self.vector_field.kernel.calculate_density_contribution(distance)
+            distance = self.spatial_map.get_magnitude(neighbour_particle.position - self.position)
+            influence = self.spatial_map.kernel.calculate_density_contribution(distance)
             property += influence * (neighbour_particle.mass / neighbour_particle.density)
 
         # print(self.density == density)
@@ -107,17 +107,17 @@ class FluidParticle(Particle):
 
     """def calculate_pressure_force(self):
         pressure_force = np.zeros(2, dtype=float)
-        neighbouring_particles = self.vector_field.get_neighbouring_particles(self)
+        neighbouring_particles = self.spatial_map.get_neighbouring_particles(self)
         for neighbour_particle in neighbouring_particles:
             if neighbour_particle == self:
                 continue
             vector = neighbour_particle.position - self.position
-            distance = self.vector_field.get_magnitude(vector)
+            distance = self.spatial_map.get_magnitude(vector)
             if distance == 0:
                 direction_vector = np.random.rand(2)
             else:
-                direction_vector = self.vector_field.normalise_vector(vector)
-            influence = self.vector_field.pressure_kernel.calculate_density_contribution(distance)
+                direction_vector = self.spatial_map.normalise_vector(vector)
+            influence = self.spatial_map.pressure_kernel.calculate_density_contribution(distance)
             avg_pressure = 0.5 * (self.pressure + neighbour_particle.pressure)
             if neighbour_particle.density != 0:
                 pressure_force += - direction_vector * influence * avg_pressure * (neighbour_particle.mass / neighbour_particle.density)
@@ -126,20 +126,20 @@ class FluidParticle(Particle):
 
     def calculate_pressure_force(self):
         self.pressure_force = np.zeros(2, dtype=float)
-        neighbouring_particles = self.vector_field.get_neighbouring_particles(self)
+        neighbouring_particles = self.spatial_map.get_neighbouring_particles(self)
         for neighbour_particle in neighbouring_particles:
             if self != neighbour_particle:
-                distance = self.vector_field.get_magnitude(self.position - neighbour_particle.position)
+                distance = self.spatial_map.get_magnitude(self.position - neighbour_particle.position)
                 self.pressure_force -= self.calculate_pressure_contribution(self, neighbour_particle, distance)
         self.velocity += dt * self.pressure_force/self.mass
     def calculate_pressure_contribution(self, particle, neighbour_particle, dist):
-        direction_vector = self.vector_field.normalise_vector(particle.position - neighbour_particle.position)
+        direction_vector = self.spatial_map.normalise_vector(particle.position - neighbour_particle.position)
         if particle.density == 0 or neighbour_particle.density == 0:
             return np.array([0,0])
         pressure = particle.pressure / (particle.density ** 2)
         neighbour_pressure = neighbour_particle.pressure / (neighbour_particle.density ** 2)
 
-        smoothing_kernel_gradient = self.vector_field.kernel.cubic_spline_kernel_gradient(dist)
+        smoothing_kernel_gradient = self.spatial_map.kernel.cubic_spline_kernel_gradient(dist)
 
         pressure_force = -neighbour_particle.mass * 0.5 * (
                 pressure + neighbour_pressure) * smoothing_kernel_gradient * direction_vector
@@ -172,7 +172,7 @@ class SmoothingKernel:
         elif test:
             self.normalisation_constant = 1
 
-        # im uneased by this normalisation constant, tempted to just use total mass instead
+
 
     def calculate_density_contribution(self, particle_radius):
 

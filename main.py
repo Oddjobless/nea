@@ -45,7 +45,7 @@ class MainWindow(QMainWindow):
         self.login = QWidget()
         self.login.setLayout(self.login_layout)
 
-        self.login_label = QLabel("Login")
+        self.login_label = QLabel("") # todo:
         self.login_layout.addWidget(self.login_label, 0, 1, 1,1)
 
 
