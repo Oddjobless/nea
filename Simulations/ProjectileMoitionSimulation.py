@@ -1,5 +1,3 @@
-import numpy as np
-import pygame
 from baseClasses import *
 
 

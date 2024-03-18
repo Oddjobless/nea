@@ -52,11 +52,11 @@ def run():
                     return
                 elif event.key == pygame.K_a: # switch between adding particles and changing goal
                     vector_field.is_adding_particles = not vector_field.is_adding_particles
-                elif event.key == pygame.K_c: # toggle collisions, laggy
+                elif event.key == pygame.K_c: # toggle collisions. turn off to reduce latency
                     vector_field.enable_collision_between_particles = not vector_field.enable_collision_between_particles
-                elif event.key == pygame.K_EQUALS:
+                elif event.key == pygame.K_EQUALS: # plus symbol
                     vector_field.particle_to_add_radius += 1
-                elif event.key == pygame.K_MINUS:
+                elif event.key == pygame.K_MINUS: # minus symbol
                     vector_field.particle_to_add_radius = max(vector_field.particle_to_add_radius - 1, 3)
                 elif event.key == pygame.K_h:
                     vector_field.draw_heatmap = not vector_field.draw_heatmap

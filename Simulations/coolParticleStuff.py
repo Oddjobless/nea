@@ -181,7 +181,6 @@ class Widget:
 
 
     def update(self):
-
         if self.is_clicked:
             if self.slider:
                 self.knob[0] = max(min(pygame.mouse.get_pos()[0], self.knob_rest_pos[0] + 0.5 * self.size[0]), self.position[0])
@@ -204,7 +203,6 @@ class Widget:
         if self.slider:
             distance = np.sqrt((self.knob[0] - pos[0])**2 + (self.knob[1] - pos[1])**2)
             if distance < self.size[1]:
-                print("Click")
                 return True
         else:
             if self.position[0] < pos[0] < self.position[0] + self.size[0] and self.position[1] < pos[1] < self.position[1] + self.size[1]:
@@ -292,14 +290,10 @@ class Container(SpatialMap):
         if abs(change) > 0.5:
             old_temperature = self.temperature
             self.temperature = new_temperature
-
             temperature_ratio = new_temperature / old_temperature
             self.rms_velocity = self.calculate_rms_velocity()
-
             self.pressure_display.text = f"{round(self.calculate_pressure())} Pa"
-
             for index, particle in enumerate(self.particles):
-
                 particle.velocity *= temperature_ratio
 
     def calculate_rms_velocity(self):
@@ -386,8 +380,7 @@ class Container(SpatialMap):
             dim[index] += change[0]
         if not dim[2] + self.wall_radius < screen_width * 0.75:
             dim[2] = screen_width * 0.75 - self.wall_radius
-        if 20 < dim[2] - dim[0] and dim[3] - dim[1] > 20 :
-
+        if 20 < dim[2] - dim[0] and dim[3] - dim[1] > 20:
             self.dimensions = dim
         self.pressure_display.text = f"{round(self.calculate_pressure())} Pa"
 
