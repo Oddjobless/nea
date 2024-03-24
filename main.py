@@ -1,4 +1,6 @@
 import sys
+import traceback
+
 from PyQt6.QtWidgets import *
 from PyQt6.QtGui import *
 from PyQt6.QtCore import *
@@ -15,6 +17,7 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.database = Database("localhost", "root", "2121", "NEA")
 
+        self.user_settings = [None, None, 18, 32, 0.8, 500, 1]
         self.setWindowTitle("ARGHHHHHHHHHH")
         self.setGeometry(0, 0, 1920, 1080)
         self.showFullScreen()  # todo: fullscreen
@@ -26,6 +29,7 @@ class MainWindow(QMainWindow):
         self.addToolBar(self.toolbar)
         self.toolbar.setMovable(False)
         # self.toolbar.hide()
+
 
         self.setFont(QFont("Helvetica", 15))
         self.index.setStyleSheet("""
@@ -227,7 +231,7 @@ class MainWindow(QMainWindow):
                 margin: 30;
             }
 
-            QPushButton {
+            QPushButton, QSpinBox, QLabel, QSlider{
                 font-family: 'Comic Sans MS';
                 font-size: 30px;
                 padding: 20px 32px;
@@ -244,15 +248,42 @@ class MainWindow(QMainWindow):
                 background-color: '#4caf50';
                 color: white;
             }
+            
+            QSlider {
+                
+            }
+            
 
         """)
 
+        self.pathfinding_rows = QSpinBox()
+        self.pathfinding_rows.setRange(4, 50)
+        self.pathfinding_layout.addWidget(self.pathfinding_rows, 0, 0, 1, 1)
+        self.pathfinding_rows.setValue(self.user_settings[2])
+
+        self.pathfinding_cols = QSpinBox()
+        self.pathfinding_cols.setRange(4, 50)
+        self.pathfinding_layout.addWidget(self.pathfinding_cols, 0, 2, 1, 1)
+        self.pathfinding_cols.setValue(self.user_settings[3])
+
+        self.pathfinding_speed = QSlider()
+        self.pathfinding_speed.setOrientation(Qt.Orientation.Horizontal)
+        self.pathfinding_speed.setRange(100, 1100)
+        self.pathfinding_speed.setValue(self.user_settings[5])
+        self.pathfinding_speed.setTickPosition(QSlider.TickPosition.TicksBothSides)
+        self.pathfinding_layout.addWidget(self.pathfinding_speed, 2, 1, 1, 3)
+
+        self.pathfinding_speed_label = QLabel(f"Particle speed = {self.pathfinding_speed.value()}")
+        self.pathfinding_speed.valueChanged.connect(lambda: self.pathfinding_speed_label.setText(f"Particle speed = {self.pathfinding_speed.value()}"))
+        self.pathfinding_layout.addWidget(self.pathfinding_speed_label, 2, 0, 1, 1)
+
+
+
         self.pathfinding_run = QPushButton("Run")
-        self.pathfinding_layout.addWidget(self.pathfinding_run, 2, 3, 1, 1)
+        self.pathfinding_layout.addWidget(self.pathfinding_run, 5, 2, 1, 1)
         self.pathfinding_run.released.connect(self.transposition)
 
-        self.pathfinding_decrypt = QPushButton("Admin Mode")
-        self.pathfinding_layout.addWidget(self.pathfinding_decrypt, 2, 4)
+
 
         # self.noOfRows = Q
 
@@ -446,9 +477,14 @@ class MainWindow(QMainWindow):
 
     def transposition(self):
         try:
-            simulation.run()
+            row = self.pathfinding_rows.value()
+            col = self.pathfinding_cols.value()
+            if row > col:
+                row, col = col, row
+            speed = self.pathfinding_speed.value()
+            simulation.run(row, col, speed)
         except Exception as e:
-            print(e)
+            traceback.print_exc()
 
 
     def run_suspension_sim(self):
@@ -481,7 +517,9 @@ class MainWindow(QMainWindow):
             max_level = len(self.projectile_sim_buttons)
         else:
             max_level = user_settings[-1]
-        print(max_level)
+
+        self.pathfinding_rows = user_settings[2]
+        self.pathfinding_cols = user_settings[3]
 
         for index, button in enumerate(self.projectile_sim_buttons[:max_level]):
             self.enable_projectile_button(button, index)

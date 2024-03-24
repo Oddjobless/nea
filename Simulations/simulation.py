@@ -20,14 +20,13 @@ OPTION 2 LIKELY BETTER THOUGH
 
 
 
-def run():
+def run(rows, columns, max_velocity):
     pygame.init()
     # todo:
-    rows, columns = 18, 32
     screen = pygame.display.set_mode((screen_width, screen_height))
     pygame.display.set_caption("Pygame Boilerplate")
 
-    vector_field = VelocityField(rows, columns)
+    vector_field = VelocityField(rows, columns, max_velocity)
     box_width, box_height = vector_field.box_width, vector_field.box_height
 
     vector_field.particles = [Pathfinder(radius//3, radius, vector_field, wall_damping) for _ in range(noOfParticles)]

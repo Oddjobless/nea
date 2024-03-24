@@ -82,10 +82,10 @@ class Database:
             CREATE TABLE user_settings (
                 id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
                 user_id INT NOT NULL,
-                pathfinder_rows INT DEFAULT 20,
-                pathfinder_cols INT DEFAULT 20,
+                pathfinder_rows INT DEFAULT 18,
+                pathfinder_cols INT DEFAULT 32,
                 wall_collision_damping FLOAT DEFAULT 0.8,
-                particle_collision_damping FLOAT DEFAULT 1.0,
+                pathfinding_velocity FLOAT DEFAULT 500,
                 projectile_max_level INT DEFAULT 1,
                 FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
             );
@@ -232,7 +232,7 @@ class Database:
         print(settings)
         print(settings[2:])
         self.__conn.execute("""
-        UPDATE user_settings SET pathfinder_rows = %s, pathfinder_cols = %s, wall_collision_damping = %s, particle_collision_damping = %s, projectile_max_level = %s WHERE user_id = %s;
+        UPDATE user_settings SET pathfinder_rows = %s, pathfinder_cols = %s, wall_collision_damping = %s, pathfinding_velocity = %s, projectile_max_level = %s WHERE user_id = %s;
         """, settings[2:])
         self.__conn.fetchall()
 

@@ -14,7 +14,7 @@ class Particle:
         if position is not None:
             self.position = position
         else:
-            self.position = np.array([randint(2 * self.radius, screen_width - 2 * self.radius), randint(2 * self.radius, screen_height - 2 * self.radius)], dtype=float)
+            self.position = np.array([randint(8 * self.radius, screen_width - 8 * self.radius), randint(8 * self.radius, screen_height - 8 * self.radius)], dtype=float)
         self.next_position = self.position.copy()
         # self.acceleration = np.array([0,9.8]) * self.mass # short term
         if self.vector_field:
@@ -135,8 +135,8 @@ class Particle:
             self.velocity[1] *= -1 * self.damping
 
 
-        self.next_position = np.clip(self.next_position, (dim[0:2] + self.radius),
-                                         (dim[2:4] - self.radius))
+        self.next_position = np.clip(self.next_position, (dim[0:2] + 2 * self.radius),
+                                         (dim[2:4] - 2*self.radius))
 
         if vector_field:
             self.vector_field.remove_particle(self)
@@ -184,8 +184,6 @@ class Cell:
 
 class SpatialMap:
     def __init__(self, noOfRows, noOfCols):
-        self.noOfRows = noOfRows
-        self.noOfCols = noOfCols
         self.draw_grid = True
         self.grid = np.array([Cell() for _ in
                      range(noOfRows * noOfCols)])
@@ -203,11 +201,11 @@ class SpatialMap:
 
 
     def get_grid_coords(self, x=False, y=False):
-        xCoords = np.linspace(0, screen_width, self.noOfCols, endpoint=False)
+        xCoords = np.linspace(0, screen_width, self.cols, endpoint=False)
         if x:
             return xCoords
 
-        yCoords = np.linspace(0, screen_height, self.noOfRows, endpoint=False)
+        yCoords = np.linspace(0, screen_height, self.rows, endpoint=False)
         if y:
             return yCoords
 
@@ -226,11 +224,11 @@ class SpatialMap:
 
 
     def coord_to_index(self, coord):
-        return coord[0] + coord[1] * self.noOfCols
+        return coord[0] + coord[1] * self.cols
 
     def index_to_coord(self, index):
         try:
-            return (index % self.noOfCols, index // self.noOfCols)
+            return (index % self.cols, index // self.cols)
         except TypeError:
             raise Exception("index_to_coord")
     def get_square_magnitude(self, vector):
@@ -248,7 +246,7 @@ class SpatialMap:
 
         for dir in directions:
             neighbour_col, neighbour_row = col + dir[0], row + dir[1]
-            if 0 <= neighbour_row < self.noOfRows and 0 <= neighbour_col < self.noOfCols:
+            if 0 <= neighbour_row < self.rows and 0 <= neighbour_col < self.cols:
                 neighbouring_coords.append((neighbour_col, neighbour_row))
             elif placeholder_for_boundary:
                 neighbouring_coords.append(None)
@@ -261,7 +259,7 @@ class SpatialMap:
         return neighbouring_cells
 
     def get_neighbouring_particles(self, particle):
-        cell_row, cell_col = divmod(self.hash_position(particle.position), self.noOfCols)
+        cell_row, cell_col = divmod(self.hash_position(particle.position), self.cols)
         neighbour_cells = self.get_neighbouring_cells(cell_row, cell_col, use_self=True, diagonal=True)
 
         neighbouring_particles = []

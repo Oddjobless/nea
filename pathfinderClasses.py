@@ -57,7 +57,7 @@ class Pathfinder(Particle):
             raise Exception
 
 class VelocityField(SpatialMap):
-    def __init__(self, noOfRows, noOfCols):
+    def __init__(self, noOfRows, noOfCols, max_velocity):
         super().__init__(noOfRows, noOfCols)
         self.cell_distances = np.zeros_like(self.grid)
         for i in self.grid:
@@ -65,7 +65,7 @@ class VelocityField(SpatialMap):
         self.blocked_cells = set()
         self.goal = np.array([0,0])
         # self.update_velocity_field(self.goal)
-        self.particle_max_velocity = 500
+        self.particle_max_velocity = max_velocity
 
         self.cell_width = self.box_width
         # self.particle_damping = 0.996 # dont like this
@@ -90,8 +90,8 @@ class VelocityField(SpatialMap):
     def display_heatmap(self, screen): # drawing a gradient depending on the distance
         max_distance = np.max(list(filter(lambda x: np.isfinite(x), self.cell_distances)))
 
-        for i in range(self.noOfCols):
-            for j in range(self.noOfRows):
+        for i in range(self.cols):
+            for j in range(self.rows):
                 distance = self.cell_distances[self.coord_to_index((i, j))]
                 if distance > 0:
                     if np.isinf(distance):
