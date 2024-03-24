@@ -176,6 +176,8 @@ class Database:
             return None
         return result[0]
 
+
+
     def get_teacher_names(self):
         self.__conn.execute("""
         SELECT full_name FROM users, teachers WHERE users.user_id = teachers.user_id;

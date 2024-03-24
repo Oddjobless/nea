@@ -141,7 +141,6 @@ class VelocityField(SpatialMap):
 
         # set distance to the goal cell to 0
         goal_index = self.coord_to_index(goal_coords)
-        self.cell_distances[goal_index] = 0
 
         self.cell_distances[goal_index] = 0
 
@@ -153,14 +152,19 @@ class VelocityField(SpatialMap):
             current_index = self.coord_to_index(current_coord)
             current_distance = self.cell_distances[current_index]
 
-            neighbouring_coords = self.get_neighbouring_coords(current_coord, include_diagonal=False)
+            neighbouring_coords = self.get_neighbouring_coords(current_coord, include_diagonal=True)
             for next_coord in neighbouring_coords:
                 next_index = self.coord_to_index(next_coord)
                 if next_coord not in self.blocked_cells and self.cell_distances[next_index] == float('inf'):
                     # update distance if  cell is not blocked and not visited
-                    self.cell_distances[next_index] = current_distance + 1
+                    change_x = abs(next_coord[0] - current_coord[0])
+                    change_y = abs(next_coord[1] - current_coord[1])
+                    if change_x == 1 and change_y == 1:
+                        path_cost = np.sqrt(2)
+                    else:  # Orthogonal movement
+                        path_cost = 1
+                    self.cell_distances[next_index] = current_distance + path_cost
                     queue.append(next_coord)
-
         """for index, bool in enumerate(visited):
             if False:
                 print("WARNING")

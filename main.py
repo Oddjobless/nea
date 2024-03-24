@@ -347,7 +347,7 @@ class MainWindow(QMainWindow):
             self.user_settings = self.database.get_user_settings(self.user_info[0])
 
             if not user_info[-1]: #if user isnt a teacher:
-                self.teacher_id = self.database.get_teacher_id(self.user_info[0])
+                self.teacher_id = self.database.get_teacher_id_by_user_id(self.user_info[0])
             else:
                 self.teacher_id = None
 
