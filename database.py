@@ -31,15 +31,17 @@ class Database:
             self.conn.fetchall()
 
             self.conn.execute("""
+            DROP TABLE IF EXISTS students;
+            """)
+            self.conn.fetchall()
+
+            self.conn.execute("""
             
             DROP TABLE IF EXISTS teachers;
             """)
             self.conn.fetchall()
 
-            self.conn.execute("""
-            DROP TABLE IF EXISTS students;
-            """)
-            self.conn.fetchall()
+
 
 
 
@@ -95,7 +97,7 @@ class Database:
             self.conn.fetchall()
 
             self.create_user("admin", "21232f297a57a5a743894a0e4a801fc3", "admin", "2000-01-01", is_teacher=True)
-            self.create_user("teacher@email.com", "21232f297a57a5a743894a0e4a801fc3", "teacher", "2000-01-01", is_teacher=True)
+            self.create_user("teacher@email.com", "21232f297a57a5a743894a0e4a801fc3", "Mr Smith", "2000-01-01", is_teacher=True)
             self.create_user("student", "21232f297a57a5a743894a0e4a801fc3", "student", "2000-01-01", teacher_email="teacher@email.com")
             self.create_user("student1", "21232f297a57a5a7438", "student", "2000-01-01", teacher_email="teacher@email.com")
 
@@ -117,11 +119,7 @@ class Database:
             print(self.conn.fetchall())
 
             if not is_teacher:
-                teacher_id = self.conn.execute("""
-                SELECT user_id FROM users WHERE email = %s;
-                """, (teacher_email,))
-                print(teacher_email)
-                teacher_id = self.conn.fetchone()[0]
+                teacher_id = self.get_teacher_id(teacher_email)
 
 
             self.conn.execute("""
@@ -156,6 +154,22 @@ class Database:
             print(e)
             return False
 
+    def get_teacher_id(self, email):
+        self.conn.execute("""
+        SELECT user_id FROM users WHERE email = %s;
+        """, (email,))
+        result = self.conn.fetchone()
+        if result is None:
+            print("Teacher not in database")
+            return None
+        return result[0]
+
+    def get_students_by_teacher_id(self, teacher_id):
+        self.conn.execute("""
+        SELECT * FROM users, students WHERE teacher_id = %s AND users.user_id = students.user_id;
+        """, (teacher_id,))
+        result = self.conn.fetchall()
+        return result
     def verify_login(self, email, password_hash):
         try:
             self.conn.execute("""
@@ -205,10 +219,10 @@ if __name__ == "__main__":
         for row in results:
             print(row)
 
-        db.conn.execute("SELECT full_name FROM students, teachers WHERE students.teacher_id = teachers.teacher_id AND teachers.user_id = 1")
-        results = db.conn.fetchall()
-        for row in results:
-            print(row)
-
+        email = db.get_teacher_id("teacher@email.com")
+        print(email)
+        info = db.get_students_by_teacher_id(email)
+        for student in info:
+            print(student)
     except Exception as e:
         print("Error:", e)
