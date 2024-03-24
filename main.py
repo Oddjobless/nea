@@ -431,7 +431,8 @@ class MainWindow(QMainWindow):
 
     def run_projectile_motion_sim(self, level_no):
         try:
-            ProjectileMoitionSimulation.draw_mode(level_no)
+            if self.teacher_id is None:
+                ProjectileMoitionSimulation.draw_mode(level_no)
             score = ProjectileMoitionSimulation.run(level_no)
             if score:
                 if score > 100:
@@ -476,7 +477,7 @@ class MainWindow(QMainWindow):
             self.ideal_gas_layout.setCurrentIndex((self.ideal_gas_layout.currentIndex() + 1) % len(self.slides))
 
     def initialise_program(self, user_settings):
-        if self.teacher_id is not None:
+        if self.teacher_id is None:
             max_level = len(self.projectile_sim_buttons)
         else:
             max_level = user_settings[-1]

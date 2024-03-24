@@ -209,6 +209,12 @@ class Database:
             print(e)
             return None
 
+    def get_all_users(self):
+        self.__conn.execute("""
+        SELECT * FROM users;
+        """)
+        result = self.__conn.fetchall()
+        return result
     def get_user_settings(self, user_id):
         self.__conn.execute("""
         SELECT * FROM user_settings WHERE user_id = %s;
@@ -236,14 +242,14 @@ class Database:
 
 if __name__ == "__main__":
     db = Database("localhost", "root", "2121", "NEA")
-    db.initialise_default_db()
+    # db.initialise_default_db()
 
     try:
 
-        email = db.get_teacher_id("teacher@email.com")
-        print(email)
-        info = db.get_students_by_teacher_id(email)
-        for student in info:
-            print(student)
+        # print all users
+        result = db.get_all_users()
+        for row in result:
+            print(row)
+
     except Exception as e:
         print("Error:", e)

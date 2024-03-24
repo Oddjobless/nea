@@ -325,7 +325,7 @@ class SpatialMap:
         for index, particle in enumerate(self.particles):
             if not particle.radius < mouse_pos[0] < screen_width - particle.radius and particle.radius < mouse_pos[1] < screen_height - particle.radius:
                 continue
-            distance = particle.vector_field.get_magnitude(np.array(mouse_pos) - particle.position)
+            distance = particle.vector_field.get_magnitude(particle.position - np.array(mouse_pos))
             if distance < particle.radius:
                 particle.velocity = particle.velocity * 0
                 self.draw_line_to_mouse = True
@@ -334,7 +334,7 @@ class SpatialMap:
 
     def release_projected_particle(self, mouse_pos):
         particle = self.particles[self.selected_particle]
-        particle.velocity = (particle.position - np.array(mouse_pos)) * self.projected_particle_velocity_multiplier
+        particle.velocity = (np.array(mouse_pos) - particle.position) * self.projected_particle_velocity_multiplier
         self.draw_line_to_mouse = False
         self.selected_particle = None
 

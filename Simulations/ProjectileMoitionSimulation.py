@@ -178,7 +178,7 @@ def run(level_no):
         if vector_field.draw_line_to_mouse and vector_field.selected_particle != None:
             particle = vector_field.particles[vector_field.selected_particle]
             pygame.draw.line(screen, (255, 0, 0), particle.position, pygame.mouse.get_pos())
-            projected_velocity = (particle.position - np.array(pygame.mouse.get_pos())) * vector_field.projected_particle_velocity_multiplier / vector_field.px_to_metres_factor
+            projected_velocity = (np.array(pygame.mouse.get_pos()) - particle.position) * vector_field.projected_particle_velocity_multiplier / vector_field.px_to_metres_factor
             if vector_field.toggle_velocity_display:
                 display_params = f"{int(projected_velocity[0])}i\u0302 + {int(-projected_velocity[1])}j\u0302"
             else:
