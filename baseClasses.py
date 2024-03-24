@@ -68,15 +68,15 @@ class Particle:
             self.velocity = np.zeros_like(self.velocity)
 
     def resolve_obstacle_collision(self, obstacle):
-        # Calculate the displacement vector from the rectangle to the circle
+        # calculate the displacement vector from the rectangle to the circle
         displacement = self.position - np.array([max(obstacle.position[0], min(self.position[0], obstacle.position[0] + obstacle.width)),
                                                       max(obstacle.position[1], min(self.position[1], obstacle.position[1] + obstacle.height))])
 
-        # Calculate the penetration depth for both x and y directions
+        # penetration depth for x, y directions
         penetration_x = max(0, self.radius - abs(displacement[0]))
         penetration_y = max(0, self.radius - abs(displacement[1]))
 
-        # Determine the direction of displacement
+        # direction of displacement
         direction_x = 1 if displacement[0] > 0 else -1
         direction_y = 1 if displacement[1] > 0 else -1
 
@@ -88,13 +88,11 @@ class Particle:
 
 
         if penetration_x < penetration_y:
-            # Collided in x-direction
             self.next_position[0] += penetration_x * direction_x
             self.velocity[0] *= -1 * damping
             if obstacle.is_platform:
                 self.velocity[1] *= damping
         else:
-            # Collided in y-direction
             self.next_position[1] += penetration_y * direction_y
             self.velocity[1] *= -1 * damping
             if obstacle.is_platform:
@@ -127,6 +125,7 @@ class Particle:
     def update(self, screen, custom_dimensions=None, vector_field=True):
         if custom_dimensions is None:
             dim = np.array([0, 0, screen.get_width(), screen.get_height()])
+
         else:
             dim = custom_dimensions
         if self.next_position[0] > dim[2] - (self.radius) or self.next_position[0] < dim[0] + self.radius:  # or within blocked cell
@@ -135,8 +134,8 @@ class Particle:
             self.velocity[1] *= -1 * self.damping
 
 
-        self.next_position = np.clip(self.next_position, (dim[0:2] + 2 * self.radius),
-                                         (dim[2:4] - 2*self.radius))
+        self.next_position = np.clip(self.next_position, (dim[0:2] + self.radius),
+                                         (dim[2:4] - self.radius))
 
         if vector_field:
             self.vector_field.remove_particle(self)
@@ -191,7 +190,7 @@ class SpatialMap:
         self.drag_coefficient = 0.000000001
 
         self.rows, self.cols = noOfRows, noOfCols
-        self.box_width, self.box_height = screen_width // self.cols, screen_height // self.rows
+        self.box_width, self.box_height = screen_width / self.cols, screen_height / self.rows
         # I WANT TO MAKE SELF.HASH INTO A 1D ARRAY
         # self.grid = np.empty((noOfRows, noOfCols))
         # self.grid.fill(set()) # would like to test speed difference
@@ -283,8 +282,12 @@ class SpatialMap:
         if new_cell == None:
             print("ERROR")
             # input((particle.position, particle.next_position, particle.velocity, particle.mass))
-
             return
+        elif not 0 <= new_cell < self.rows * self.cols:
+            print("ERROR")
+            r = 4 * self.radius
+            particle.next_position = np.clip(particle.next_position, (r, r), (screen_width-r, screen_height-r))
+            return self.insert_particle(particle)
 
 
         self.grid[new_cell].cellList.add(particle)

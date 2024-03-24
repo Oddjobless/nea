@@ -28,7 +28,7 @@ class MainWindow(QMainWindow):
         self.toolbar = QToolBar("ahshsh")
         self.addToolBar(self.toolbar)
         self.toolbar.setMovable(False)
-        # self.toolbar.hide()
+        self.toolbar.hide()
 
 
         self.setFont(QFont("Helvetica", 15))
@@ -518,8 +518,10 @@ class MainWindow(QMainWindow):
         else:
             max_level = user_settings[-1]
 
-        self.pathfinding_rows = user_settings[2]
-        self.pathfinding_cols = user_settings[3]
+        print(user_settings)
+        self.pathfinding_rows.setValue(user_settings[2])
+        self.pathfinding_cols.setValue(user_settings[3])
+        self.pathfinding_speed.setValue(user_settings[5])
 
         for index, button in enumerate(self.projectile_sim_buttons[:max_level]):
             self.enable_projectile_button(button, index)
@@ -549,13 +551,15 @@ class MainWindow(QMainWindow):
                 if button.objectName() == "free_button":
                     max_level = index + 1
             self.user_settings[-1] = max_level
-            print(max_level, self.user_settings)
+            self.user_settings[2] = int(self.pathfinding_rows.value())
+            self.user_settings[3] = int(self.pathfinding_cols.value())
+            self.user_settings[5] = int(self.pathfinding_speed.value())
 
             self.database.save_and_shut_down(self.user_settings)
 
             self.close()
         except Exception as e:
-            print(e)
+            traceback.print_exc()
 
 app = QApplication(sys.argv)
 window = MainWindow()

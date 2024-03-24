@@ -142,6 +142,7 @@ class VelocityField(SpatialMap):
 
 
         # set distance to the goal cell to 0
+        goal_coords = np.clip(np.array(goal_coords), np.zeros_like(goal_coords), np.array([self.cols, self.rows]) - 1)
         goal_index = self.coord_to_index(goal_coords)
 
         self.cell_distances[goal_index] = 0

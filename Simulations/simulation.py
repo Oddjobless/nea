@@ -113,14 +113,11 @@ def run(rows, columns, max_velocity):
 
 
 
-                
 
 
 
-        # logic goes here
-        vector_field.update()
-        for particle in vector_field.particles:
-            particle.update(screen) # updates position of particles
+
+
 
         if vector_field.enable_collision_between_particles:
             for particle in vector_field.particles:
@@ -128,16 +125,12 @@ def run(rows, columns, max_velocity):
 
         """for i in vector_field.grid:
             print(i.cellList, end="")"""
+        vector_field.update()
+        for particle in vector_field.particles:
+            particle.update(screen)  # updates position of particles
 
         # total_density = 0
         for particle in vector_field.particles:
-
-
-            # particle.calculate_density()  #
-            # particle.calculate_pressure()  #
-
-            # print(particle.get_pressure_force())
-            # total_density += particle.density
             pygame.draw.circle(screen, (123,12,90), particle.get_position(), particle.radius)
 
 
