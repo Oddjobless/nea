@@ -123,6 +123,7 @@ def run(level_no):
     pygame.display.set_caption("Projectile Motion Simulation")
     background = pygame.image.load("./ProjectileMotionLevels/images/background1.jpg")
     background = pygame.transform.scale(background, (screen_width, screen_height))
+    rows, columns = 18, 32
 
     vector_field = Container(rows, columns, level_no)
 

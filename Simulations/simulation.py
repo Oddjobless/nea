@@ -22,7 +22,8 @@ OPTION 2 LIKELY BETTER THOUGH
 
 def run():
     pygame.init()
-
+    # todo:
+    rows, columns = 18, 32
     screen = pygame.display.set_mode((screen_width, screen_height))
     pygame.display.set_caption("Pygame Boilerplate")
 
@@ -73,9 +74,7 @@ def run():
 
             click_event = pygame.mouse.get_pressed()
             if any(click_event):
-                print(":asdf", vector_field.hash_position(pygame.mouse.get_pos()))
                 pos_cell_index = vector_field.index_to_coord(vector_field.hash_position(pygame.mouse.get_pos()))
-                print(":asdf", pos_cell_index)
                 if click_event[0]: # LEFT CLICK
                     vector_field.update_velocity_field(pos_cell_index)
 
@@ -104,7 +103,6 @@ def run():
 
 
             for coord, cell, distance in zip(vector_field.get_grid_coords(), vector_field.grid, vector_field.cell_distances):
-                # print(cell.velocity)
 
                 boxCentre = np.array([coord[0] + box_width/2, coord[1] + box_height/2])
                 lineRadius = (box_width/2.2) * cell.velocity

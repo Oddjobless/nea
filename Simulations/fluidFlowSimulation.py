@@ -40,6 +40,7 @@ def run():
     pygame.init()
     screen = pygame.display.set_mode((screen_width, screen_height))
     pygame.display.set_caption("Pygame Boilerplate")
+    rows, columns = 18, 32
 
     vector_field = FluidSpatialMap(rows, columns)
 

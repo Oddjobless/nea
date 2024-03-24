@@ -29,7 +29,8 @@ def run():
     screen_width, screen_height = 1920, 1080
     screen = pygame.display.set_mode((screen_width, screen_height))
     pygame.display.set_caption("Pygame Boilerplate")
-
+    rows, columns = 18, 32
+    box_width = screen_width // columns
     vector_field = Container(rows, columns)
 
     vector_field.particles.extend([ProjectileParticle(1, 30, vector_field, wall_damping, floor_damping=1.00) for _ in range(100)])  # eccentricity

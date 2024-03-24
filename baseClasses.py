@@ -192,8 +192,8 @@ class SpatialMap:
         self.air_resistance = False
         self.drag_coefficient = 0.000000001
 
-        self.rows, self.cols = rows, columns
-        self.box_width, self.box_height = screen_width // columns, screen_height // rows
+        self.rows, self.cols = noOfRows, noOfCols
+        self.box_width, self.box_height = screen_width // self.cols, screen_height // self.rows
         # I WANT TO MAKE SELF.HASH INTO A 1D ARRAY
         # self.grid = np.empty((noOfRows, noOfCols))
         # self.grid.fill(set()) # would like to test speed difference
@@ -283,7 +283,7 @@ class SpatialMap:
         # print(particle, particle.position, particle.next_position)
         new_cell = self.hash_position(particle.next_position)
         if new_cell == None:
-            print("ERROR WHY IS THIS BROKEN")
+            print("ERROR")
             # input((particle.position, particle.next_position, particle.velocity, particle.mass))
 
             return
@@ -344,8 +344,8 @@ class SpatialMap:
 
 
 screen_width, screen_height = 1920, 1080 # 960, 960
-columns, rows = 32,18
-box_width, box_height = screen_width / columns, screen_height / rows
+# columns, rows = 32,18
+# box_width, box_height = screen_width / columns, screen_height / rows
 
 
 frame_rate = 75  # frames per second
@@ -356,6 +356,6 @@ wall_damping = 0.7  # what percentage of energy the particles keep on collision 
 # draw the grid lines on the screen
 using_poly_6 = True  #
 using_cubic_spline_kernel = True
-smoothing_radius = box_width # will integrate this into program.#
+# smoothing_radius = box_width # will integrate this into program.#
 stiffness_constant = 10
 draw_distances = True

@@ -11,7 +11,7 @@ def run():
     screen = pygame.display.set_mode((screen_width, screen_height))
     pygame.display.set_caption("Pygame Boilerplate")
 
-    vector_field = Container(rows, columns)
+    vector_field = Container(32, 18)
     frame_rate = 30
 
 
@@ -34,7 +34,6 @@ def run():
         for index, particle in enumerate(vector_field.particles):
             particle.update(screen, custom_dimensions=vector_field.dimensions, vector_field=False)
             if vector_field.air_resistance:
-                print("oh no")
                 particle.apply_air_resistance()
 
         for particle in vector_field.particles:
@@ -82,7 +81,6 @@ def run():
 
                 elif event.button == 1:
                     if vector_field.reset_button.click_check(event.pos):
-                        print("sadf")
                         vector_field.initialise_container()
 
 
@@ -204,7 +202,6 @@ class Widget:
                 return True
         else:
             if self.position[0] < pos[0] < self.position[0] + self.size[0] and self.position[1] < pos[1] < self.position[1] + self.size[1]:
-                print("Hey")
                 print(self.alt_text)
                 if self.alt_text:
                     print("Switch")
@@ -219,7 +216,7 @@ class Container(SpatialMap):
         self.selected_particle = None
         self.projected_particle_velocity_multiplier = 80
         self.dimensions = np.array([200,200,900,600]) # left, top, right, bottom
-        self.font = pygame.font.SysFont("comicsans", int(box_width // 2.6))
+        self.font = pygame.font.SysFont("comicsans", int(self.box_width // 2.6))
         self.collision_count = 0
         self.collision_spark = True
         self.draw_line_to_mouse = False
@@ -387,5 +384,4 @@ class Container(SpatialMap):
 
 
 if __name__ == "__main__":
-    print("piss")
     run()

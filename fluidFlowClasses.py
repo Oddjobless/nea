@@ -239,7 +239,7 @@ class FluidSpatialMap(SpatialMap):
         super().__init__(noOfRows, noOfCols)
         self.rest_density = 100  # A ROUGH ESTIMATE BASED ON INTIAL POS OF PARTICLES
         # USER SHOULD ADJUST AS PER NEEDED
-        self.smoothing_radius = box_width
+        self.smoothing_radius = self.box_width
         self.kernel = SmoothingKernel(self.smoothing_radius, cubic_spline=True)
         self.pressure_kernel = SmoothingKernel(self.smoothing_radius, spiky=True)
 
@@ -256,4 +256,5 @@ class FluidSpatialMap(SpatialMap):
 
 
 if __name__ == "__main__":
+    rows, cols = 18, 32
     field = SpatialMap(rows, columns)

@@ -67,7 +67,7 @@ class VelocityField(SpatialMap):
         # self.update_velocity_field(self.goal)
         self.particle_max_velocity = 500
 
-        self.cell_width = box_width
+        self.cell_width = self.box_width
         # self.particle_damping = 0.996 # dont like this
 
         self.is_adding_particles = False
@@ -104,8 +104,8 @@ class VelocityField(SpatialMap):
 
 
     def print_visited(self):
-        for i in range(rows):
-            for j in range(columns):
+        for i in range(self.rows):
+            for j in range(self.cols):
                 print(self.cell_distances[self.coord_to_index((i, j))], end=" | ")
             print()
 
@@ -238,7 +238,7 @@ class VelocityField(SpatialMap):
         pass
 
     def calculate_avoidance_force(self, position):
-        radius = 1 * box_width
+        radius = 1 * self.box_width
         avoidance_strength = 150
         steering_force = np.zeros(2)
 
@@ -253,12 +253,12 @@ class VelocityField(SpatialMap):
     def calculate_collision_avoidance(self, particle):
         force = 0
         magnitude = 1000
-        ahead = particle.position + self.normalise_vector(particle.velocity) * self.cell_width
-        box_centre_add = box_width / 2
+        ahead = particle.position + self.normalise_vector(particle.velocity) * self.box_width
+        box_centre_add = self.box_width / 2
         for coord in self.blocked_cells:
             distance_vector = ahead - (self.undo_hash_position(coord) + box_centre_add)
 
-            if self.get_magnitude(distance_vector) < self.cell_width:
+            if self.get_magnitude(distance_vector) < self.box_width:
                 return self.normalise_vector(distance_vector) * magnitude
         return 0
 
@@ -296,7 +296,7 @@ class VelocityField(SpatialMap):
 
                 if coord in self.blocked_cells:
 
-                    eachParticle.collision_event_obstacles(coord, box_width)
+                    eachParticle.collision_event_obstacles(coord, self.box_width)
 
 
 
