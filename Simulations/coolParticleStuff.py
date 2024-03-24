@@ -12,9 +12,7 @@ def run():
     pygame.display.set_caption("Pygame Boilerplate")
 
     vector_field = Container(rows, columns)
-
-    frame = 0
-    mouse_rel_refresh = frame_rate * 0.5
+    frame_rate = 30
 
 
 

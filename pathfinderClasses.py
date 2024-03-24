@@ -90,17 +90,17 @@ class VelocityField(SpatialMap):
     def display_heatmap(self, screen): # drawing a gradient depending on the distance
         max_distance = np.max(list(filter(lambda x: np.isfinite(x), self.cell_distances)))
 
-        for i in range(self.noOfRows):
-            for j in range(self.noOfCols):
+        for i in range(self.noOfCols):
+            for j in range(self.noOfRows):
                 distance = self.cell_distances[self.coord_to_index((i, j))]
                 if distance > 0:
                     if np.isinf(distance):
-                        pygame.draw.rect(screen, (255,160,255), (i * box_width, j * box_height, box_width, box_height))
+                        pygame.draw.rect(screen, (255,160,255), (i * self.box_width, j * self.box_height, self.box_width, self.box_height))
                     else:
                         norm_distance = distance / max_distance
                         colour = np.array([255 * (1 - norm_distance), 190, 255 * (norm_distance)], dtype=int)
                         pygame.draw.rect(screen, colour,
-                                         (i * box_width, j * box_height, box_width, box_height))
+                                         (i * self.box_width, j * self.box_height, self.box_width, self.box_height))
 
 
     def print_visited(self):
@@ -130,9 +130,11 @@ class VelocityField(SpatialMap):
 
     def generate_heatmap(self, goal_coords):
         self.cell_distances = np.empty_like(self.grid)
+        print(len(self.cell_distances))
         # initialise cell distances with infinity, obstacles with -1
         for cell_index, cell in enumerate(self.cell_distances):
             cell_coord = self.index_to_coord(cell_index)
+            print(cell_coord)
             if cell_coord in self.blocked_cells:
                 self.cell_distances[cell_index] = -1
             else:
@@ -151,20 +153,24 @@ class VelocityField(SpatialMap):
             current_coord = queue.pop(0)
             current_index = self.coord_to_index(current_coord)
             current_distance = self.cell_distances[current_index]
-
             neighbouring_coords = self.get_neighbouring_coords(current_coord, include_diagonal=True)
+            print(current_coord, neighbouring_coords)
             for next_coord in neighbouring_coords:
-                next_index = self.coord_to_index(next_coord)
-                if next_coord not in self.blocked_cells and self.cell_distances[next_index] == float('inf'):
-                    # update distance if  cell is not blocked and not visited
-                    change_x = abs(next_coord[0] - current_coord[0])
-                    change_y = abs(next_coord[1] - current_coord[1])
-                    if change_x == 1 and change_y == 1:
-                        path_cost = np.sqrt(2)
-                    else:  # Orthogonal movement
-                        path_cost = 1
-                    self.cell_distances[next_index] = current_distance + path_cost
-                    queue.append(next_coord)
+                try:
+                    next_index = self.coord_to_index(next_coord)
+
+                    if next_coord not in self.blocked_cells and self.cell_distances[next_index] == float('inf'):
+                        # update distance if  cell is not blocked and not visited
+                        change_x = abs(next_coord[0] - current_coord[0])
+                        change_y = abs(next_coord[1] - current_coord[1])
+                        if change_x == 1 and change_y == 1:
+                            path_cost = np.sqrt(2)
+                        else:  # Orthogonal movement
+                            path_cost = 1
+                        self.cell_distances[next_index] = current_distance + path_cost
+                        queue.append(next_coord)
+                except IndexError:
+                    pass
         """for index, bool in enumerate(visited):
             if False:
                 print("WARNING")
@@ -175,8 +181,10 @@ class VelocityField(SpatialMap):
 
 #########################################################
     def calculate_vectors(self):
+        print("Calculating vectors")
         for cell_coord in self.blocked_cells: # todo
             self.cell_distances[self.coord_to_index(cell_coord)] = -1
+
 
 
         for index, (values) in enumerate(zip(self.cell_distances, self.grid)): # added .copy() cos debugging
@@ -217,14 +225,14 @@ class VelocityField(SpatialMap):
 
             cell.velocity = self.normalise_vector(np.array([x_vector, y_vector]))
 
-
     def update_velocity_field(self, coords_of_goal):
-        if not any(np.isnan(coords_of_goal)):
-            if self.goal[0] != coords_of_goal[0] and self.goal[1] != coords_of_goal[1] and coords_of_goal not in self.blocked_cells:
-
+        if not any(np.isnan(coords_of_goal)):#
+            print(coords_of_goal, "sdaf", self.blocked_cells)
+            print(self.goal)
+            if not (self.goal[0] == coords_of_goal[0] and self.goal[1] == coords_of_goal[1]) and coords_of_goal not in self.blocked_cells:
+                self.goal = coords_of_goal
                 self.generate_heatmap(coords_of_goal)
                 self.calculate_vectors()
-
 
     def calculate_steering_force(self, particle):
         pass

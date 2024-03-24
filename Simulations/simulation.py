@@ -27,6 +27,7 @@ def run():
     pygame.display.set_caption("Pygame Boilerplate")
 
     vector_field = VelocityField(rows, columns)
+    box_width, box_height = vector_field.box_width, vector_field.box_height
 
     vector_field.particles = [Pathfinder(radius//3, radius, vector_field, wall_damping) for _ in range(noOfParticles)]
     # vector_field.calculate_rest_density(particles) # integrate into __init
@@ -72,7 +73,9 @@ def run():
 
             click_event = pygame.mouse.get_pressed()
             if any(click_event):
+                print(":asdf", vector_field.hash_position(pygame.mouse.get_pos()))
                 pos_cell_index = vector_field.index_to_coord(vector_field.hash_position(pygame.mouse.get_pos()))
+                print(":asdf", pos_cell_index)
                 if click_event[0]: # LEFT CLICK
                     vector_field.update_velocity_field(pos_cell_index)
 

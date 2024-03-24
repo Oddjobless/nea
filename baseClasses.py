@@ -191,6 +191,9 @@ class SpatialMap:
                      range(noOfRows * noOfCols)])
         self.air_resistance = False
         self.drag_coefficient = 0.000000001
+
+        self.rows, self.cols = rows, columns
+        self.box_width, self.box_height = screen_width // columns, screen_height // rows
         # I WANT TO MAKE SELF.HASH INTO A 1D ARRAY
         # self.grid = np.empty((noOfRows, noOfCols))
         # self.grid.fill(set()) # would like to test speed difference
@@ -214,12 +217,12 @@ class SpatialMap:
 
     def hash_position(self, position):
         try:
-            return self.coord_to_index((int(position[0] / box_width), int(position[1] / box_height)))
+            return self.coord_to_index((int(position[0] / self.box_width), int(position[1] / self.box_height)))
         except ValueError:
             print(position)
 
     def undo_hash_position(self, position):
-        return np.array(position) // box_width
+        return np.array(position) // self.box_width
 
 
     def coord_to_index(self, coord):
@@ -234,7 +237,7 @@ class SpatialMap:
         return (vector[0] ** 2 + vector[1] ** 2)
 
     def get_neighbouring_coords(self, coord, include_diagonal=False, include_self=False, placeholder_for_boundary=False):
-        row, col = coord
+        col, row = coord
         directions = [[1, 0], [-1, 0], [0, -1], [0, 1]] # right, left, up, down
         neighbouring_coords = []
         if include_diagonal:
@@ -244,9 +247,9 @@ class SpatialMap:
             directions.append([0, 0])
 
         for dir in directions:
-            neighbour_row, neighbour_col = row + dir[0], col + dir[1]
+            neighbour_col, neighbour_row = col + dir[0], row + dir[1]
             if 0 <= neighbour_row < self.noOfRows and 0 <= neighbour_col < self.noOfCols:
-                neighbouring_coords.append((neighbour_row, neighbour_col))
+                neighbouring_coords.append((neighbour_col, neighbour_row))
             elif placeholder_for_boundary:
                 neighbouring_coords.append(None)
         return neighbouring_coords
@@ -341,7 +344,7 @@ class SpatialMap:
 
 
 screen_width, screen_height = 1920, 1080 # 960, 960
-rows, columns = 20, 20
+columns, rows = 32,18
 box_width, box_height = screen_width / columns, screen_height / rows
 
 
