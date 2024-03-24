@@ -46,51 +46,62 @@ class MainWindow(QMainWindow):
         self.login.setLayout(self.login_layout)
 
         self.login_label = QLabel("") # todo:
-        self.login_layout.addWidget(self.login_label, 0, 1, 1,1)
+        self.login_layout.addWidget(self.login_label, 0, 2, 1, 2)
 
 
         self.email = QLineEdit()
         self.email.setPlaceholderText("Enter email address")
         self.email.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.login_layout.addWidget(self.email, 7, 0, 1, 4)
+        self.login_layout.addWidget(self.email, 7, 0, 1, 6)
 
         self.password = QLineEdit()
         self.password.setPlaceholderText("Enter password")
         self.password.setEchoMode(QLineEdit.EchoMode.Password)
         self.password.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.login_layout.addWidget(self.password, 8, 0, 1, 4)
+        self.login_layout.addWidget(self.password, 8, 0, 1, 6)
 
         self.login_button = QPushButton("Log in")
         self.login_button.released.connect(self.login_or_register)
         self.login_button.setMaximumWidth(350)
-        self.login_layout.addWidget(self.login_button, 9, 2, 1, 1)
+        self.login_layout.addWidget(self.login_button, 9, 3, 1, 1)
 
         self.toggle_login = QPushButton("Don't Have\nAn Account?")
         self.toggle_login.setMaximumWidth(350)
         self.toggle_login.released.connect(self.toggle_login_register)
-        self.login_layout.addWidget(self.toggle_login, 9, 1, 1, 1)
+        self.login_layout.addWidget(self.toggle_login, 9, 2, 1, 1)
 
         # registration widgets
 
         self.full_name = QLineEdit()
         self.full_name.setPlaceholderText("Enter your full name")
         self.full_name.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.login_layout.addWidget(self.full_name, 4, 1, 1, 2)
+        self.login_layout.addWidget(self.full_name, 4, 1, 1, 4)
         self.full_name.hide()
 
+
+
         self.date_of_birth = QDateEdit()
-        self.date_of_birth.setStyleSheet("padding-right: 100px;")
+        # self.date_of_birth.setStyleSheet("padding-right: 10px;")
         self.date_of_birth.setDisplayFormat("dd/MM/yyyy")
         # self.date_of_birth.setMaximumWidth(600)
         self.date_of_birth.setAlignment(Qt.AlignmentFlag.AlignRight)
         self.date_of_birth.setCalendarPopup(True)
         self.login_layout.addWidget(self.date_of_birth, 6, 1, 1, 2)
         self.date_of_birth.hide()
+
         self.date_of_birth_label = QLabel("Date of Birth")
-
         self.login_layout.addWidget(self.date_of_birth_label, 6, 1, 1, 1)
-
         self.date_of_birth_label.hide()
+
+        teachers = []
+        for record in self.database.get_teacher_names():
+            teachers.append(f"{record[0]}")
+        self.teacher_dropdown = QComboBox()
+        self.teacher_dropdown.addItems(teachers)
+
+        self.login_layout.addWidget(self.teacher_dropdown, 6, 3, 1, 2)
+        self.teacher_dropdown.hide()
+
 
         self.layout.addWidget(self.login)
         self.login.setStyleSheet("""
@@ -116,7 +127,7 @@ class MainWindow(QMainWindow):
                 margin: 60px;
             }
 
-            QPushButton, QDateEdit {
+            QPushButton, QDateEdit, QComboBox {
                 font-family: 'Comic Sans MS';
                 font-size: 40px;
                 padding: 10px 20px;
@@ -334,13 +345,22 @@ class MainWindow(QMainWindow):
         if user_info:
             self.user_info = user_info
             self.user_settings = self.database.get_user_settings(self.user_info[0])
+
+            if not user_info[-1]: #if user isnt a teacher:
+                self.teacher_id = self.database.get_teacher_id(self.user_info[0])
+            else:
+                self.teacher_id = None
+
+
             self.initialise_program(self.user_settings)
             self.show_toolbar()
             self.changeIndex(1)
+
             print("Logged in successfully")
             return True
         else:
-            QMessageBox.warning(self, "Login Failed, Invalid email or password.")
+            print(email, password)
+            QMessageBox.critical(self, "Verification Failed", "Invalid email or password")
             return False
 
     def login_or_register(self):
@@ -353,18 +373,37 @@ class MainWindow(QMainWindow):
                 print(e)
 
     def create_new_db_user(self):
-        conditions = [
-            len(self.password.text()) >= 6,
-            self.full_name.text() != "",
-            self.date_of_birth.date().addYears(16) <= QDate.currentDate(),
-            re.match(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", self.email.text())
-        ]
-        if all(conditions):
+        valid = True
+        detailed_text = ""
+        if len(self.password.text()) <= 6:
+            detailed_text += "Password must be at least 6 characters.\n"
+            valid = False
+        if not re.match(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", self.email.text()):
+            detailed_text += "Email is not valid.\n"
+            valid = False
+        if self.full_name.text() == "":
+            detailed_text += "Full name is not given.\n"
+            valid = False
+        if self.date_of_birth.date().addYears(16) > QDate.currentDate():
+            detailed_text += "You must be at least 16 years old.\n"
+            valid = False
+
+        if valid:
+            teacher = self.database.get_teacher_email_by_name(self.teacher_dropdown.currentText())
             self.database.create_user(self.email.text(), sha256(self.password.text().encode()).hexdigest(),
-                                      self.full_name.text(), self.date_of_birth.date().toString("yyyy-MM-dd"))
+                                      self.full_name.text(), self.date_of_birth.date().toString("yyyy-MM-dd"), teacher_email=teacher)
+            self.toggle_login_register()
             return True
         else:
-            QMessageBox.warning(self, "Registration Failed", "Please enter valid information.")
+
+
+            box = QMessageBox()
+            box.setText("Could not create a new account\nPlease check you have entered your information correctly.")
+            box.setDetailedText(detailed_text)
+            box.setIcon(QMessageBox.Icon.Warning)
+            box.setWindowTitle("Registration Failed")
+            box.exec()
+
             return False
 
     def toggle_login_register(self):
@@ -375,6 +414,7 @@ class MainWindow(QMainWindow):
             self.date_of_birth.hide()
             self.date_of_birth_label.hide()
             self.date_of_birth_label.hide()
+            self.teacher_dropdown.hide()
 
         else:
             self.toggle_login.setText("Already have\n an account?")
@@ -382,7 +422,7 @@ class MainWindow(QMainWindow):
             self.full_name.show()
             self.date_of_birth.show()
             self.date_of_birth_label.show()
-
+            self.teacher_dropdown.show()
     def show_toolbar(self):
         self.toolbar.setVisible(True)
 
@@ -436,8 +476,7 @@ class MainWindow(QMainWindow):
             self.ideal_gas_layout.setCurrentIndex((self.ideal_gas_layout.currentIndex() + 1) % len(self.slides))
 
     def initialise_program(self, user_settings):
-        admin = False  # temp
-        if admin:
+        if self.teacher_id is not None:
             max_level = len(self.projectile_sim_buttons)
         else:
             max_level = user_settings[-1]
@@ -473,8 +512,7 @@ class MainWindow(QMainWindow):
             self.user_settings[-1] = max_level
             print(max_level, self.user_settings)
 
-            self.database.save_user_settings(self.user_settings)
-            self.database.conn.close()
+            self.database.save_and_shut_down(self.user_settings)
 
             self.close()
         except Exception as e:

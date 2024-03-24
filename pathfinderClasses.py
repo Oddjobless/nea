@@ -194,15 +194,14 @@ class VelocityField(SpatialMap):
             dist_copy = distances.copy()
             for index, distance in enumerate(distances):
                 if distance == -1:
-
-                    if index == 0 and distances[1] != -1:
-                        dist_copy[0] = distances[1] + 2
+                    if index == 0 and distances[1] != -1: # todo: changed from + 2 to + 1
+                        dist_copy[0] = distances[1] + 1
                     elif index == 1 and distances[0] != -1:
-                        dist_copy[1] = distances[0] + 2
+                        dist_copy[1] = distances[0] + 1
                     if index == 2 and distances[3] != -1:
-                        dist_copy[2] = distances[3] + 2
+                        dist_copy[2] = distances[3] + 1
                     elif index == 3 and distances[2] != -1:
-                        dist_copy[3] = distances[2] + 2
+                        dist_copy[3] = distances[2] + 1
 
 
 
