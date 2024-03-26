@@ -165,7 +165,7 @@ class VelocityField(SpatialMap):
                         change_x = abs(next_coord[0] - current_coord[0])
                         change_y = abs(next_coord[1] - current_coord[1])
                         if change_x == 1 and change_y == 1:
-                            path_cost = np.sqrt(2)
+                            path_cost = np.sqrt(2) # diagonal movement
                         else:  # Orthogonal movement
                             path_cost = 1
                         self.cell_distances[next_index] = current_distance + path_cost
