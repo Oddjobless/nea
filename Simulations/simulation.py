@@ -1,6 +1,5 @@
-import pygame
 # from pathfinderClasses import *
-from pathfinderClasses import *
+from Simulations.SimulationFiles.pathfinderClasses import *
 
 
 # todo: , euclidean), , deal with fluid flow sim, back to this, kernel convolution, steering,

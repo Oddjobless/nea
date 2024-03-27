@@ -1,6 +1,4 @@
-import numpy as np
-import pygame
-from baseClasses import *
+from Simulations.SimulationFiles.baseClasses import *
 # ported from projectile sim. could make a ideal gas sim, with adjustable volume and more particles and higher temperature
 
 

@@ -1,4 +1,4 @@
-from baseClasses import *
+from Simulations.SimulationFiles.baseClasses import *
 
 
 
@@ -11,14 +11,14 @@ def draw_mode(level_no):
     screen = pygame.display.set_mode((screen_width, screen_height))
     obstacles = []
     level_name = ""
-    goal_background_image = pygame.image.load("./ProjectileMotionLevels/images/images.jpg")
+    goal_background_image = pygame.image.load("./SimulationFiles/Assets/images/images.jpg")
     goal_background_image.convert_alpha()
 
-    # wall_image = pygame.image.load("./ProjectileMotionLevels/images/wall.png")
+    # wall_image = pygame.image.load("./SimulationFiles/Assets/images/wall.png")
     print("Wall loaded")
 
     pygame.display.set_caption("Create Level")
-    background = pygame.image.load("./ProjectileMotionLevels/images/background1.jpg")
+    background = pygame.image.load("./SimulationFiles/Assets/images/background1.jpg")
     background = pygame.transform.scale(background, (screen_width, screen_height))
 
     rect_origin = None
@@ -60,7 +60,7 @@ def draw_mode(level_no):
 
                 elif event.key == pygame.K_s:
                     if obstacles:
-                        with open(("./ProjectileMotionLevels/lvl" + str(level_no)), "w") as file:
+                        with open(("./SimulationFiles/Assets/ProjectileLevels/lvl" + str(level_no)), "w") as file:
                             file.write(f"{obstacles[0].position[0]},{obstacles[0].position[1]},{obstacles[0].width},{obstacles[0].height}")
                             for obstacle in obstacles[1:]:
                                 file.write(f"\n{obstacle.position[0]},{obstacle.position[1]},{obstacle.width},{obstacle.height},{int(obstacle.is_platform)}")
@@ -121,7 +121,7 @@ def run(level_no):
     display_width, display_height = 1920, 1000
     screen = pygame.display.set_mode((screen_width, screen_height))
     pygame.display.set_caption("Projectile Motion Simulation")
-    background = pygame.image.load("./ProjectileMotionLevels/images/background1.jpg")
+    background = pygame.image.load("./SimulationFiles/Assets/images/background1.jpg")
     background = pygame.transform.scale(background, (screen_width, screen_height))
     rows, columns = 18, 32
 
@@ -377,9 +377,9 @@ class Container(SpatialMap):
         self.goal = None
 
         self.obstacles = []
-        if not self.initialise_level("./ProjectileMotionLevels/lvl" + str(level_no)):
+        if not self.initialise_level("./SimulationFiles/Assets/ProjectileLevels/lvl" + str(level_no)):
             self.obstacles = []
-            self.initialise_level("./ProjectileMotionLevels/lvl1") #load level one
+            self.initialise_level("./SimulationFiles/Assets/ProjectileLevels/lvl1") #load level one
         else:
             print("Level loaded successfully")
 
@@ -401,8 +401,8 @@ class Container(SpatialMap):
             screen.blit(splat, particle.position - (splat.get_width() // 2, splat.get_height() // 2))
 
     def initialise_level(self, file_name):
-        # goal_background_image = pygame.image.load("./ProjectileMotionLevels/images/billboard.png")
-        goal_background_image = pygame.image.load("./ProjectileMotionLevels/images/images.jpg")
+        # goal_background_image = pygame.image.load("./SimulationFiles/Assets/images/billboard.png")
+        goal_background_image = pygame.image.load("./SimulationFiles/Assets/images/images.jpg")
         ball_box_image = None
         goal_background_image.convert_alpha()
 
@@ -426,13 +426,13 @@ class Container(SpatialMap):
         self.collision_splatters = []
         self.splattered_particles = []
         for splat in splatters:
-            img = pygame.image.load("./ProjectileMotionLevels/images/" + splat)
+            img = pygame.image.load("./SimulationFiles/Assets/images/" + splat)
 
             img.convert_alpha()
             img = pygame.transform.scale(img, (splat_width, splat_width * img.get_height() // img.get_width()))
             self.collision_splatters.append(img)
 
-        wall_image = pygame.image.load("./ProjectileMotionLevels/images/wall.png")
+        wall_image = pygame.image.load("./SimulationFiles/Assets/images/wall.png")
         try:
             with open(file_name, "r") as file:
                 goal = file.readline()
