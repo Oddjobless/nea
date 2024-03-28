@@ -4,7 +4,7 @@ import traceback
 from PyQt6.QtWidgets import *
 from PyQt6.QtGui import *
 from PyQt6.QtCore import *
-from Simulations import simulation, ProjectileMoitionSimulation, test, coolParticleStuff, fluidFlowSimulation
+from Simulations import pathfinderSimulation, projectileMotionSimulation, test, idealGasLawSimulation, fluidFlowSimulation
 from database import Database
 from hashlib import sha256
 import re
@@ -463,8 +463,8 @@ class MainWindow(QMainWindow):
     def run_projectile_motion_sim(self, level_no):
         try:
             if self.teacher_id is None:
-                ProjectileMoitionSimulation.draw_mode(level_no)
-            score = ProjectileMoitionSimulation.run(level_no)
+                projectileMotionSimulation.draw_mode(level_no)
+            score = projectileMotionSimulation.run(level_no)
             if score:
                 if score > 100:
                     print("You win!")
@@ -482,7 +482,7 @@ class MainWindow(QMainWindow):
             if row > col:
                 row, col = col, row
             speed = self.pathfinding_speed.value()
-            simulation.run(row, col, speed)
+            pathfinderSimulation.run(row, col, speed)
         except Exception as e:
             traceback.print_exc()
 
@@ -496,7 +496,7 @@ class MainWindow(QMainWindow):
 
     def particleSim(self):
         try:
-            coolParticleStuff.run()
+            idealGasLawSimulation.run()
         except Exception as e:
             print(e)
 
