@@ -280,19 +280,16 @@ class SpatialMap:
         # print(particle, particle.position, particle.next_position)
         new_cell = self.hash_position(particle.next_position)
         if new_cell == None:
-            print("ERROR")
-            # input((particle.position, particle.next_position, particle.velocity, particle.mass))
+            print("Error in insert_particle method of Particle") # logging purposes
             return
-        elif not 0 <= new_cell < self.rows * self.cols:
-            print("ERROR")
-            r = 4 * self.radius
+        elif not 0 <= new_cell < self.rows * self.cols: # particle is outside screen.
+            # resolving particle position
+            r = self.radius
             particle.next_position = np.clip(particle.next_position, (r, r), (screen_width-r, screen_height-r))
-            return self.insert_particle(particle)
-
+            return self.insert_particle(particle) # return new instance
 
         self.grid[new_cell].cellList.add(particle)
 
-        # np.append(self.grid[new_cell[0], new_cell[1]], particle)
 
 
     def get_magnitude(self, vector):
