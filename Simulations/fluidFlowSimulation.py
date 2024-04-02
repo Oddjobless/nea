@@ -47,12 +47,13 @@ def run():
         # logic goes here
         for particle in particles:
             particle.update_density()
-            particle.update_pressure()
+
 
             # print(particle.position)
 
 
         for particle in particles:
+            particle.update_pressure()
             particle.calculate_pressure_force()
             particle.update(screen)
             pygame.draw.circle(screen, (123, 12, 90), particle.position, radius)
@@ -197,9 +198,7 @@ class FluidParticle(Particle):
             return np.array([0,0])
         pressure = particle.pressure / (particle.density ** 2)
         neighbour_pressure = neighbour_particle.pressure / (neighbour_particle.density ** 2)
-
         smoothing_kernel_gradient = self.spatial_map.kernel.cubic_spline_kernel_gradient(dist)
-
         pressure_force = -neighbour_particle.mass * 0.5 * (
                 pressure + neighbour_pressure) * smoothing_kernel_gradient * direction_vector
         return pressure_force
@@ -279,8 +278,8 @@ class SmoothingKernel:
             return 0
 
     def poly_6_kernel(self, particle_radius):
-        if particle_radius <= self.h:
-            return self.normalisation_constant * ((self.h ** 2 - particle_radius ** 2) ** 1)  # ** 3
+        if particle_radius <= self.h: # if particle is within smoothing radius
+            return self.normalisation_constant * ((self.h ** 2 - particle_radius ** 2) ** 3)
         return 0
 
     def gaussian_kernel(self, particle_radius):

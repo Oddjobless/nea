@@ -28,7 +28,6 @@ class Particle:
     def collision_event_obstacles(self):
         for obstacle in self.vector_field.obstacles:
             if self.check_obstacle_collision(obstacle.position, obstacle.width, obstacle.height):
-
                 return self.resolve_obstacle_collision(obstacle)
     def collision_event(self, save_collision=True):
         for particle in self.vector_field.particles:
@@ -58,21 +57,23 @@ class Particle:
         self.velocity = tangential_vel_i + normal_vel_i
         next_particle.velocity = tangential_vel_j + normal_vel_j
     def resolve_static_collision(self, next_particle):
+        # finding magnitude of vector
         distance = self.vector_field.get_magnitude(next_particle.next_position - self.next_position)
-
         overlap = 0.5 * (distance - (self.radius + next_particle.radius))
-        self.next_position -= overlap * (self.next_position - next_particle.next_position) / distance
 
+        # finding direction and applying final vector
+        self.next_position -= overlap * (self.next_position - next_particle.next_position) / distance
         next_particle.next_position += overlap * (self.next_position - next_particle.next_position) / distance
+
         if np.isclose(self.velocity, np.zeros_like(self.velocity), atol=1).all():
             self.velocity = np.zeros_like(self.velocity)
 
     def resolve_obstacle_collision(self, obstacle):
-        # calculate the displacement vector from the rectangle to the circle
+        # calculating displacement vector from the rectangle to the circle
         displacement = self.position - np.array([max(obstacle.position[0], min(self.position[0], obstacle.position[0] + obstacle.width)),
-                                                      max(obstacle.position[1], min(self.position[1], obstacle.position[1] + obstacle.height))])
+                       max(obstacle.position[1], min(self.position[1], obstacle.position[1] + obstacle.height))])
 
-        # penetration depth for x, y directions
+        # needed to determine how ball got into the rectangle
         penetration_x = max(0, self.radius - abs(displacement[0]))
         penetration_y = max(0, self.radius - abs(displacement[1]))
 
@@ -80,15 +81,17 @@ class Particle:
         direction_x = 1 if displacement[0] > 0 else -1
         direction_y = 1 if displacement[1] > 0 else -1
 
-
+        # if platform, have greater damping
         if obstacle.is_platform:
             damping = 0.4
         else:
             damping = self.damping
 
-
+        # determines if ball moves horizontally or vertically
         if penetration_x < penetration_y:
+            # resolving position
             self.next_position[0] += penetration_x * direction_x
+            # reversing velocity
             self.velocity[0] *= -1 * damping
             if obstacle.is_platform:
                 self.velocity[1] *= damping

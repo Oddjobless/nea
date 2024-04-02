@@ -275,7 +275,6 @@ class VelocityField(SpatialMap):
 
     def generate_heatmap(self, goal_coords):
         self.cell_distances = np.empty_like(self.grid)
-        print(len(self.cell_distances))
         # initialise cell distances with infinity, obstacles with -1
         for cell_index, cell in enumerate(self.cell_distances):
             cell_coord = self.index_to_coord(cell_index)
