@@ -85,7 +85,7 @@ class Database:
                 pathfinder_rows INT DEFAULT 18,
                 pathfinder_cols INT DEFAULT 32,
                 wall_collision_damping FLOAT DEFAULT 0.8,
-                pathfinding_velocity INT DEFAULT 500,
+                pathfinding_velocity INT DEFAULT 30,
                 projectile_max_level INT DEFAULT 1,
                 FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
             );

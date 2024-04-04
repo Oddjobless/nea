@@ -1,6 +1,7 @@
 import sys
 import traceback
 
+import numpy as np
 from PyQt6.QtWidgets import *
 from PyQt6.QtGui import *
 from PyQt6.QtCore import *
@@ -256,20 +257,20 @@ class MainWindow(QMainWindow):
 
         """)
 
-        self.pathfinding_rows = QSpinBox()
-        self.pathfinding_rows.setRange(4, 50)
+        self.pathfinding_rows = QSpinBox() # no of rows in simulation
+        self.pathfinding_rows.setRange(4, 100)
         self.pathfinding_layout.addWidget(self.pathfinding_rows, 0, 0, 1, 1)
-        self.pathfinding_rows.setValue(self.user_settings[2])
+        self.pathfinding_rows.setValue(self.user_settings[2]) # adding saved initial value
 
-        self.pathfinding_cols = QSpinBox()
-        self.pathfinding_cols.setRange(4, 50)
+        self.pathfinding_cols = QSpinBox() # no of cols
+        self.pathfinding_cols.setRange(4, 100)
         self.pathfinding_layout.addWidget(self.pathfinding_cols, 0, 2, 1, 1)
         self.pathfinding_cols.setValue(self.user_settings[3])
 
-        self.pathfinding_speed = QSlider()
+        self.pathfinding_speed = QSlider()  # desired velocity magnitude for steering behaviour
         self.pathfinding_speed.setOrientation(Qt.Orientation.Horizontal)
-        self.pathfinding_speed.setRange(100, 1100)
-        self.pathfinding_speed.setValue(self.user_settings[5])
+        self.pathfinding_speed.setRange(1, 100)
+        self.pathfinding_speed.setValue(self.user_settings[5]) # adding saved initial value
         self.pathfinding_speed.setTickPosition(QSlider.TickPosition.TicksBothSides)
         self.pathfinding_layout.addWidget(self.pathfinding_speed, 2, 1, 1, 3)
 
@@ -281,7 +282,7 @@ class MainWindow(QMainWindow):
 
         self.pathfinding_run = QPushButton("Run")
         self.pathfinding_layout.addWidget(self.pathfinding_run, 5, 2, 1, 1)
-        self.pathfinding_run.released.connect(self.transposition)
+        self.pathfinding_run.released.connect(self.run_pathfinder)
 
 
 
@@ -419,15 +420,13 @@ class MainWindow(QMainWindow):
             detailed_text += "You must be at least 16 years old.\n"
             valid = False
 
-        if valid:
+        if valid: # send to database to create user
             teacher = self.database.get_teacher_email_by_name(self.teacher_dropdown.currentText())
             self.database.create_user(self.email.text(), sha256(self.password.text().encode()).hexdigest(),
                                       self.full_name.text(), self.date_of_birth.date().toString("yyyy-MM-dd"), teacher_email=teacher)
-            self.toggle_login_register()
+            self.toggle_login_register() # prompt user to login
             return True
         else:
-
-
             box = QMessageBox()
             box.setText("Could not create a new account\nPlease check you have entered your information correctly.")
             box.setDetailedText(detailed_text)
@@ -475,16 +474,43 @@ class MainWindow(QMainWindow):
             print(e)
 
 
-    def transposition(self):
+    def run_pathfinder(self):
         try:
             row = self.pathfinding_rows.value()
             col = self.pathfinding_cols.value()
-            if row > col:
-                row, col = col, row
-            speed = self.pathfinding_speed.value()
+            if row / col != self.height() / self.width(): # if rectangular cells
+                print(row/col, self.height() / self.width())
+                warning_box = QMessageBox()
+                warning_box.setWindowTitle("Rectangular cells")
+                warning_box.setIcon(QMessageBox.Icon.Question)
+
+                warning_box.addButton(QPushButton("Apply square grid"), QMessageBox.ButtonRole.ApplyRole)
+                warning_box.setStandardButtons(QMessageBox.StandardButton.No | QMessageBox.StandardButton.Yes)
+                warning_box.setText("With the current grid configuration, the cells in the grid will NOT be square.\nWould you like to continue anyway?")
+                user_input = warning_box.exec() # either continue
+                if user_input == QMessageBox.StandardButton.No: # dont run sim
+                    return
+                if user_input == QMessageBox.StandardButton.Apply: # apply correct ratio and don't run sim
+                    self.correct_grid_ratio()
+                    return
+            speed = self.pathfinding_speed.value() * 20
             pathfinderSimulation.run(row, col, speed)
+
         except Exception as e:
             traceback.print_exc()
+
+    def correct_grid_ratio(self):
+        width, height = self.width(), self.height()
+        row_field, col_field = self.pathfinding_rows, self.pathfinding_cols
+        gcd = np.gcd(width, height)
+
+        cols, rows = width // gcd, height // gcd
+        print(rows, cols)
+        while rows < 15 or cols < 15:
+            rows *= 2
+            cols *= 2
+        self.pathfinding_rows.setValue(rows)
+        self.pathfinding_cols.setValue(cols)
 
 
     def run_suspension_sim(self):
