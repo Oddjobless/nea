@@ -232,14 +232,14 @@ class VelocityField(SpatialMap):
             self.blocked_cells.add((noOfRows-1,i))"""
 
 
-    def display_heatmap(self, screen): # drawing a gradient depending on the distance
+    def display_heatmap(self, screen): # drawing a colour gradient depending on the distance
         max_distance = np.max(list(filter(lambda x: np.isfinite(x), self.cell_distances)))
 
         for i in range(self.cols):
             for j in range(self.rows):
                 distance = self.cell_distances[self.coord_to_index((i, j))]
                 if distance > 0:
-                    if np.isinf(distance):
+                    if np.isinf(distance): # give inf cell a specific colour
                         pygame.draw.rect(screen, (255,160,255), (i * self.box_width, j * self.box_height, self.box_width, self.box_height))
                     else:
                         norm_distance = distance / max_distance
@@ -309,7 +309,7 @@ class VelocityField(SpatialMap):
                         change_x = abs(next_coord[0] - current_coord[0])
                         change_y = abs(next_coord[1] - current_coord[1])
                         if change_x == 1 and change_y == 1:
-                            path_cost = np.sqrt(2) # diagonal movement
+                            path_cost = 1.41421 # np.sqrt(2) to 5 d.p: diagonal movement
                         else:  # Orthogonal movement
                             path_cost = 1
                         self.cell_distances[next_index] = current_distance + path_cost

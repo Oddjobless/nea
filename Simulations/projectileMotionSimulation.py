@@ -25,7 +25,6 @@ def draw_mode(level_no):
     rect_params = None
     mouse_hold = False
 
-
     clock = pygame.time.Clock()
 
     while True:
@@ -59,13 +58,13 @@ def draw_mode(level_no):
                     return
 
                 elif event.key == pygame.K_s:
-                    if obstacles:
+                    if obstacles: # checks if the user has added a goal
                         with open(("./Simulations/SimulationFiles/Assets/ProjectileLevels/lvl" + str(level_no)), "w") as file:
                             file.write(f"{obstacles[0].position[0]},{obstacles[0].position[1]},{obstacles[0].width},{obstacles[0].height}")
                             for obstacle in obstacles[1:]:
                                 file.write(f"\n{obstacle.position[0]},{obstacle.position[1]},{obstacle.width},{obstacle.height},{int(obstacle.is_platform)}")
                         print("Level saved")
-                    else:
+                    else: # target not drawn
                         print("Add a goal to save the level")
 
             if event.type == pygame.MOUSEBUTTONDOWN:
@@ -401,15 +400,11 @@ class Container(SpatialMap):
             screen.blit(splat, particle.position - (splat.get_width() // 2, splat.get_height() // 2))
 
     def initialise_level(self, file_name):
-        # goal_background_image = pygame.image.load("./Simulations/SimulationFiles/Assets/images/billboard.png")
         goal_background_image = pygame.image.load("./Simulations/SimulationFiles/Assets/images/images.jpg")
         ball_box_image = None
         goal_background_image.convert_alpha()
 
-        # box_dimensions = [((100, 1055), 160, 25),
-        #        ((100, 980), 30, 100),
-        #        ((230, 980), 30, 100)]
-
+        # creating ball box
         box_dimensions = [
             ((100,1055),150,25),
             ((100,970),25,110),
@@ -419,39 +414,34 @@ class Container(SpatialMap):
             plank.is_platform = True
             self.obstacles.append(plank)
 
-
-
         splatters = ["splat1.png", "splat2.png", "splat3.png"]
         splat_width = 100
         self.collision_splatters = []
         self.splattered_particles = []
         for splat in splatters:
             img = pygame.image.load("./Simulations/SimulationFiles/Assets/images/" + splat)
-
             img.convert_alpha()
             img = pygame.transform.scale(img, (splat_width, splat_width * img.get_height() // img.get_width()))
             self.collision_splatters.append(img)
 
         wall_image = pygame.image.load("./Simulations/SimulationFiles/Assets/images/wall.png")
-        try:
+        try: # parsing level
             with open(file_name, "r") as file:
                 goal = file.readline()
-                self.initialise_goal(goal.split(","))
+                self.initialise_goal(goal.split(",")) # handling goal separately
                 for line in file:
-
-
                     line = line.split(",")
                     object = Obstacle((int(line[0]), int(line[1])), int(line[2]), int(line[3]), wall_image)
                     self.obstacles.append(object)
                     if int(line[4]):
                         object.is_platform = True
-                        object.colour = (37,41,74)
+                        object.colour = (37,41,74) # temporary
             return True
 
         except FileNotFoundError:
             print("File not found")
             print(file_name)
-            return False
+            return False # and run level 1
 
         except Exception as e:
             print(e)
@@ -461,7 +451,7 @@ class Container(SpatialMap):
         # self.goal = Particle(0, int(goal[0]), self, 0)
         self.goal = Obstacle((int(goal[0]), int(goal[1])),int(goal[2]), int(goal[2]), image, goal=True)
         # self.goal.position = np.array([int(goal[1]), int(goal[2])])
-        self.goal.colour = (255,105,180) # hot pink color
+        self.goal.colour = (255,105,180) # pink color
 
 
 

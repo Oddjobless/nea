@@ -406,7 +406,7 @@ class MainWindow(QMainWindow):
     def create_new_db_user(self):
         valid = True
         detailed_text = ""
-        if len(self.password.text()) <= 6:
+        if len(self.password.text()) < 6:
             detailed_text += "Password must be at least 6 characters.\n"
             valid = False
         if not re.match(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", self.email.text()):
