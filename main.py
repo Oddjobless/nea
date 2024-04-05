@@ -224,7 +224,22 @@ class MainWindow(QMainWindow):
         self.projectile_instruction = QLabel()
         self.projectile_instruction.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.projectile_instruction.setWordWrap(True)
-        self.projectile_instruction.setText("""Welcome to the Projectile Motion Simulation! The aim of the game is to fire the ball into the target. The closer to the centre you are, the more score! Use suvat equations to calculate the required velocity. Get 100 score to unlock the next level. Controls: LMB to move the ball RMB to project the ball t: show parameters table v: toggle velocity view q: quit""")
+        self.projectile_instruction.setText("""Welcome to the
+Projectile Motion Simulation!
+The aim of the game is to fire the
+ball into the target. The closer
+to the centre you are, the more
+score! Use suvat equations to
+calculate the required velocity.
+Get 100 score to unlock the
+next level.
+
+Controls:
+LMB to move the ball
+RMB to project the ball
+t: show parameters table
+v: toggle velocity view
+q: quit""")
         self.projectile_widget_layout.addWidget(self.projectile_instruction, 0, 0, 2, 1)
 
         self.layout.addWidget(self.projectile_widget)
