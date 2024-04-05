@@ -415,7 +415,7 @@ class Container(SpatialMap):
         self.moving_particle = particle
         self.initial_position = particle.position
         self.initial_velocity = self.get_magnitude(particle.velocity)
-        self.initial_angle = np.arctan2((self.initial_velocity[1], self.initial_velocity[0]) * -180 / np.pi)
+        self.initial_angle = np.arctan2(particle.velocity[1], particle.velocity[0]) * -180 / np.pi
         self.current_position = particle.position
 
     def stop_timer(self):
@@ -425,7 +425,7 @@ class Container(SpatialMap):
             print(self.initial_time)
             self.current_time = time.time() - self.initial_time
             self.final_velocity = self.get_magnitude(self.moving_particle.velocity)
-            self.final_angle = np.arctan2((self.final_velocity[1], self.final_velocity[0]) * -180 / np.pi)
+            self.final_angle = np.arctan2(self.moving_particle.velocity[1], self.moving_particle.velocity[0]) * -180 / np.pi
             self.current_position = self.moving_particle.position
         
         
@@ -433,24 +433,23 @@ class Container(SpatialMap):
     def draw_kinematic_info(self, screen):
         if self.show_kinematic_info:
             pygame.draw.rect(screen, (230,230,230,0.2), (1620, 100, 300, 200))
-            font = pygame.font.SysFont("Arial", 20)
+            font = pygame.font.SysFont("Arial", 15)
             labels = ["Initial Speed",
                       "Vertical Displacement",
                       "Horizontal Displacement",
                       "Current Speed",
                       "Time"]
             values = [
-                f"{round(self.initial_velocity)} m/s",
-                f"{round(self.initial_position[1] - self.current_position[1])} m",
-                f"{round(self.current_position[0] - self.initial_position[0])} m",
+                f"{round(self.initial_velocity):>8} m/s",
+                f"{round(self.initial_position[1] - self.current_position[1]):>8} m",
+                f"{str(round(self.current_position[0] - self.initial_position[0])):>8} m",
 
-                f"{round(self.final_velocity)} m/s",
-                f"{self.current_time:.2f} sec"]
+                f"{round(self.final_velocity):>8} m/s",
+                f"{self.current_time:>8.2f} sec"]
             units = ["m/s", "m", "m", "m/s", "seconds"]
-            for index, text in enumerate(zip(labels, values, units)):
+            for index, text in enumerate(zip(labels, values)):
                 screen.blit(font.render(text[0], True, (50,50,50)), (1720, 60 * (index + 1)))
-                screen.blit(font.render(text[1], True, (50, 50, 50)), (1720, 15 + 60 * (index + 1)))
-                screen.blit(font.render(text[2], True, (50, 50, 50)), (1800, 15 + 60 * (index + 1)))
+                screen.blit(font.render(text[1], True, (50, 50, 50)), (1720, 20 + 60 * (index + 1)))
 
 
 
