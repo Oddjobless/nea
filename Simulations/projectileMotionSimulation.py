@@ -211,9 +211,10 @@ def run(level_no):
                 if event.key == pygame.K_q:
                     pygame.quit()
                     return vector_field.score
-                if event.key == pygame.K_v:
+                elif event.key == pygame.K_v:
                     vector_field.toggle_velocity_display = not vector_field.toggle_velocity_display
-
+                elif event.key == pygame.K_t:
+                    vector_field.show_kinematic_info = not vector_field.show_kinematic_info
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 particle_clicked = vector_field.selected_particle
@@ -432,24 +433,22 @@ class Container(SpatialMap):
         
     def draw_kinematic_info(self, screen):
         if self.show_kinematic_info:
-            pygame.draw.rect(screen, (230,230,230,0.2), (1620, 100, 300, 200))
-            font = pygame.font.SysFont("Arial", 15)
+            pygame.draw.rect(screen, (230,230,230,127), (1620, 65, 300, 330))
+            font = pygame.font.SysFont("Arial", 25)
             labels = ["Initial Speed",
                       "Vertical Displacement",
                       "Horizontal Displacement",
                       "Current Speed",
                       "Time"]
             values = [
-                f"{round(self.initial_velocity):>8} m/s",
+                f"{round(self.initial_velocity):>8} m/s at {round(self.initial_angle):>3}\u00B0",
                 f"{round(self.initial_position[1] - self.current_position[1]):>8} m",
-                f"{str(round(self.current_position[0] - self.initial_position[0])):>8} m",
-
-                f"{round(self.final_velocity):>8} m/s",
-                f"{self.current_time:>8.2f} sec"]
-            units = ["m/s", "m", "m", "m/s", "seconds"]
+                f"{round(self.current_position[0] - self.initial_position[0]):>8} m",
+                f"{round(self.final_velocity):>8} m/s at {round(self.final_angle):>3}\u00B0",
+                f"{self.current_time:>10.2f} seconds"]
             for index, text in enumerate(zip(labels, values)):
-                screen.blit(font.render(text[0], True, (50,50,50)), (1720, 60 * (index + 1)))
-                screen.blit(font.render(text[1], True, (50, 50, 50)), (1720, 20 + 60 * (index + 1)))
+                screen.blit(font.render(text[0], True, (50,50,50)), (1640, 20 + 60 * (index + 1)))
+                screen.blit(font.render(text[1], True, (50, 50, 50)), (1640, 45 + 60 * (index + 1)))
 
 
 

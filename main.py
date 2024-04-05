@@ -181,6 +181,11 @@ class MainWindow(QMainWindow):
                 border: 2px dashed '#0000ff';
                 margin: 30;
             }
+            
+            QLabel {
+                font-family: 'Comic Sans MS';
+                font-size: 30px;
+            }
 
             QPushButton {
                 font-family: 'Comic Sans MS';
@@ -208,9 +213,19 @@ class MainWindow(QMainWindow):
             button.setCheckable(False)
             button.setCursor(QCursor(Qt.CursorShape.ForbiddenCursor))
             self.projectile_widget_layout.addWidget(button, self.projectile_sim_buttons.index(button) // 3,
-                                                    self.projectile_sim_buttons.index(button) % 3)
-
+                                                    (self.projectile_sim_buttons.index(button) % 3 + 1))
             button.setMaximumWidth(200)
+        weeklyButton = QPushButton("Level of\nthe Week")
+        weeklyButton.setMaximumWidth(500)
+        self.enable_projectile_button(weeklyButton)
+        weeklyButton.released.connect(lambda: self.run_projectile_motion_sim("Weekly"))
+        self.projectile_widget_layout.addWidget(weeklyButton, 2, 0)
+
+        self.projectile_instruction = QLabel()
+        self.projectile_instruction.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.projectile_instruction.setWordWrap(True)
+        self.projectile_instruction.setText("""Welcome to the Projectile Motion Simulation! The aim of the game is to fire the ball into the target. The closer to the centre you are, the more score! Use suvat equations to calculate the required velocity. Get 100 score to unlock the next level. Controls: LMB to move the ball RMB to project the ball t: show parameters table v: toggle velocity view q: quit""")
+        self.projectile_widget_layout.addWidget(self.projectile_instruction, 0, 0, 2, 1)
 
         self.layout.addWidget(self.projectile_widget)
         ##################################################
@@ -551,9 +566,10 @@ class MainWindow(QMainWindow):
         for index, button in enumerate(self.projectile_sim_buttons[:max_level]):
             self.enable_projectile_button(button, index)
 
-    def enable_projectile_button(self, button, index):
+    def enable_projectile_button(self, button, index=None):
         button.setCheckable(True)
-        button.released.connect(lambda index=index: self.run_projectile_motion_sim(index + 1))
+        if index:
+            button.released.connect(lambda index=index: self.run_projectile_motion_sim(index + 1))
         button.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         button.setObjectName("free_button")
         button.setStyleSheet("""QPushButton:hover{
