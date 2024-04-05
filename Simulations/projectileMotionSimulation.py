@@ -1,3 +1,6 @@
+import numpy as np
+import pygame.draw
+import time
 from Simulations.SimulationFiles.baseClasses import *
 
 
@@ -154,7 +157,9 @@ def run(level_no):
         vector_field.goal.draw(screen)
 
         for particle in vector_field.particles:
-            particle.collision_event_obstacles()
+            if particle.collision_event_obstacles() and vector_field.moving_particle is particle:
+                vector_field.initial_time = None
+
             particle.collision_event()
             particle.collision_event_goal(screen)
             particle.draw(screen)
@@ -166,7 +171,11 @@ def run(level_no):
         for obstacle in vector_field.obstacles:
             obstacle.draw(screen)
         vector_field.draw_splatters(screen)
-
+        
+        # kinematic info
+        vector_field.update_kinematic_info()
+        vector_field.draw_kinematic_info(screen)
+        # 
         completed = set()
         for ball_i, ball_j in vector_field.colliding_balls_pairs: # loop over all collision
             completed.add(ball_i)
@@ -178,20 +187,19 @@ def run(level_no):
         if vector_field.draw_line_to_mouse and vector_field.selected_particle != None:
             particle = vector_field.particles[vector_field.selected_particle]
             pygame.draw.line(screen, (255, 0, 0), particle.position, pygame.mouse.get_pos())
-            projected_velocity = (np.array(pygame.mouse.get_pos()) - particle.position) * vector_field.projected_particle_velocity_multiplier / vector_field.px_to_metres_factor
+            projected_velocity = (np.array(pygame.mouse.get_pos()) - particle.position) * vector_field.projected_particle_velocity_multiplier
             if vector_field.toggle_velocity_display:
                 display_params = f"{int(projected_velocity[0])}i\u0302 + {int(-projected_velocity[1])}j\u0302"
             else:
                 display_params = f"{vector_field.get_magnitude(projected_velocity).astype(int)} m/s | \u03B1 = {int(np.arctan2(projected_velocity[1], projected_velocity[0]) * -180 / np.pi)}\u00B0"
             text = font.render(display_params, True, (255, 255, 255))
             screen.blit(text, particle.get_position() - np.array([80, 80]))
-            print(vector_field.g / vector_field.px_to_metres_factor)
 
         else:
             vector_field.draw_line_to_mouse = False
 
         mouse_pos = pygame.mouse.get_pos()
-        coordinates = np.array([mouse_pos[0], screen_height - mouse_pos[1]]) / vector_field.px_to_metres_factor
+        coordinates = np.array([mouse_pos[0], screen_height - mouse_pos[1]])
         text = font_30.render(f"({int(coordinates[0])}, {int(coordinates[1])})", True, (255, 255, 255))
         screen.blit(text, (screen_width - 180, 10))
 
@@ -217,12 +225,16 @@ def run(level_no):
                 elif event.button == 3 and particle_clicked == None:
                     vector_field.project_particle(event.pos)
 
+
             elif event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 1 and vector_field.selected_particle != None:
                     vector_field.drop_particle()
 
                 elif event.button == 3 and vector_field.selected_particle != None:
+                    particle = vector_field.particles[vector_field.selected_particle]
                     vector_field.release_projected_particle(event.pos)
+                    vector_field.start_timer(particle)
+
 
             if vector_field.selected_particle != None and not vector_field.draw_line_to_mouse:
                 vector_field.move_selected_particle(event.pos)
@@ -274,6 +286,7 @@ class ProjectileParticle(Particle):
     def collision_event_goal(self, screen):
         goal = self.vector_field.goal
         if self.entirely_in_obstacle_check2(goal.position, goal.width):
+            self.vector_field.initial_time = None
             self.velocity = self.velocity * (1 - self.vector_field.penetration_factor)
             self.acceleration *= 0
             self.hit_goal = True
@@ -319,7 +332,7 @@ class ProjectileParticle(Particle):
 
         # print(self.vector_field.grid)
         if self.vector_field.particles.index(self) != self.vector_field.selected_particle:
-            self.velocity = self.velocity + self.acceleration * self.mass
+            self.velocity = self.velocity + self.acceleration
 
 
 
@@ -365,7 +378,7 @@ class Container(SpatialMap):
 
         self.drag_coefficient = 0.000000001
 
-        self.g = 9.8
+        
 
         self.px_to_metres_factor = 2
         self.penetration_factor = 0.1
@@ -376,11 +389,70 @@ class Container(SpatialMap):
         self.goal = None
 
         self.obstacles = []
+
+
+        self.g = 9.8
+        self.moving_particle = None
+        self.current_time = 0
+        self.initial_time = None
+        self.initial_velocity = 0
+        self.initial_angle = 0
+        self.final_velocity = 0
+        self.final_angle = 0
+        self.initial_position = np.zeros(2)
+        self.current_position = np.zeros(2)
+        self.show_kinematic_info = True
+
         if not self.initialise_level("./Simulations/SimulationFiles/Assets/ProjectileLevels/lvl" + str(level_no)):
             self.obstacles = []
             self.initialise_level("./Simulations/SimulationFiles/Assets/ProjectileLevels/lvl1") #load level one
         else:
             print("Level loaded successfully")
+
+    def start_timer(self, particle):
+        self.stop_timer()
+        self.initial_time = time.time()
+        self.moving_particle = particle
+        self.initial_position = particle.position
+        self.initial_velocity = self.get_magnitude(particle.velocity)
+        self.initial_angle = np.arctan2((self.initial_velocity[1], self.initial_velocity[0]) * -180 / np.pi)
+        self.current_position = particle.position
+
+    def stop_timer(self):
+        self.initial_time = None
+    def update_kinematic_info(self):
+        if self.initial_time is not None:
+            print(self.initial_time)
+            self.current_time = time.time() - self.initial_time
+            self.final_velocity = self.get_magnitude(self.moving_particle.velocity)
+            self.final_angle = np.arctan2((self.final_velocity[1], self.final_velocity[0]) * -180 / np.pi)
+            self.current_position = self.moving_particle.position
+        
+        
+        
+    def draw_kinematic_info(self, screen):
+        if self.show_kinematic_info:
+            pygame.draw.rect(screen, (230,230,230,0.2), (1620, 100, 300, 200))
+            font = pygame.font.SysFont("Arial", 20)
+            labels = ["Initial Speed",
+                      "Vertical Displacement",
+                      "Horizontal Displacement",
+                      "Current Speed",
+                      "Time"]
+            values = [
+                f"{round(self.initial_velocity)} m/s",
+                f"{round(self.initial_position[1] - self.current_position[1])} m",
+                f"{round(self.current_position[0] - self.initial_position[0])} m",
+
+                f"{round(self.final_velocity)} m/s",
+                f"{self.current_time:.2f} sec"]
+            units = ["m/s", "m", "m", "m/s", "seconds"]
+            for index, text in enumerate(zip(labels, values, units)):
+                screen.blit(font.render(text[0], True, (50,50,50)), (1720, 60 * (index + 1)))
+                screen.blit(font.render(text[1], True, (50, 50, 50)), (1720, 15 + 60 * (index + 1)))
+                screen.blit(font.render(text[2], True, (50, 50, 50)), (1800, 15 + 60 * (index + 1)))
+
+
 
 
 

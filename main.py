@@ -471,7 +471,7 @@ class MainWindow(QMainWindow):
                     button = self.projectile_sim_buttons[level_no]
                     self.enable_projectile_button(button, level_no)
         except Exception as e:
-            print(e)
+            traceback.print_exc()
 
 
     def run_pathfinder(self):
@@ -483,7 +483,6 @@ class MainWindow(QMainWindow):
                 warning_box = QMessageBox()
                 warning_box.setWindowTitle("Rectangular cells")
                 warning_box.setIcon(QMessageBox.Icon.Question)
-
                 warning_box.addButton(QPushButton("Apply square grid"), QMessageBox.ButtonRole.ApplyRole)
                 warning_box.setStandardButtons(QMessageBox.StandardButton.No | QMessageBox.StandardButton.Yes)
                 warning_box.setText("With the current grid configuration, the cells in the grid will NOT be square.\nWould you like to continue anyway?")

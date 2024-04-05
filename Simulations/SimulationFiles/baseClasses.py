@@ -28,7 +28,9 @@ class Particle:
     def collision_event_obstacles(self):
         for obstacle in self.vector_field.obstacles:
             if self.check_obstacle_collision(obstacle.position, obstacle.width, obstacle.height):
-                return self.resolve_obstacle_collision(obstacle)
+                self.resolve_obstacle_collision(obstacle)
+                return True
+        return False
     def collision_event(self, save_collision=True):
         for particle in self.vector_field.particles:
             if self.is_collision(particle, save_collisions=save_collision):
@@ -336,7 +338,7 @@ class SpatialMap:
                 self.selected_particle = index
                 return
 
-    def release_projected_particle(self, mouse_pos):
+    def release_projected_particle(self, mouse_pos): # put in projectile only
         particle = self.particles[self.selected_particle]
         particle.velocity = (np.array(mouse_pos) - particle.position) * self.projected_particle_velocity_multiplier
         self.draw_line_to_mouse = False
