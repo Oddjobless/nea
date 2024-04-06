@@ -214,14 +214,14 @@ class MainWindow(QMainWindow):
             button.setCheckable(False)
             button.setCursor(QCursor(Qt.CursorShape.ForbiddenCursor))
             self.projectile_widget_layout.addWidget(button, self.projectile_sim_buttons.index(button) // 3,
-                                                    (self.projectile_sim_buttons.index(button) % 3 + 2))
-            button.setMaximumWidth(200)
+                                                    (2 * (self.projectile_sim_buttons.index(button)) % 3 + 3), 1, 1)
+            button.setMaximumWidth(300)
+            button.setMinimumHeight(150)
         self.weeklyButton = QPushButton("Level of\nthe Week")
         self.weeklyButton.setMaximumWidth(400)
         self.enable_projectile_button(self.weeklyButton)
         self.weeklyButton.released.connect(lambda: self.run_projectile_motion_sim("Weekly"))
         self.weeklyScore = 0
-        self.projectile_widget_layout.addWidget(self.weeklyButton, 2, 1, 1, 1)
 
         self.air_resistance_button = QPushButton("Air Resistance\nENABLED")
         self.toggle_air_resistance_button()
@@ -248,7 +248,7 @@ RMB to project the ball
 t: show parameters table    
 v: toggle velocity view 
 q: quit""")
-        self.projectile_widget_layout.addWidget(self.projectile_instruction, 0, 0, 2, 2)
+        self.projectile_widget_layout.addWidget(self.projectile_instruction, 0, 0, 2, 3)
 
         self.layout.addWidget(self.projectile_widget)
         ##################################################
@@ -524,7 +524,7 @@ q: quit""")
         try:
             print(self.air_resistance_button.isChecked())
             if self.teacher_id is None:
-                projectileMotionSimulation.draw_mode(level_no)
+                projectileMotionSimulation.draw_mode(level_no, self.penetration_factor_button.value()/100)
 
             score = projectileMotionSimulation.run(level_no, self.air_resistance_button.isChecked())
             if score:
@@ -606,9 +606,22 @@ q: quit""")
             self.ideal_gas_layout.setCurrentIndex((self.ideal_gas_layout.currentIndex() + 1) % len(self.slides))
 
     def initialise_program(self, user_settings):
+        self.penetration_factor_button = QSpinBox()
+        self.penetration_factor_button.setAlignment(Qt.AlignmentFlag.AlignRight)
+        self.projectile_instruction.setText(self.projectile_instruction.text() + "\nTeachers can use the spinbox to control the penetration factor!")
+        self.penetration_factor_button.setMaximumWidth(180)
+        self.penetration_factor_button.setSuffix("%")
+        self.penetration_factor_button.setRange(1, 100)
+        self.penetration_factor_button.setValue(15)
+
         if self.teacher_id is None:
+            self.weeklyButton.setMaximumWidth(250)
+            self.projectile_widget_layout.addWidget(self.weeklyButton, 2, 2, 1, 1)
             max_level = len(self.projectile_sim_buttons)
+            self.projectile_widget_layout.addWidget(self.penetration_factor_button, 2, 1, 1, 1)
         else:
+            self.weeklyButton.setFixedWidth(750)
+            self.projectile_widget_layout.addWidget(self.weeklyButton, 2, 1, 1, 2)
             max_level = user_settings[-1]
 
         print(user_settings)
@@ -619,13 +632,8 @@ q: quit""")
         for index, button in enumerate(self.projectile_sim_buttons[:max_level]):
             self.enable_projectile_button(button, index)
 
-        self.penetration_factor_button = QSpinBox()
-        self.penetration_factor_button.setMaximumWidth(150)
-        self.penetration_factor_button.setAlignment(Qt.AlignmentFlag.AlignRight)
-        self.projectile_widget_layout.addWidget(self.penetration_factor_button, 1, 0, 1, 1)
 
-        self.penetration_factor_button.setStyleSheet("font-size: 20px; margin-bottom: 0px, margin-left: 0px; font-family: 'Times New Roman';")
-        self.weeklyButton.setMaximumWidth(250)
+
 
     def enable_projectile_button(self, button, index=-1):
         print(index)

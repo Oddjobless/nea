@@ -6,7 +6,7 @@ from Simulations.SimulationFiles.baseClasses import *
 
 
 
-def draw_mode(level_no):
+def draw_mode(level_no, penetration_factor=0.15):
 
     pygame.init()
     file_name = "lvlTest"
@@ -30,6 +30,7 @@ def draw_mode(level_no):
 
     clock = pygame.time.Clock()
 
+    font = pygame.font.SysFont("Helvetica", 35)
     while True:
         screen.fill((169, 130, 40))
         screen.blit(background, (0, 0))
@@ -61,7 +62,7 @@ def draw_mode(level_no):
                 elif event.key == pygame.K_s:
                     if obstacles: # checks if the user has added a goal
                         with open(("./Simulations/SimulationFiles/Assets/ProjectileLevels/lvl" + str(level_no)), "w") as file:
-                            file.write("0.15")
+                            file.write(f"{penetration_factor}\n")
                             file.write(f"{obstacles[0].position[0]},{obstacles[0].position[1]},{obstacles[0].width},{obstacles[0].height}")
                             for obstacle in obstacles[1:]:
                                 file.write(f"\n{obstacle.position[0]},{obstacle.position[1]},{obstacle.width},{obstacle.height},{int(obstacle.is_platform)}")
@@ -100,7 +101,8 @@ def draw_mode(level_no):
 
             if mouse_hold:
                 rect_params = np.array(pygame.mouse.get_pos()) - rect_origin
-
+        text = font.render("Level Designer", True, (255, 255, 255))
+        screen.blit(text, (10,10))
         pygame.display.update()
         clock.tick(frame_rate)
 
@@ -290,7 +292,6 @@ class ProjectileParticle(Particle):
             self.velocity = self.velocity * (1 - self.vector_field.penetration_factor)
             self.acceleration *= 0
             self.hit_goal = True
-            self.colour = (25,125,195)
             if np.allclose(self.velocity, np.zeros_like(self.velocity), atol=2):
                 self.vector_field.selected_particle = None
                 try:
@@ -500,7 +501,7 @@ class Container(SpatialMap):
         wall_image = pygame.image.load("./Simulations/SimulationFiles/Assets/images/wall.png")
         try: # parsing level
             with open(file_name, "r") as file:
-                self.penetration_factor = file.readline()
+                self.penetration_factor = float(file.readline())
                 goal = file.readline()
                 self.initialise_goal(goal.split(",")) # handling goal separately
                 for line in file:
