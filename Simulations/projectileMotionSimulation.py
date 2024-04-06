@@ -116,7 +116,7 @@ def draw_mode(level_no):
 
 
 
-def run(level_no):
+def run(level_no, air_resistance=False):
 
     pygame.init()
     screen_width, screen_height = 1920, 1080
@@ -127,7 +127,7 @@ def run(level_no):
     background = pygame.transform.scale(background, (screen_width, screen_height))
     rows, columns = 18, 32
 
-    vector_field = Container(rows, columns, level_no)
+    vector_field = Container(rows, columns, level_no, air_resistance)
 
     vector_field.particles.extend([ProjectileParticle(1, 15, vector_field, wall_damping, floor_damping=0.7) for _ in range(6)])  # eccentricity
     for particle in vector_field.particles:
@@ -367,7 +367,7 @@ class Obstacle:
 
 
 class Container(SpatialMap):
-    def __init__(self, rows, columns, level_no):
+    def __init__(self, rows, columns, level_no, air_resistance):
         super().__init__(rows, columns)
         self.particles = []
         self.selected_particle = None
@@ -380,7 +380,7 @@ class Container(SpatialMap):
         self.drag_coefficient = 0.000000001
 
         
-
+        self.air_resistance = air_resistance
         self.px_to_metres_factor = 2
         self.penetration_factor = 0.1
         self.toggle_velocity_display = False

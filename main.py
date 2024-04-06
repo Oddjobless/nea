@@ -1,6 +1,6 @@
 import sys
 import traceback
-
+# add weekly score to database
 import numpy as np
 from PyQt6.QtWidgets import *
 from PyQt6.QtGui import *
@@ -29,7 +29,7 @@ class MainWindow(QMainWindow):
         self.toolbar = QToolBar("ahshsh")
         self.addToolBar(self.toolbar)
         self.toolbar.setMovable(False)
-        self.toolbar.hide()
+        # self.toolbar.hide()
 
 
         self.setFont(QFont("Helvetica", 15))
@@ -100,6 +100,7 @@ class MainWindow(QMainWindow):
 
         teachers = []
         for record in self.database.get_teacher_names():
+            teachers.append(f"{record[0]}")
             teachers.append(f"{record[0]}")
         self.teacher_dropdown = QComboBox()
         self.teacher_dropdown.addItems(teachers)
@@ -213,34 +214,40 @@ class MainWindow(QMainWindow):
             button.setCheckable(False)
             button.setCursor(QCursor(Qt.CursorShape.ForbiddenCursor))
             self.projectile_widget_layout.addWidget(button, self.projectile_sim_buttons.index(button) // 3,
-                                                    (self.projectile_sim_buttons.index(button) % 3 + 1))
+                                                    (self.projectile_sim_buttons.index(button) % 3 + 2))
             button.setMaximumWidth(200)
-        weeklyButton = QPushButton("Level of\nthe Week")
-        weeklyButton.setMaximumWidth(500)
-        self.enable_projectile_button(weeklyButton)
-        weeklyButton.released.connect(lambda: self.run_projectile_motion_sim("Weekly"))
-        self.projectile_widget_layout.addWidget(weeklyButton, 2, 0)
+        self.weeklyButton = QPushButton("Level of\nthe Week")
+        self.weeklyButton.setMaximumWidth(400)
+        self.enable_projectile_button(self.weeklyButton)
+        self.weeklyButton.released.connect(lambda: self.run_projectile_motion_sim("Weekly"))
+        self.weeklyScore = 0
+        self.projectile_widget_layout.addWidget(self.weeklyButton, 2, 1, 1, 1)
+
+        self.air_resistance_button = QPushButton("Air Resistance\nDISABLED")
+        self.toggle_air_resistance_button()
+        self.air_resistance_button.setMaximumWidth(240)
+        self.air_resistance_button.released.connect(self.toggle_air_resistance_button)
+        self.projectile_widget_layout.addWidget(self.air_resistance_button, 2, 0, 1, 1)
+
+        
 
         self.projectile_instruction = QLabel()
         self.projectile_instruction.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.projectile_instruction.setWordWrap(True)
         self.projectile_instruction.setText("""Welcome to the
-Projectile Motion Simulation!
-The aim of the game is to fire the
-ball into the target. The closer
-to the centre you are, the more
-score! Use suvat equations to
-calculate the required velocity.
-Get 100 score to unlock the
-next level.
-
-Controls:
-LMB to move the ball
-RMB to project the ball
-t: show parameters table
-v: toggle velocity view
+Projectile Motion Simulation!   
+The aim of the game is to fire the ball into the target. 
+The closer to the centre you are, the more score! 
+Use suvat equations to calculate the required velocity.    
+Get 100 score to unlock the next level. 
+    
+Controls:   
+LMB to move the ball    
+RMB to project the ball 
+t: show parameters table    
+v: toggle velocity view 
 q: quit""")
-        self.projectile_widget_layout.addWidget(self.projectile_instruction, 0, 0, 2, 1)
+        self.projectile_widget_layout.addWidget(self.projectile_instruction, 0, 0, 2, 2)
 
         self.layout.addWidget(self.projectile_widget)
         ##################################################
@@ -396,6 +403,7 @@ q: quit""")
             QPushButton {
                 cursor: pointer;
             }
+
         """)
 
     def changeIndex(self, newIndex):  # FIX THIS
@@ -488,18 +496,45 @@ q: quit""")
 
     def hide_toolbar(self):
         self.toolbar.setVisible(False)
+    
+    def toggle_air_resistance_button(self):
+        text = self.air_resistance_button.text()
+        if "DISABLED" in text:
+            print(text)
+            self.air_resistance_button.setText("Air Resistance\nENABLED")
+            print(text)
+            self.air_resistance_button.setStyleSheet("""
+            QPushButton {
+            font-family: 'Times New Roman';
+            background-color: rgba(0, 255, 0, 0.3);
+            color: black;
+            } """)
+        else:
+            self.air_resistance_button.setText("Air Resistance\nDISABLED")
+            self.air_resistance_button.setStyleSheet("""
+            QPushButton {
+            font-family: 'Times New Roman';
+            background-color: rgba(255, 0, 0, 0.3);
+            color: black;
+            } """)
+
 
     def run_projectile_motion_sim(self, level_no):
         try:
             if self.teacher_id is None:
                 projectileMotionSimulation.draw_mode(level_no)
-            score = projectileMotionSimulation.run(level_no)
+            print(self.air_resistance_button.isChecked())
+            score = projectileMotionSimulation.run(level_no, self.air_resistance_button.isChecked())
             if score:
-                if score > 100:
-                    print("You win!")
+                if score > 100 and level_no != "Weekly":
+                    print("Winner!")
                     print(level_no)
                     button = self.projectile_sim_buttons[level_no]
                     self.enable_projectile_button(button, level_no)
+                else: 
+                    if score > self.weeklyScore:
+                        self.weeklyScore = score
+                        self.weeklyButton.setText(f"Level of the Week\nCurrent Score: {self.weeklyScore}")
         except Exception as e:
             traceback.print_exc()
 
@@ -587,10 +622,10 @@ q: quit""")
             button.released.connect(lambda index=index: self.run_projectile_motion_sim(index + 1))
         button.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         button.setObjectName("free_button")
-        button.setStyleSheet("""QPushButton:hover{
+        button.setStyleSheet("""
+            QPushButton:hover{
                 background-color: #83f28f;
-            }
-        """)
+            } """)
 
     def nextSlide(self):
         print()
