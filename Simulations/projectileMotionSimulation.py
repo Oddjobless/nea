@@ -61,6 +61,7 @@ def draw_mode(level_no):
                 elif event.key == pygame.K_s:
                     if obstacles: # checks if the user has added a goal
                         with open(("./Simulations/SimulationFiles/Assets/ProjectileLevels/lvl" + str(level_no)), "w") as file:
+                            file.write("0.15")
                             file.write(f"{obstacles[0].position[0]},{obstacles[0].position[1]},{obstacles[0].width},{obstacles[0].height}")
                             for obstacle in obstacles[1:]:
                                 file.write(f"\n{obstacle.position[0]},{obstacle.position[1]},{obstacle.width},{obstacle.height},{int(obstacle.is_platform)}")
@@ -350,7 +351,9 @@ class Obstacle:
         self.width, self.height = width, height
         self.colour = (255, 0, 0)
         self.is_platform = False
-        self.image = pygame.transform.scale(image, (width, height)) if image and not goal else None
+        self.image = None
+        if image is not None:
+            self.image = pygame.transform.scale(image, (width, height)) if not goal else image
         # self.image = image.subsurface(pygame.Rect(0, 0, self.width, self.height)) if image else None
         self.goal = goal
 
@@ -358,9 +361,7 @@ class Obstacle:
 
         if self.image:
             if self.goal:
-                pygame.draw.circle(screen, self.colour, self.position, self.width)
-                screen.blit(self.image, self.position - self.width // 2)
-
+                screen.blit(self.image, self.position - self.width)
             else:
                 screen.blit(self.image, self.position)
         elif self.goal:
@@ -385,7 +386,7 @@ class Container(SpatialMap):
         
         self.air_resistance = air_resistance
         self.px_to_metres_factor = 2
-        self.penetration_factor = 0.1
+        self.penetration_factor = 0.15
         self.toggle_velocity_display = False
         self.show_coordinates = False
 
@@ -499,6 +500,7 @@ class Container(SpatialMap):
         wall_image = pygame.image.load("./Simulations/SimulationFiles/Assets/images/wall.png")
         try: # parsing level
             with open(file_name, "r") as file:
+                self.penetration_factor = file.readline()
                 goal = file.readline()
                 self.initialise_goal(goal.split(",")) # handling goal separately
                 for line in file:

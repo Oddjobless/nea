@@ -183,12 +183,12 @@ class MainWindow(QMainWindow):
                 margin: 30;
             }
             
-            QLabel {
+            QLabel{
                 font-family: 'Comic Sans MS';
                 font-size: 30px;
             }
 
-            QPushButton {
+            QPushButton, QSpinBox {
                 font-family: 'Comic Sans MS';
                 font-size: 30px;
                 padding: 20px 32px;
@@ -269,11 +269,12 @@ q: quit""")
                 border: 2px dashed '#00ff00';
                 margin: 30;
             }
+            
 
             QPushButton, QSpinBox, QLabel, QSlider{
                 font-family: 'Comic Sans MS';
                 font-size: 30px;
-                padding: 20px 32px;
+                padding: 20px;
                 color: green;
                 border-radius: 6%;
                 display: inline-block;
@@ -617,6 +618,14 @@ q: quit""")
 
         for index, button in enumerate(self.projectile_sim_buttons[:max_level]):
             self.enable_projectile_button(button, index)
+
+        self.penetration_factor_button = QSpinBox()
+        self.penetration_factor_button.setMaximumWidth(150)
+        self.penetration_factor_button.setAlignment(Qt.AlignmentFlag.AlignRight)
+        self.projectile_widget_layout.addWidget(self.penetration_factor_button, 1, 0, 1, 1)
+
+        self.penetration_factor_button.setStyleSheet("font-size: 20px; margin-bottom: 0px, margin-left: 0px; font-family: 'Times New Roman';")
+        self.weeklyButton.setMaximumWidth(250)
 
     def enable_projectile_button(self, button, index=-1):
         print(index)
