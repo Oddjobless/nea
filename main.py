@@ -557,7 +557,8 @@ q: quit""")
                 user_input = warning_box.exec() # either continue
                 if user_input == QMessageBox.StandardButton.No: # dont run sim
                     return
-                if user_input == QMessageBox.StandardButton.Apply: # apply correct ratio and don't run sim
+                if user_input != QMessageBox.StandardButton.Yes: # apply correct ratio and don't run sim
+                    print("dsffdas")
                     self.correct_grid_ratio()
                     return
             speed = self.pathfinding_speed.value() * 20
@@ -567,6 +568,7 @@ q: quit""")
             traceback.print_exc()
 
     def correct_grid_ratio(self):
+        print("asdffsad")
         width, height = self.width(), self.height()
         row_field, col_field = self.pathfinding_rows, self.pathfinding_cols
         gcd = np.gcd(width, height)

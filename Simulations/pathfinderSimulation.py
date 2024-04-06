@@ -178,15 +178,21 @@ class Pathfinder(Particle):
         return False
 
     def collision_event_obstacles(self, obstacle_pos, obstacle_width):
-        if self.check_for_collision_X(obstacle_pos[0], obstacle_width):
+        x_collision = self.check_for_collision_X(obstacle_pos[0], obstacle_width)
+        if x_collision:
             self.velocity[0] *= -1
 
         else:
             self.velocity[1] *= -1
-        self.next_position = self.position + self.velocity * -1 * dt
 
+        self.next_position = self.position + self.velocity * -1.5 * dt
+        coord = self.vector_field.index_to_coord(self.vector_field.hash_position(self.next_position))
 
-
+        if coord == obstacle_pos:
+            if x_collision:
+                self.next_position[0] -= self.vector_field.box_width
+            else:
+                self.next_position[1] -= self.vector_field.box_height
 
     def collision_event_particles(self, track_collisions=False):
         try:
@@ -211,8 +217,6 @@ class VelocityField(SpatialMap):
         self.goal = np.array([0,0])
         # self.update_velocity_field(self.goal)
         self.particle_max_velocity = max_velocity
-
-        self.cell_width = self.box_width
         # self.particle_damping = 0.996 # dont like this
 
         self.is_adding_particles = False
