@@ -89,10 +89,10 @@ def draw_mode(level_no, penetration_factor=0.15):
                         obstacles[0].height = min_width
 
                     else:
-                        obstacles.append(Obstacle(np.array([rect_x, rect_y]), abs(rect_params[0]), abs(rect_params[1])))
-                        if event.button == 3:
-                            obstacles[-1].is_platform = True
-                            obstacles[-1].colour = (90, 255, 43)
+                        platform = True if event.button == 3 else False
+
+                        obstacles.append(Obstacle(np.array([rect_x, rect_y]), abs(rect_params[0]), abs(rect_params[1]), is_platform=platform))
+
 
 
                     rect_origin = None
@@ -347,16 +347,17 @@ class ProjectileParticle(Particle):
 
 
 class Obstacle:
-    def __init__(self, position, width, height, image=None, goal=False):
+    def __init__(self, position, width, height, image=None, goal=False, is_platform=False):
         self.position = np.array(position)
         self.width, self.height = width, height
-        self.colour = (255, 0, 0)
-        self.is_platform = False
-        self.image = None
-        if image is not None:
-            self.image = pygame.transform.scale(image, (width, height)) if not goal else image
-        # self.image = image.subsurface(pygame.Rect(0, 0, self.width, self.height)) if image else None
+        self.colour = (255, 0, 0) if not is_platform else (90, 255, 43)
         self.goal = goal
+        self.is_platform = is_platform
+        self.image = image
+        if image is not None and not goal:
+            self.image = image.subsurface(pygame.Rect(0, 0, self.width, self.height))
+
+
 
     def draw(self, screen):
 
@@ -498,7 +499,8 @@ class Container(SpatialMap):
             img = pygame.transform.scale(img, (splat_width, splat_width * img.get_height() // img.get_width()))
             self.collision_splatters.append(img)
 
-        wall_image = pygame.image.load("./Simulations/SimulationFiles/Assets/images/wall.png")
+        wall_image = pygame.image.load("./Simulations/SimulationFiles/Assets/images/wall.jpg")
+        bounce_image = pygame.image.load("./Simulations/SimulationFiles/Assets/images/bouncy_wall.jpg")
         try: # parsing level
             with open(file_name, "r") as file:
                 self.penetration_factor = float(file.readline())
@@ -506,11 +508,10 @@ class Container(SpatialMap):
                 self.initialise_goal(goal.split(",")) # handling goal separately
                 for line in file:
                     line = line.split(",")
-                    object = Obstacle((int(line[0]), int(line[1])), int(line[2]), int(line[3]), wall_image)
+                    image = bounce_image if int(line[4]) else wall_image
+                    object = Obstacle((int(line[0]), int(line[1])), int(line[2]), int(line[3]), image, is_platform=int(line[4]))
                     self.obstacles.append(object)
-                    if int(line[4]):
-                        object.is_platform = True
-                        object.colour = (37,41,74) # temporary
+
             return True
 
         except FileNotFoundError:
