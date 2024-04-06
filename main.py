@@ -223,10 +223,11 @@ class MainWindow(QMainWindow):
         self.weeklyScore = 0
         self.projectile_widget_layout.addWidget(self.weeklyButton, 2, 1, 1, 1)
 
-        self.air_resistance_button = QPushButton("Air Resistance\nDISABLED")
+        self.air_resistance_button = QPushButton("Air Resistance\nENABLED")
         self.toggle_air_resistance_button()
         self.air_resistance_button.setMaximumWidth(240)
         self.air_resistance_button.released.connect(self.toggle_air_resistance_button)
+        self.air_resistance_button.setCheckable(True)
         self.projectile_widget_layout.addWidget(self.air_resistance_button, 2, 0, 1, 1)
 
         
@@ -500,9 +501,7 @@ q: quit""")
     def toggle_air_resistance_button(self):
         text = self.air_resistance_button.text()
         if "DISABLED" in text:
-            print(text)
             self.air_resistance_button.setText("Air Resistance\nENABLED")
-            print(text)
             self.air_resistance_button.setStyleSheet("""
             QPushButton {
             font-family: 'Times New Roman';
@@ -520,10 +519,12 @@ q: quit""")
 
 
     def run_projectile_motion_sim(self, level_no):
+        print(level_no)
         try:
+            print(self.air_resistance_button.isChecked())
             if self.teacher_id is None:
                 projectileMotionSimulation.draw_mode(level_no)
-            print(self.air_resistance_button.isChecked())
+
             score = projectileMotionSimulation.run(level_no, self.air_resistance_button.isChecked())
             if score:
                 if score > 100 and level_no != "Weekly":
@@ -536,7 +537,8 @@ q: quit""")
                         self.weeklyScore = score
                         self.weeklyButton.setText(f"Level of the Week\nCurrent Score: {self.weeklyScore}")
         except Exception as e:
-            traceback.print_exc()
+            pass
+            # traceback.print_exc()
 
 
     def run_pathfinder(self):
@@ -616,9 +618,10 @@ q: quit""")
         for index, button in enumerate(self.projectile_sim_buttons[:max_level]):
             self.enable_projectile_button(button, index)
 
-    def enable_projectile_button(self, button, index=None):
+    def enable_projectile_button(self, button, index=-1):
+        print(index)
         button.setCheckable(True)
-        if index:
+        if index >= 0:
             button.released.connect(lambda index=index: self.run_projectile_motion_sim(index + 1))
         button.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         button.setObjectName("free_button")

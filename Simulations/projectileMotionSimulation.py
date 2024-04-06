@@ -43,9 +43,7 @@ def draw_mode(level_no):
 
                 pygame.draw.rect(screen, (255, 0, 0), (rect_x, rect_y, abs(rect_params[0]), abs(rect_params[1])))
             else:
-                print(rect_origin, rect_params)
                 radius = int(np.sqrt(rect_params[0] ** 2 + rect_params[1] ** 2))
-                print(radius)
                 pygame.draw.circle(screen, (255,255,255), rect_origin, radius)
 
         for obstacle in obstacles:
@@ -352,14 +350,19 @@ class Obstacle:
         self.width, self.height = width, height
         self.colour = (255, 0, 0)
         self.is_platform = False
-        self.image = pygame.transform.scale(image, (width, height)) if image else None
+        self.image = pygame.transform.scale(image, (width, height)) if image and not goal else None
         # self.image = image.subsurface(pygame.Rect(0, 0, self.width, self.height)) if image else None
         self.goal = goal
 
     def draw(self, screen):
 
         if self.image:
-            screen.blit(self.image, self.position)
+            if self.goal:
+                pygame.draw.circle(screen, self.colour, self.position, self.width)
+                screen.blit(self.image, self.position - self.width // 2)
+
+            else:
+                screen.blit(self.image, self.position)
         elif self.goal:
             pygame.draw.circle(screen, self.colour, self.position, self.width)
         else:
@@ -423,7 +426,6 @@ class Container(SpatialMap):
         self.initial_time = None
     def update_kinematic_info(self):
         if self.initial_time is not None:
-            print(self.initial_time)
             self.current_time = time.time() - self.initial_time
             self.final_velocity = self.get_magnitude(self.moving_particle.velocity)
             self.final_angle = np.arctan2(self.moving_particle.velocity[1], self.moving_particle.velocity[0]) * -180 / np.pi
@@ -517,8 +519,10 @@ class Container(SpatialMap):
             print(e)
             return False
 
-    def initialise_goal(self, goal, image=None):
-        # self.goal = Particle(0, int(goal[0]), self, 0)
+    def initialise_goal(self, goal):
+        image = pygame.image.load("./Simulations/SimulationFiles/Assets/images/target.png")
+        print(goal)
+        image = pygame.transform.scale(image, (2 * int(goal[2]), 2 * int(goal[2])))
         self.goal = Obstacle((int(goal[0]), int(goal[1])),int(goal[2]), int(goal[2]), image, goal=True)
         # self.goal.position = np.array([int(goal[1]), int(goal[2])])
         self.goal.colour = (255,105,180) # pink color
@@ -537,5 +541,4 @@ class Container(SpatialMap):
 
 
 if __name__ == "__main__":
-    print("piss")
     run(2)
