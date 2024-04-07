@@ -499,8 +499,8 @@ class Container(SpatialMap):
             img = pygame.transform.scale(img, (splat_width, splat_width * img.get_height() // img.get_width()))
             self.collision_splatters.append(img)
 
-        wall_image = pygame.image.load("./Simulations/SimulationFiles/Assets/images/wall.jpg")
-        bounce_image = pygame.image.load("./Simulations/SimulationFiles/Assets/images/bouncy_wall.jpg")
+        bounce_image = pygame.image.load("./Simulations/SimulationFiles/Assets/images/wall.jpg")
+        wall_image = pygame.image.load("./Simulations/SimulationFiles/Assets/images/bouncy_wall.jpg")
         try: # parsing level
             with open(file_name, "r") as file:
                 self.penetration_factor = float(file.readline())
@@ -540,6 +540,31 @@ class Container(SpatialMap):
     def real_velocity(self):
 
         pass
+
+
+class Obstacle:
+    def __init__(self, position, width, height, image=None, goal=False, is_platform=False):
+        self.position = np.array(position)
+        self.width, self.height = width, height
+        self.colour = (255, 0, 0) if not is_platform else (90, 255, 43)
+        self.goal = goal
+        self.is_platform = is_platform
+        self.image = image
+        if image is not None and not goal:
+            self.image = image.subsurface(pygame.Rect(0, 0, self.width, self.height))
+
+    def draw(self, screen):
+
+        if self.image:
+            if self.goal:
+                screen.blit(self.image, self.position - self.width)
+            else:
+                screen.blit(self.image, self.position)
+        elif self.goal:
+            pygame.draw.circle(screen, self.colour, self.position, self.width)
+        else:
+            pygame.draw.rect(screen, self.colour, (self.position[0], self.position[1], self.width, self.height))
+
 
 
 

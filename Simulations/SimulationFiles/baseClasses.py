@@ -80,8 +80,9 @@ class Particle:
             position = obstacle[0]
             width, height = obstacle[1], obstacle[2]
         # calculating displacement vector from the rectangle to the circle
-        displacement = self.position - np.array([max(position[0], min(position[0], position[0] + width)),
-                       max(position[1], min(position[1], position[1] + height))])
+        displacement = self.position - np.array([max(position[0], min(self.position[0], position[0] + width)),
+                       max(position[1], min(self.position[1], position[1] + height))])
+
 
         # needed to determine how ball got into the rectangle
         penetration_x = max(0, self.radius - abs(displacement[0]))
@@ -352,30 +353,6 @@ class SpatialMap:
         self.draw_line_to_mouse = False
         self.selected_particle = None
 
-class Obstacle:
-    def __init__(self, position, width, height, image=None, goal=False, is_platform=False):
-        self.position = np.array(position)
-        self.width, self.height = width, height
-        self.colour = (255, 0, 0) if not is_platform else (90, 255, 43)
-        self.goal = goal
-        self.is_platform = is_platform
-        self.image = image
-        if image is not None and not goal:
-            self.image = image.subsurface(pygame.Rect(0, 0, self.width, self.height))
-
-
-
-    def draw(self, screen):
-
-        if self.image:
-            if self.goal:
-                screen.blit(self.image, self.position - self.width)
-            else:
-                screen.blit(self.image, self.position)
-        elif self.goal:
-            pygame.draw.circle(screen, self.colour, self.position, self.width)
-        else:
-            pygame.draw.rect(screen, self.colour, (self.position[0], self.position[1], self.width, self.height))
 
 screen_width, screen_height = 1920, 1080 # 960, 960
 # columns, rows = 32,18

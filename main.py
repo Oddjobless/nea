@@ -22,14 +22,16 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("ARGHHHHHHHHHH")
         self.setGeometry(0, 0, 1920, 1080)
         self.showFullScreen()  # todo: fullscreen
+
         self.layout = QStackedLayout()
+
         self.index = QWidget()
         self.index.setLayout(self.layout)
         self.setCentralWidget(self.index)
         self.toolbar = QToolBar("ahshsh")
         self.addToolBar(self.toolbar)
         self.toolbar.setMovable(False)
-        # self.toolbar.hide()
+        self.toolbar.hide()
 
 
         self.setFont(QFont("Helvetica", 15))
@@ -49,9 +51,27 @@ class MainWindow(QMainWindow):
         self.login_layout = QGridLayout()
         self.login = QWidget()
         self.login.setLayout(self.login_layout)
+        """login_pixmap = QPixmap("./Simulations/SimulationFiles/Assets/images/login_background.jpg")
+        login_background = QLabel()
+        login_background.setPixmap(login_pixmap)
+        login_background.setGeometry(0, 0, self.login.width(), self.login.height())
+        login_background.setScaledContents(True)
+        login_background.raise_()
+        login_background.setContentsMargins(0, 0, 0, 0)
+        self.login_layout.addWidget(login_background, 0, 0, 11, 7)"""
+        self.login.setAutoFillBackground(True)  #
+        palette = self.login.palette()  #
+        palette.setColor(self.login.backgroundRole(), QColor(255, 249, 196))
+        self.login.setPalette(palette)
 
-        self.login_label = QLabel("") # todo:
+
+        self.login_label = QLabel("Physics Simulator") # todo:
+        self.login_label.setStyleSheet("""
+        font-family: 'Times New Roman';
+        font-size: 100px;""")
+        self.login_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.login_layout.addWidget(self.login_label, 0, 2, 1, 2)
+
 
 
         self.email = QLineEdit()
@@ -122,7 +142,7 @@ class MainWindow(QMainWindow):
             
             QLineEdit {
                 margin: 20px 200px 0px 200px;;
-                border: 10px solid '#0000ff';
+                border: 10px solid '#ffab40';
                 font-size: 30px;
                 padding: 10px;
                 width: 600px;
@@ -134,7 +154,7 @@ class MainWindow(QMainWindow):
             }
 
             QPushButton, QDateEdit, QComboBox {
-                font-family: 'Comic Sans MS';
+                
                 font-size: 40px;
                 padding: 10px 20px;
                 color: green;
@@ -146,11 +166,8 @@ class MainWindow(QMainWindow):
                 border: 2px solid;
                 align: right;
             }
-
-            QPushButton:hover {
-                background-color: '#0000ff';
-                color: white;
-            }
+            QPushButton {background-color: '#d7ffcc';font-family: 'Comic Sans MS';}
+            QPushButton:hover {background-color: '#abff94';}
         """)
 
         ##################################################
@@ -172,6 +189,12 @@ class MainWindow(QMainWindow):
 
         self.projectile_widget_layout = QGridLayout()
         self.projectile_widget = QWidget()
+
+        self.projectile_widget.setAutoFillBackground(True)  #
+        palette = self.projectile_widget.palette()  #
+        palette.setColor(self.projectile_widget.backgroundRole(), QColor(232, 179, 220))
+        self.projectile_widget.setPalette(palette)
+
         self.projectile_widget.setStyleSheet("""
             QLineEdit {
                 margin: 60;
@@ -192,7 +215,7 @@ class MainWindow(QMainWindow):
                 font-family: 'Comic Sans MS';
                 font-size: 30px;
                 padding: 20px 32px;
-                color: green;
+                color: '#';
                 border-radius: 6%;
                 display: inline-block;
                 position: fixed;
@@ -200,6 +223,7 @@ class MainWindow(QMainWindow):
                 transition-duration: 0.4s;
                 border: 3px solid;
             }
+            QPushButton {background-color: '#F9B5AC';}
 
             QPushButton:hover {
                 background-color: '#ffb468';
@@ -259,6 +283,12 @@ q: quit""")
 
         self.pathfinding_layout = QGridLayout()
         self.pathfinding = QWidget()
+
+        self.pathfinding.setAutoFillBackground(True)  #
+        palette = self.pathfinding.palette()  #
+        palette.setColor(self.pathfinding.backgroundRole(), QColor(209, 245, 255))
+        self.pathfinding.setPalette(palette)
+
         self.pathfinding.setStyleSheet("""
             QLineEdit {
                 margin: 60;
@@ -272,10 +302,11 @@ q: quit""")
             
 
             QPushButton, QSpinBox, QLabel, QSlider{
+                background-color: '#aff8f0';
                 font-family: 'Comic Sans MS';
                 font-size: 30px;
                 padding: 20px;
-                color: green;
+                color: '#540d6e';
                 border-radius: 6%;
                 display: inline-block;
                 position: fixed;
@@ -285,7 +316,7 @@ q: quit""")
             }
 
             QPushButton:hover {
-                background-color: '#4caf50';
+                background-color: '#83f28f';
                 color: white;
             }
             
@@ -364,7 +395,7 @@ q: quit""")
             }
 
             QPushButton:hover {
-                background-color: '#ff0000';
+                background-color: '#83f28f';
                 color: white;
             }
 
@@ -389,6 +420,42 @@ q: quit""")
         self.ideal_gas = QWidget()
         self.ideal_gas.setLayout(self.ideal_gas_layout)
         self.layout.addWidget(self.ideal_gas)
+
+        self.ideal_gas.setAutoFillBackground(True)  #
+        palette = self.ideal_gas.palette()  #
+        palette.setColor(self.ideal_gas.backgroundRole(), QColor(200, 249, 202))
+        self.ideal_gas.setPalette(palette)
+
+        self.ideal_gas.setStyleSheet("""
+                    QLineEdit {
+                        margin: 60;
+                        border: 3px solid '#00ff00';
+                    }
+
+                    QTextEdit {
+                        border: 2px dashed '#00ff00';
+                        margin: 30;
+                    }
+
+
+                    QPushButton {
+                        background-color: '#7AF0B7';
+                        font-family: 'Comic Sans MS';
+                        font-size: 30px;
+                        padding: 20px;
+                        color: '#6B5E62';
+                        border-radius: 6%;
+                        display: inline-block;
+                        position: fixed;
+                        margin: 0 0 0 0;
+                        transition: 0.4s;
+                        border: 3px solid;
+                    }
+
+                    QPushButton:hover {
+                        background-color: '#83f28f';
+                        color: white;
+                    }""")
 
         self.runCool = QPushButton("Run ideal gas simulation")
         self.ideal_gas_layout.addWidget(self.runCool, 0, 0, 1, 1)
@@ -450,9 +517,13 @@ q: quit""")
         if len(self.password.text()) < 6:
             detailed_text += "Password must be at least 6 characters.\n"
             valid = False
-        if not re.match(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", self.email.text()):
+        if self.email.text() == "":
+            detailed_text += "No email given.\n"
+            valid = False
+        elif not re.match(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", self.email.text()):
             detailed_text += "Email is not valid.\n"
             valid = False
+
         if self.full_name.text() == "":
             detailed_text += "Full name is not given.\n"
             valid = False
@@ -617,7 +688,7 @@ q: quit""")
         self.penetration_factor_button.setValue(15)
 
         if self.teacher_id is None:
-            self.weeklyButton.setMaximumWidth(250)
+            self.weeklyButton.setMaximumWidth(350)
             self.projectile_widget_layout.addWidget(self.weeklyButton, 2, 2, 1, 1)
             max_level = len(self.projectile_sim_buttons)
             self.projectile_widget_layout.addWidget(self.penetration_factor_button, 2, 1, 1, 1)
