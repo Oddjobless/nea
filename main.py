@@ -360,56 +360,7 @@ q: quit""")
         self.pathfinding.setLayout(self.pathfinding_layout)
         self.layout.addWidget(self.pathfinding)
 
-        ##################################################
-
-        self.suspension_button = QAction("One Time Pad", self)
-        self.toolbar.addAction(self.suspension_button)
-        self.suspension_button.triggered.connect(lambda: self.changeIndex(4))
-
-        self.suspension_layout = QGridLayout()
-        self.suspension = QWidget()
-        self.suspension.setStyleSheet("""
-
-            QLineEdit {
-                margin: 60;
-                border: 3px solid '#ff0000';
-            }
-
-            QTextEdit {
-                border: 2px dashed '#ff0000';
-                margin: 30;
-            }
-
-            QPushButton {
-                font-family: 'Comic Sans MS';
-                font-size: 30px;
-                padding: 20px 32px;
-                color: green;
-                border-radius: 6%;
-                display: inline-block;
-                position: fixed;
-                margin: 0 0 0 0;
-                transition-duration: 0.4s;
-                border: 3px solid;
-            }
-
-            QPushButton:hover {
-                background-color: '#83f28f';
-                color: white;
-            }
-
-        """)
-
-        self.Test_Sim = QPushButton("Test")
-        self.Test_Sim.released.connect(self.run_suspension_sim)
-        self.suspension_layout.addWidget(self.Test_Sim, 0, 1, 1, 1)
-
-        self.suspension.setLayout(self.suspension_layout)
-
-        self.layout.addWidget(self.suspension)
-
-        ##################################################
-        self.toolbar.addSeparator()
+        #################################################
 
         self.ideal_gas_button = QAction("Ideal Gas Simulation", self)
         self.toolbar.addAction(self.ideal_gas_button)
@@ -662,11 +613,6 @@ q: quit""")
         self.pathfinding_cols.setValue(cols)
 
 
-    def run_suspension_sim(self):
-        try:
-            test.run()
-        except Exception as e:
-            print(e)
 
 
     def particleSim(self):
@@ -683,9 +629,6 @@ q: quit""")
             print(e)
 
 
-    def keyPressEvent(self, event):
-        if event.key() == 16777217:
-            self.ideal_gas_layout.setCurrentIndex((self.ideal_gas_layout.currentIndex() + 1) % len(self.slides))
 
     def initialise_program(self, user_settings):
         self.penetration_factor_button = QSpinBox()
