@@ -182,12 +182,12 @@ def run(level_no, air_resistance=False):
             completed.add(ball_i)
             if ball_j not in completed: # ensure that the particle in question hasn't already been resolved
                 ball_i.resolve_dynamic_collision(ball_j)
-                pygame.draw.line(screen, (0, 255, 0), ball_i.position, ball_j.position)
         vector_field.colliding_balls_pairs.clear() # reset the list for the next time step
 
         if vector_field.draw_line_to_mouse and vector_field.selected_particle != None:
             particle = vector_field.particles[vector_field.selected_particle]
-            pygame.draw.line(screen, (255, 0, 0), particle.position, pygame.mouse.get_pos())
+            pygame.draw.line(screen, (255, 0, 0), particle.position, pygame.mouse.get_pos(), width=4)
+            pygame.mouse.set_cursor(pygame.cursors.broken_x)
             projected_velocity = (np.array(pygame.mouse.get_pos()) - particle.position) * vector_field.projected_particle_velocity_multiplier
             if vector_field.toggle_velocity_display:
                 display_params = f"{int(projected_velocity[0])}i\u0302 + {int(-projected_velocity[1])}j\u0302"
@@ -231,10 +231,12 @@ def run(level_no, air_resistance=False):
             elif event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 1 and vector_field.selected_particle != None:
                     vector_field.drop_particle()
+                    pygame.mouse.set_cursor(pygame.cursors.Cursor())
 
                 elif event.button == 3 and vector_field.selected_particle != None:
                     particle = vector_field.particles[vector_field.selected_particle]
                     vector_field.release_projected_particle(event.pos)
+                    pygame.mouse.set_cursor(pygame.cursors.Cursor())
                     vector_field.start_timer(particle)
 
 
@@ -255,7 +257,7 @@ class ProjectileParticle(Particle):
 
         self.acceleration = np.array([0, self.vector_field.g])
         self.floor_damping = floor_damping
-        self.colour = (168,132,35)
+        self.colour = (184, 146, 255)
         self.hit_goal = False
     def draw(self, screen):
         pygame.draw.circle(screen, self.colour, self.position, self.radius)
@@ -487,6 +489,7 @@ class Container(SpatialMap):
         for row in box_dimensions:
             plank = Obstacle(*row, ball_box_image)
             plank.is_platform = True
+            plank.colour = (248, 94, 0)
             self.obstacles.append(plank)
 
         splatters = ["splat1.png", "splat2.png", "splat3.png"]

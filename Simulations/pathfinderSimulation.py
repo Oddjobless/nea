@@ -28,7 +28,7 @@ def run(rows, columns, max_velocity):
     vector_field = VelocityField(rows, columns, max_velocity)
     box_width, box_height = vector_field.box_width, vector_field.box_height
 
-    vector_field.particles = [Pathfinder(radius//3, radius, vector_field, wall_damping) for _ in range(noOfParticles)]
+    vector_field.particles = [Pathfinder(radius//3, radius, vector_field, wall_damping) for _ in range(30)]
     # vector_field.calculate_rest_density(particles) # integrate into __init
     font = pygame.font.SysFont("comicsans", int(box_width // 2.6))
 
@@ -90,9 +90,11 @@ def run(rows, columns, max_velocity):
         if vector_field.draw_heatmap:
             vector_field.display_heatmap(screen)
 
+        start_time = time.time()
         if vector_field.enable_collision_between_particles:
             for particle in vector_field.particles:
                 particle.collision_event_particles()
+        print(f"Time elapsed for collision resolution: {time.time() - start_time}")
 
         """for i in vector_field.grid:
             print(i.cellList, end="")"""
@@ -228,6 +230,8 @@ class VelocityField(SpatialMap):
 
         self.particle_to_add_radius = radius
 
+        self.max_distance = 0
+
         # self.print_visited()
 
         """for i in range(noOfRows):
@@ -239,8 +243,6 @@ class VelocityField(SpatialMap):
 
 
     def display_heatmap(self, screen): # drawing a colour gradient depending on the distance
-        max_distance = np.max(list(filter(lambda x: np.isfinite(x), self.cell_distances)))
-
         for i in range(self.cols):
             for j in range(self.rows):
                 distance = self.cell_distances[self.coord_to_index((i, j))]
@@ -248,10 +250,13 @@ class VelocityField(SpatialMap):
                     if np.isinf(distance): # give inf cell a specific colour
                         pygame.draw.rect(screen, (255,160,255), (i * self.box_width, j * self.box_height, self.box_width, self.box_height))
                     else:
-                        norm_distance = distance / max_distance
+                        norm_distance = distance / self.max_distance
                         colour = np.array([255 * (1 - norm_distance), 190, 255 * (norm_distance)], dtype=int)
                         pygame.draw.rect(screen, colour,
                                          (i * self.box_width, j * self.box_height, self.box_width, self.box_height))
+
+    def find_max_distance(self):
+        self.max_distance = np.max(list(filter(lambda x: np.isfinite(x), self.cell_distances)))
 
 
     def print_visited(self):
@@ -332,7 +337,6 @@ class VelocityField(SpatialMap):
 
 #########################################################
     def calculate_vectors(self):
-        print("Calculating vectors")
         for cell_coord in self.obstacles: # todo
             self.cell_distances[self.coord_to_index(cell_coord)] = -1
 
@@ -376,10 +380,9 @@ class VelocityField(SpatialMap):
 
             cell.velocity = self.normalise_vector(np.array([x_vector, y_vector]))
 
-        print("")
 
     def update_velocity_field(self, coords_of_goal):
-        print("Updating Velocity Field")
+        print("\nUpdating Velocity Field")
         start_time = time.time()
         if not any(np.isnan(coords_of_goal)):#
             if not (self.goal[0] == coords_of_goal[0] and self.goal[1] == coords_of_goal[1]) and coords_of_goal not in self.obstacles:
@@ -389,7 +392,8 @@ class VelocityField(SpatialMap):
                 print("Distance field generated, now generating velocity field...")
                 self.calculate_vectors()
                 print("Velocity field generated")
-        print(f"Time elapsed: {start_time - time.time()}")
+                print(f"Time elapsed: {time.time() - start_time}\n")
+                self.find_max_distance()
 
     def clear_obstacles(self):
         self.obstacles.clear()
