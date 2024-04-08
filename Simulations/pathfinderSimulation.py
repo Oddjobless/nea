@@ -1,4 +1,4 @@
-
+import time
 import numpy as np
 from Simulations.SimulationFiles.baseClasses import *
 
@@ -62,6 +62,8 @@ def run(rows, columns, max_velocity):
                     vector_field.draw_heatmap = not vector_field.draw_heatmap
                 elif event.key == pygame.K_g:
                     vector_field.draw_grid = not vector_field.draw_grid
+                elif event.key == pygame.K_r:
+                    vector_field.clear_obstacles()
 
 
             elif event.type == pygame.MOUSEBUTTONDOWN:
@@ -82,11 +84,25 @@ def run(rows, columns, max_velocity):
                     else:
                         vector_field.add_particle(pygame.mouse.get_pos())
         ### drawing vectorField
-        screen.fill((200, 200, 200))
+        screen.fill((186, 217, 210))
 
 
         if vector_field.draw_heatmap:
             vector_field.display_heatmap(screen)
+
+        if vector_field.enable_collision_between_particles:
+            for particle in vector_field.particles:
+                particle.collision_event_particles()
+
+        """for i in vector_field.grid:
+            print(i.cellList, end="")"""
+        vector_field.update()
+        for particle in vector_field.particles:
+            particle.update(screen)  # updates position of particles
+
+        # total_density = 0
+        for particle in vector_field.particles:
+            pygame.draw.circle(screen, (130, 46, 129), particle.get_position(), particle.radius)
 
 
         for cell in vector_field.obstacles:
@@ -118,19 +134,7 @@ def run(rows, columns, max_velocity):
 
 
 
-        if vector_field.enable_collision_between_particles:
-            for particle in vector_field.particles:
-                particle.collision_event_particles()
 
-        """for i in vector_field.grid:
-            print(i.cellList, end="")"""
-        vector_field.update()
-        for particle in vector_field.particles:
-            particle.update(screen)  # updates position of particles
-
-        # total_density = 0
-        for particle in vector_field.particles:
-            pygame.draw.circle(screen, (123,12,90), particle.get_position(), particle.radius)
 
 
 
@@ -204,15 +208,13 @@ class Pathfinder(Particle):
                     return
 
         except Exception as e:
-            print(e)
             raise Exception
 
 class VelocityField(SpatialMap):
     def __init__(self, noOfRows, noOfCols, max_velocity):
         super().__init__(noOfRows, noOfCols)
         self.cell_distances = np.zeros_like(self.grid)
-        for i in self.grid:
-            print(i.velocity)
+
         self.obstacles = set()
         self.goal = np.array([0,0])
         # self.update_velocity_field(self.goal)
@@ -277,12 +279,13 @@ class VelocityField(SpatialMap):
 
         self.particles.append(obj)
 
+
     def generate_heatmap(self, goal_coords):
+
         self.cell_distances = np.empty_like(self.grid)
         # initialise cell distances with infinity, obstacles with -1
         for cell_index, cell in enumerate(self.cell_distances):
             cell_coord = self.index_to_coord(cell_index)
-            print(cell_coord)
             if cell_coord in self.obstacles:
                 self.cell_distances[cell_index] = -1
             else:
@@ -303,7 +306,6 @@ class VelocityField(SpatialMap):
             current_index = self.coord_to_index(current_coord)
             current_distance = self.cell_distances[current_index]
             neighbouring_coords = self.get_neighbouring_coords(current_coord, include_diagonal=True)
-            print(current_coord, neighbouring_coords)
             for next_coord in neighbouring_coords:
                 try:
                     next_index = self.coord_to_index(next_coord)
@@ -374,14 +376,23 @@ class VelocityField(SpatialMap):
 
             cell.velocity = self.normalise_vector(np.array([x_vector, y_vector]))
 
+        print("")
+
     def update_velocity_field(self, coords_of_goal):
+        print("Updating Velocity Field")
+        start_time = time.time()
         if not any(np.isnan(coords_of_goal)):#
-            print(coords_of_goal, "sdaf", self.obstacles)
-            print(self.goal)
             if not (self.goal[0] == coords_of_goal[0] and self.goal[1] == coords_of_goal[1]) and coords_of_goal not in self.obstacles:
                 self.goal = coords_of_goal
+                print("Generating distance field...")
                 self.generate_heatmap(coords_of_goal)
+                print("Distance field generated, now generating velocity field...")
                 self.calculate_vectors()
+                print("Velocity field generated")
+        print(f"Time elapsed: {start_time - time.time()}")
+
+    def clear_obstacles(self):
+        self.obstacles.clear()
 
     def calculate_steering_force(self, particle):
         pass

@@ -121,7 +121,6 @@ class MainWindow(QMainWindow):
         teachers = []
         for record in self.database.get_teacher_names():
             teachers.append(f"{record[0]}")
-            teachers.append(f"{record[0]}")
         self.teacher_dropdown = QComboBox()
         self.teacher_dropdown.addItems(teachers)
 
@@ -238,7 +237,7 @@ class MainWindow(QMainWindow):
             button.setCheckable(False)
             button.setCursor(QCursor(Qt.CursorShape.ForbiddenCursor))
             self.projectile_widget_layout.addWidget(button, self.projectile_sim_buttons.index(button) // 3,
-                                                    (2 * (self.projectile_sim_buttons.index(button)) % 3 + 3), 1, 1)
+                                                    (2 * ((self.projectile_sim_buttons.index(button)) % 3) + 3), 1, 1)
             button.setMaximumWidth(300)
             button.setMinimumHeight(150)
         self.weeklyButton = QPushButton("Level of\nthe Week")
@@ -514,30 +513,38 @@ q: quit""")
     def create_new_db_user(self):
         valid = True
         detailed_text = ""
-        if len(self.password.text()) < 6:
-            detailed_text += "Password must be at least 6 characters.\n"
-            valid = False
-        if self.email.text() == "":
-            detailed_text += "No email given.\n"
-            valid = False
-        elif not re.match(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", self.email.text()):
-            detailed_text += "Email is not valid.\n"
-            valid = False
+        try:
+            if len(self.password.text()) < 6:
+                detailed_text += "Password must be at least 6 characters.\n"
+                valid = False
+            if self.email.text() == "":
+                detailed_text += "No email given.\n"
+                valid = False
 
-        if self.full_name.text() == "":
-            detailed_text += "Full name is not given.\n"
-            valid = False
-        if self.date_of_birth.date().addYears(16) > QDate.currentDate():
-            detailed_text += "You must be at least 16 years old.\n"
-            valid = False
+            elif not re.match(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", self.email.text()):
+                detailed_text += "Email is not valid.\n"
+                valid = False
 
-        if valid: # send to database to create user
+            if len(self.email.text()) > 256:
+                detailed_text += "Email is too long.\n"
+                valid = False
+
+            if self.full_name.text() == "":
+                detailed_text += "Full name is not given.\n"
+                valid = False
+            if self.date_of_birth.date().addYears(16) > QDate.currentDate():
+                detailed_text += "You must be at least 16 years old.\n"
+                valid = False
+
+            assert valid # send to database to create user
             teacher = self.database.get_teacher_email_by_name(self.teacher_dropdown.currentText())
-            self.database.create_user(self.email.text(), sha256(self.password.text().encode()).hexdigest(),
+            user_created = self.database.create_user(self.email.text(), sha256(self.password.text().encode()).hexdigest(),
                                       self.full_name.text(), self.date_of_birth.date().toString("yyyy-MM-dd"), teacher_email=teacher)
+            if not user_created:
+                raise AssertionError
             self.toggle_login_register() # prompt user to login
             return True
-        else:
+        except AssertionError:
             box = QMessageBox()
             box.setText("Could not create a new account\nPlease check you have entered your information correctly.")
             box.setDetailedText(detailed_text)
@@ -649,6 +656,8 @@ q: quit""")
         while rows < 15 or cols < 15:
             rows *= 2
             cols *= 2
+        if rows > 100 or cols > 100:
+            rows, cols = 18, 32 # default values as square grid can't be made
         self.pathfinding_rows.setValue(rows)
         self.pathfinding_cols.setValue(cols)
 
@@ -681,13 +690,14 @@ q: quit""")
     def initialise_program(self, user_settings):
         self.penetration_factor_button = QSpinBox()
         self.penetration_factor_button.setAlignment(Qt.AlignmentFlag.AlignRight)
-        self.projectile_instruction.setText(self.projectile_instruction.text() + "\nTeachers can use the spinbox to control the penetration factor!")
         self.penetration_factor_button.setMaximumWidth(180)
         self.penetration_factor_button.setSuffix("%")
         self.penetration_factor_button.setRange(1, 100)
         self.penetration_factor_button.setValue(15)
 
         if self.teacher_id is None:
+            self.projectile_instruction.setText(
+                self.projectile_instruction.text() + "\nTeachers can use the spinbox to control the penetration factor!")
             self.weeklyButton.setMaximumWidth(350)
             self.projectile_widget_layout.addWidget(self.weeklyButton, 2, 2, 1, 1)
             max_level = len(self.projectile_sim_buttons)
