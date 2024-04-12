@@ -567,8 +567,7 @@ q: quit""")
                         self.weeklyScore = score
                         self.weeklyButton.setText(f"Level of the Week\nCurrent Score: {self.weeklyScore}")
         except Exception as e:
-            pass
-            # traceback.print_exc()
+            traceback.print_exc()
 
 
     def run_pathfinder(self):
