@@ -19,9 +19,9 @@ class MainWindow(QMainWindow):
         self.database = Database("localhost", "root", "2121", "NEA")
 
         self.user_settings = [None, None, 18, 32, 0.8, 500, 1]
-        self.setWindowTitle("ARGHHHHHHHHHH")
-        self.setGeometry(0, 0, 1920, 1080)
-        self.showFullScreen()  # todo: fullscreen
+        self.setWindowTitle("Physics Simulator")
+
+        # self.showFullScreen()  # todo: fullscreen
 
         self.layout = QStackedLayout()
 
@@ -32,7 +32,7 @@ class MainWindow(QMainWindow):
         self.addToolBar(self.toolbar)
         self.toolbar.setMovable(False)
         self.toolbar.hide()
-
+        self.showFullScreen()
 
         self.setFont(QFont("Helvetica", 15))
         self.index.setStyleSheet("""
@@ -364,7 +364,7 @@ q: quit""")
 
         self.ideal_gas_button = QAction("Ideal Gas Simulation", self)
         self.toolbar.addAction(self.ideal_gas_button)
-        self.ideal_gas_button.triggered.connect(lambda: self.changeIndex(5))
+        self.ideal_gas_button.triggered.connect(lambda: self.changeIndex(4))
 
         self.ideal_gas_layout = QGridLayout()
         self.ideal_gas = QWidget()

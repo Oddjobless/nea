@@ -21,7 +21,7 @@ def run():
 
 
 
-        screen.fill((70, 69, 5))
+        screen.fill((78, 198, 140))
         vector_field.draw_walls(screen)
         vector_field.draw_slider(screen, pygame.mouse.get_pos())
         # draw gas container walls
@@ -46,8 +46,8 @@ def run():
             if ball_j not in completed:
                 ball_i.resolve_dynamic_collision(ball_j)
                 vector_field.collision_count += 1
-                if vector_field.collision_spark:
-                    pygame.draw.line(screen, (0, 255, 0), ball_i.position, ball_j.position)
+                if vector_field.spark_button.text == "Collision Sparks Enabled":
+                    pygame.draw.line(screen, (0, 255, 0), ball_i.position, ball_j.position, width=5)
 
         vector_field.colliding_balls_pairs.clear()
 
@@ -190,7 +190,7 @@ class Widget:
 
         if self.dynamic and self.parent:
             dim = self.parent.dimensions
-            pressure_sizes = 200, 100
+            pressure_sizes = 250, 100
             self.position = np.array([(dim[0] + dim[2] - pressure_sizes[0]) // 2, dim[1] - pressure_sizes[1] - self.parent.wall_radius])
 
     def click_check(self, pos):
@@ -210,13 +210,15 @@ class Widget:
 class Container(SpatialMap):
     def __init__(self, rows, columns):
         super().__init__(rows, columns)
+        self.R = 8.3145
+        self.px_to_metres = 0.1
         self.particles = []
         self.selected_particle = None
         self.projected_particle_velocity_multiplier = 80
         self.dimensions = np.array([200,200,900,600]) # left, top, right, bottom
         self.font = pygame.font.SysFont("comicsans", int(self.box_width // 2.6))
+        self.small_font = pygame.font.SysFont("comicsans", int(self.box_width//4))
         self.collision_count = 0
-        self.collision_spark = True
         self.draw_line_to_mouse = False
         self.colliding_balls_pairs = []
         self.wall_selected = None
@@ -224,16 +226,17 @@ class Container(SpatialMap):
 
         dim = self.dimensions
 
-        pressure_sizes = 200, 100
+        pressure_sizes = 250, 100
         pressure_pos = ((dim[0] + dim[2] - pressure_sizes[0]) // 2, dim[1] - pressure_sizes[1] - self.wall_radius)
-        self.pressure_display = Widget(pressure_pos, pressure_sizes, (255, 255, 200), parent=self, dynamic=True)
-        self.temp_slider = Widget((1480,900), (400,30), (140,140,140), slider=True, parent=self)
-        self.particle_button = Widget((1560,400), (250,100), (140,140,140), text="Heavy Particles", alt_text="Light Particles")
-        self.collision_counter = Widget((1480,500), (400,100), (140,140,140), text="Collision Count")
-        self.reset_button = Widget((1480,700), (400,100), (140,140,140), text="Reset")
-        self.stopwatch_button = Widget((1480,50), (300,150), (140,140,140), hover=False)
-        self.pause_button = Widget((1480, 70), (150, 100), (200,80,30), text="Pause", alt_text="Start")
-        self.widgets = [self.pressure_display, self.temp_slider, self.particle_button,self.pause_button, self.collision_counter, self.reset_button, self.stopwatch_button ]
+        self.pressure_display = Widget(pressure_pos, pressure_sizes, (255, 255, 200), parent=self, dynamic=True, hover=False)
+        self.temp_slider = Widget((1480,410), (400,30), (81, 228, 81), slider=True, parent=self)
+        self.particle_button = Widget((1560,630), (250,100), (166, 179, 215), text="Heavy Particles", alt_text="Light Particles")
+        # self.collision_counter = Widget((1480,500), (400,100), (140,140,140), text="Collision Count")
+        self.reset_button = Widget((1480,900), (400,100), (242, 125, 125), text="RESET")
+        # self.stopwatch_button = Widget((1480,50), (300,150), (140,140,140), hover=False) # todo remove all stopwatch stuff
+        # self.pause_button = Widget((1480, 70), (150, 100), (200,80,30), text="Pause", alt_text="Start")
+        self.spark_button = Widget((1490, 770), (380, 75), (237, 234, 116), text="Collision Sparks Enabled", alt_text="Collision Sparks Disabled")
+        self.widgets = [self.pressure_display, self.temp_slider, self.particle_button, self.reset_button, self.spark_button]
         self.temperature = 293
         self.initial_temperature = 293
 
@@ -244,40 +247,50 @@ class Container(SpatialMap):
     #     width, height = self.dimensions[2] - self.dimensions[0], self.dimensions[3] - self.dimensions[1]
     #     return 0.00001 * width * height
 
-    def calculate_pressure(self):
+    """def calculate_pressure(self):
+        # P = (no of moles * R * temperature) / volume
         total_mass = 0
         for particle in self.particles:
             total_mass += particle.mass
         width, height = self.dimensions[2] - self.dimensions[0], self.dimensions[3] - self.dimensions[1]
         pressure = (total_mass * self.temperature) / (0.00001*width*height)
+        return pressure"""
+
+    def calculate_pressure(self):
+        # P = (no of moles * R * temperature) / volume
+        width, height = (self.dimensions[2] - self.dimensions[0]) / self.px_to_metres, (self.dimensions[3] - self.dimensions[1]) / self.px_to_metres
+        pressure = (len(self.particles) * self.R * self.temperature) / (width * height)
+        print(width, height,"  asdffsda")
+        print(self.dimensions)
         return pressure
 
     def initialise_container(self):
         dim = self.dimensions
-        base_v = 200
+        base_v = 60
         self.temp_slider.knob_value = self.initial_temperature
         self.temperature = self.initial_temperature
 
         self.particles.clear()
-        self.particles.extend([GasParticle(1, 8, self, 1.00, position=np.array(
+        self.particles.extend([GasParticle(0.1, 8, self, 1.00, position=np.array(
             [randint(dim[0], dim[2]), randint(dim[1], dim[3])]), velocity=np.array(
             [randint(-base_v, base_v), randint(-base_v, base_v)], dtype=float)) for _ in range(50)])  # eccentricity
         self.rms_velocity = self.calculate_rms_velocity()
-        self.pressure_display.text = f"{round(self.calculate_pressure())} Pa"
+        self.pressure_display.text = f"{self.calculate_pressure()*1000:<.2f} mPa".replace("e", " x10^")
+        print(self.calculate_pressure())
 
 
 
     def add_particle(self, mouse_position):
         if self.particle_button.is_clicked:
-            obj = GasParticle(0.75, 6, self, 1.0, position=np.array(mouse_position, dtype=float))
+            obj = GasParticle(0.06, 5, self, 1.0, position=np.array(mouse_position, dtype=float))
             obj.colour = np.array([255, 60, 60])
             print(obj.colour)
         else:
-            obj = GasParticle(1, 8, self, 1.0, position=np.array(mouse_position, dtype=float))
+            obj = GasParticle(0.1, 8, self, 1.0, position=np.array(mouse_position, dtype=float))
 
         self.particles.append(obj)
         self.calculate_rms_velocity()
-        self.pressure_display.text = f"{round(self.calculate_pressure())} Pa"
+        self.pressure_display.text = f"{self.calculate_pressure()*1000:<.2f} mPa".replace("e", " x10^")
     def temperature_change(self, new_temperature):
         change = new_temperature - self.temperature
         if abs(change) > 0.5:
@@ -285,15 +298,24 @@ class Container(SpatialMap):
             self.temperature = new_temperature
             temperature_ratio = new_temperature / old_temperature
             self.rms_velocity = self.calculate_rms_velocity()
-            self.pressure_display.text = f"{round(self.calculate_pressure())} Pa"
+            self.pressure_display.text = f"{self.calculate_pressure()*1000:<.2f} mPa".replace("e", " x10^")
             for index, particle in enumerate(self.particles):
                 particle.velocity *= temperature_ratio
 
     def calculate_rms_velocity(self):
-        total_squared_velocity = sum(np.sum(particle.velocity ** 2) * 0.5 * particle.mass for particle in self.particles)
+        # including a px to metres conversion factor
+        total_squared_velocity = sum(np.sum(80 * particle.velocity ** 2) * 0.5 * particle.mass for particle in self.particles)
         rms_velocity = np.sqrt(total_squared_velocity / len(self.particles))
         return rms_velocity
 
+    def calculate_rms_velocity(self):
+        total_square_vel = 0.0
+        for particle in self.particles:
+            squared_velocity_magnitude = np.sum((particle.velocity / self.px_to_metres) ** 2)
+            total_square_vel += 0.5 * particle.mass * squared_velocity_magnitude
+
+        rms = np.sqrt(total_square_vel / len(self.particles))
+        return rms
     def draw_slider(self, screen, mouse_pos):
 
         for widget in self.widgets:
@@ -308,19 +330,31 @@ class Container(SpatialMap):
         radius = self.wall_radius
         width = dim[2] - dim[0]
         height = dim[3] - dim[1]
-        pygame.draw.rect(screen, (150,80,150), (0.75 * screen_width, 0, 0.25 * screen_width, screen_height))
+        pygame.draw.rect(screen, (161, 221, 208), (0.75 * screen_width, 0, 0.25 * screen_width, screen_height))
         pygame.draw.rect(screen, (200,200,200), (
             dim[0] - radius, dim[1] - radius, width + 2 * radius,
             height + 2*radius))
         pygame.draw.rect(screen, (255,255,255), (dim[0], dim[1], width, height))
 
 
-        # text = self.font.render(f"Temperature", True, (10,10,10))
-        # screen.blit(text, (0.875 * screen_width - 0.5 * text.get_width(), 0.2 * screen_height))
-        text = self.font.render(f"{round(self.temp_slider.knob_value,1)} K", True, (10,10,10))
-        screen.blit(text, (0.875 * screen_width - 0.5 * text.get_width(), 0.25 * screen_height))
+        text = self.small_font.render(f"Heat Up", True, (10,10,10))
+        screen.blit(text, (0.79 * screen_width - 0.5 * text.get_width(), 450))
+        text = self.small_font.render(f"Cool Down", True, (10,10,10))
+        screen.blit(text, (0.96 * screen_width - 0.5 * text.get_width(), 450))
+        text = self.font.render(f"{round(self.temp_slider.knob_value,1)} \u00B0K", True, (10,10,10))
+        screen.blit(text, (0.875 * screen_width - 0.5 * text.get_width(), 325))
+        text = self.small_font.render("Root Mean Square Speed", True, (10, 10, 10))
+        screen.blit(text, (0.875 * screen_width - 0.5 * text.get_width(), 100))
+        text = self.small_font.render("AKA The Average Speed:", True, (10, 10, 10))
+        screen.blit(text, (0.875 * screen_width - 0.5 * text.get_width(), 130))
         text = self.font.render(f"{round(self.rms_velocity,1)} m/s", True, (10,10,10))
-        screen.blit(text, (0.875 * screen_width - 0.5 * text.get_width(), 0.3 * screen_height))
+        screen.blit(text, (0.875 * screen_width - 0.5 * text.get_width(), 170))
+        text = self.small_font.render("Spawn particles", True, (10, 10, 10))
+        screen.blit(text, (0.875 * screen_width - 0.5 * text.get_width(), 550))
+        text = self.small_font.render("with your left click!", True, (10, 10, 10))
+        screen.blit(text, (0.875 * screen_width - 0.5 * text.get_width(), 580))
+
+
 
 
 
@@ -375,7 +409,7 @@ class Container(SpatialMap):
             dim[2] = screen_width * 0.75 - self.wall_radius
         if 20 < dim[2] - dim[0] and dim[3] - dim[1] > 20:
             self.dimensions = dim
-        self.pressure_display.text = f"{round(self.calculate_pressure())} Pa"
+        self.pressure_display.text = f"{self.calculate_pressure()*1000:<.2f} mPa".replace("e", " x10^")
 
 
 
