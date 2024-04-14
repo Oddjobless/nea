@@ -18,7 +18,7 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.database = Database("localhost", "root", "2121", "NEA")
 
-        self.user_settings = [None, None, 18, 32, 0.8, 500, 1]
+        # self.user_settings = [None, None, 18, 32, 40, 0, 1]
         self.setWindowTitle("Physics Simulator")
 
         # self.showFullScreen()  # todo: fullscreen
@@ -153,7 +153,6 @@ class MainWindow(QMainWindow):
             }
 
             QPushButton, QDateEdit, QComboBox {
-                
                 font-size: 40px;
                 padding: 10px 20px;
                 color: green;
@@ -172,14 +171,76 @@ class MainWindow(QMainWindow):
         ##################################################
         self.home_page_button = QAction("Home Page")
         self.toolbar.addAction(self.home_page_button)
-        self.home_page_button.triggered.connect(lambda: self.changeIndex(1))
-        self.home_page = QPushButton("Log Off")
-        self.home_page.released.connect(self.log_off)
-        self.home_page.setFont(QFont("Gadzoox", 30))
-        self.layout.addWidget(self.home_page)
         self.toolbar.addSeparator()
-        self.home_page.setStyleSheet("background-color: '#F49097';")
+        self.home_page_button.triggered.connect(lambda: self.changeIndex(1))
 
+        self.home_page_layout = QGridLayout()
+        self.home_page = QWidget()
+        self.home_page.setLayout(self.home_page_layout)
+
+
+
+        self.home_page.setAutoFillBackground(True)  #
+        palette = self.home_page.palette()  #
+        palette.setColor(self.home_page.backgroundRole(), QColor(232, 179, 220))
+        self.home_page.setPalette(palette)
+
+        self.home_page.setStyleSheet("""
+        QTableWidget {
+            font-family: 'Comic Sans MS';
+            font-size: 45px;
+            padding: 20px;
+        }
+        
+        QPushButton {
+            font-size: 65px;
+            padding: 20px;
+            color: red;
+            border-radius: 20%;
+            display: inline-block;
+            position: fixed;
+            margin: 30px;
+            border: 3px solid;
+            background-color: '#d7ffcc';
+            font-family: 'Comic Sans MS';
+        }
+        
+        QPushButton:hover {background-color: '#abff94';}
+        
+        QLabel {
+            font-family: 'Comic Sans MS';
+            color: '#32a142';
+            font-size: 40px;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border: none;
+        }
+        """)
+        self.logoff_button = QPushButton("Log Off\nAnd Shutdown")
+        self.logoff_button.setFixedSize(700, 300)
+        self.logoff_button.released.connect(self.log_off)
+
+        self.home_page_layout.addWidget(self.logoff_button, 0, 0, 3, 1)
+
+        self.projectile_leaderboard_label = QLabel("Projectile Motion Leaderboard")
+        self.home_page_layout.addWidget(self.projectile_leaderboard_label, 0, 1)
+
+        self.weeklyScore = 0
+        self.projectile_leaderboard = QTableWidget()
+        self.projectile_leaderboard.setColumnCount(3)
+        self.projectile_leaderboard.setHorizontalHeaderLabels(["Ranking", "Full Name", "Score"])
+        self.projectile_leaderboard.verticalHeader().setVisible(False)
+        self.projectile_leaderboard.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
+        self.projectile_leaderboard.setAlternatingRowColors(True)
+        self.projectile_leaderboard.setMinimumHeight(460)
+        self.projectile_leaderboard.setColumnWidth(1, 120)
+        self.projectile_leaderboard.setStyleSheet("background-color: transparent;")
+
+        header = self.projectile_leaderboard.horizontalHeader()
+        header.setStyleSheet("QHeaderView::section { background-color: lightblue; color: white; font-weight: bold; font-size: 45px}")
+
+
+        self.layout.addWidget(self.home_page)
         ##################################################
 
         self.projectile_button = QAction("Projectile Motion", self)
@@ -214,7 +275,6 @@ class MainWindow(QMainWindow):
                 font-family: 'Comic Sans MS';
                 font-size: 30px;
                 padding: 20px 32px;
-                color: '#';
                 border-radius: 6%;
                 display: inline-block;
                 position: fixed;
@@ -244,7 +304,7 @@ class MainWindow(QMainWindow):
         self.weeklyButton.setMaximumWidth(400)
         self.enable_projectile_button(self.weeklyButton)
         self.weeklyButton.released.connect(lambda: self.run_projectile_motion_sim("Weekly"))
-        self.weeklyScore = 0
+
 
         self.air_resistance_button = QPushButton("Air Resistance\nENABLED")
         self.toggle_air_resistance_button()
@@ -329,17 +389,15 @@ q: quit""")
         self.pathfinding_rows = QSpinBox() # no of rows in simulation
         self.pathfinding_rows.setRange(4, 100)
         self.pathfinding_layout.addWidget(self.pathfinding_rows, 0, 0, 1, 1)
-        self.pathfinding_rows.setValue(self.user_settings[2]) # adding saved initial value
 
         self.pathfinding_cols = QSpinBox() # no of cols
         self.pathfinding_cols.setRange(4, 100)
         self.pathfinding_layout.addWidget(self.pathfinding_cols, 0, 2, 1, 1)
-        self.pathfinding_cols.setValue(self.user_settings[3])
 
         self.pathfinding_speed = QSlider()  # desired velocity magnitude for steering behaviour
         self.pathfinding_speed.setOrientation(Qt.Orientation.Horizontal)
         self.pathfinding_speed.setRange(1, 100)
-        self.pathfinding_speed.setValue(self.user_settings[5]) # adding saved initial value
+
         self.pathfinding_speed.setTickPosition(QSlider.TickPosition.TicksBothSides)
         self.pathfinding_layout.addWidget(self.pathfinding_speed, 2, 1, 1, 3)
 
@@ -433,6 +491,7 @@ q: quit""")
         user_info = self.database.verify_login(email, password)
         if user_info:
             self.user_info = user_info
+            print(self.user_info)
             self.user_settings = self.database.get_user_settings(self.user_info[0])
 
             if not user_info[-1]: #if user isnt a teacher:
@@ -441,7 +500,7 @@ q: quit""")
                 self.teacher_id = None
 
 
-            self.initialise_program(self.user_settings)
+            self.initialise_program()
             self.show_toolbar()
             self.changeIndex(1)
 
@@ -566,6 +625,8 @@ q: quit""")
                     if score > self.weeklyScore:
                         self.weeklyScore = score
                         self.weeklyButton.setText(f"Level of the Week\nCurrent Score: {self.weeklyScore}")
+                        self.save_to_database()
+                        self.fill_projectile_leaderboard()
         except Exception as e:
             traceback.print_exc()
 
@@ -629,13 +690,14 @@ q: quit""")
 
 
 
-    def initialise_program(self, user_settings):
+    def initialise_program(self):
         self.penetration_factor_button = QSpinBox()
         self.penetration_factor_button.setAlignment(Qt.AlignmentFlag.AlignRight)
         self.penetration_factor_button.setMaximumWidth(180)
         self.penetration_factor_button.setSuffix("%")
         self.penetration_factor_button.setRange(1, 100)
         self.penetration_factor_button.setValue(15)
+
 
         if self.teacher_id is None:
             self.projectile_instruction.setText(
@@ -647,21 +709,53 @@ q: quit""")
         else:
             self.weeklyButton.setFixedWidth(750)
             self.projectile_widget_layout.addWidget(self.weeklyButton, 2, 1, 1, 2)
-            max_level = user_settings[-1]
+            max_level = self.user_settings[-1]
 
-        print(user_settings)
-        self.pathfinding_rows.setValue(user_settings[2])
-        self.pathfinding_cols.setValue(user_settings[3])
-        self.pathfinding_speed.setValue(user_settings[5])
+        print(self.user_settings, "line 700")
+        self.pathfinding_rows.setValue(self.user_settings[2])
+        self.pathfinding_cols.setValue(self.user_settings[3])
+        self.pathfinding_speed.setValue(self.user_settings[4])
+        self.weeklyScore = self.user_settings[5]
+        if self.weeklyScore > 0:
+            self.weeklyButton.setText(f"Level of the Week\nCurrent Score: {self.weeklyScore}")
+        self.fill_projectile_leaderboard()
 
+        print("Hi")
         for index, button in enumerate(self.projectile_sim_buttons[:max_level]):
             self.enable_projectile_button(button, index)
 
 
+    def fill_projectile_leaderboard(self):
+        row_count = 10
+        self.projectile_leaderboard.clear()
+        teacher_id = self.teacher_id
+        if self.teacher_id is None:
+            teacher_id = self.database.get_teachers_teacher_id(self.user_info[0])
+            print("teacher_id: " , teacher_id)
+        fields = self.database.get_projectile_rankings(teacher_id)
+        print(self.teacher_id, "asdfsadf")
+        self.projectile_leaderboard.setRowCount(row_count + 1)
+        print(fields)
+        for index, (name, score) in enumerate(fields[:row_count]):
+            print(index, name, score)
+            record = (QTableWidgetItem(str(index + 1)), QTableWidgetItem(name), QTableWidgetItem(str(score)))
+            for column, item in enumerate(record):
+                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                item.setFont(QFont("Comic Sans MS", 25))
+                # item.setBackground(QBrush(QColor(156, 50, 180)))
+                self.projectile_leaderboard.setItem(index, column, item)
+        print(self.user_info)
+        user_record = (QTableWidgetItem("-"), QTableWidgetItem(self.user_info[3]), QTableWidgetItem(str(self.weeklyScore)))
+        print(self.weeklyScore)
 
+        for column, item in enumerate(user_record):
+            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            item.setFont(QFont("Comic Sans MS", 25))
+            item.setBackground(QBrush(QColor(80, 30, 50, 125)))
+            self.projectile_leaderboard.setItem(row_count, column, item)
 
+        self.home_page_layout.addWidget(self.projectile_leaderboard, 1, 1, 2, 1)
     def enable_projectile_button(self, button, index=-1):
-        print(index)
         button.setCheckable(True)
         if index >= 0:
             button.released.connect(lambda index=index: self.run_projectile_motion_sim(index + 1))
@@ -676,6 +770,10 @@ q: quit""")
         print()
 
     def log_off(self):
+        self.save_to_database()
+        self.close()
+
+    def save_to_database(self):
         print(self.user_settings)
         self.user_settings = list(self.user_settings)
         print(self.user_settings.copy())
@@ -689,11 +787,12 @@ q: quit""")
             self.user_settings[-1] = max_level
             self.user_settings[2] = int(self.pathfinding_rows.value())
             self.user_settings[3] = int(self.pathfinding_cols.value())
-            self.user_settings[5] = int(self.pathfinding_speed.value())
+            self.user_settings[4] = int(self.pathfinding_speed.value())
+            self.user_settings[5] = int(self.weeklyScore)
 
             self.database.save_and_shut_down(self.user_settings)
 
-            self.close()
+
         except Exception as e:
             traceback.print_exc()
 

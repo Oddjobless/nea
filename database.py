@@ -84,8 +84,8 @@ class Database:
                 user_id INT NOT NULL,
                 pathfinder_rows INT DEFAULT 18,
                 pathfinder_cols INT DEFAULT 32,
-                wall_collision_damping FLOAT DEFAULT 0.8,
-                pathfinding_velocity INT DEFAULT 30,
+                pathfinding_velocity INT DEFAULT 40,
+                projectile_score INT DEFAULT 0,
                 projectile_max_level INT DEFAULT 1,
                 FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
             );
@@ -95,14 +95,14 @@ class Database:
             self.create_user("admin", "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8", "No class", "2000-01-01", is_teacher=True) # password
             self.create_user("teacher@email.com", "1057a9604e04b274da5a4de0c8f4b4868d9b230989f8c8c6a28221143cc5a755", "Mr Smith", "2000-01-01", is_teacher=True) # teacher
             self.create_user("m.stevens@gmail.com", "16a3a923a6143b7b1ebc73ea64ef23fc41ed7b26b883f51c8e90bb32a9cb3dc4", "Mr Stevens", "2000-01-01", is_teacher=True) # stevens
-            self.create_user("student", "placeholder", "student", "2000-01-01", teacher_email="m.stevens@gmail.com")
-            self.create_user("student1", "placeholder", "student", "2000-01-01", teacher_email="m.stevens@gmail.com")
-            self.create_user("student2", "placeholder", "student", "2000-01-01", teacher_email="m.stevens@gmail.com")
-            self.create_user("student3", "placeholder", "student", "2000-01-01", teacher_email="m.stevens@gmail.com")
-            self.create_user("student4", "placeholder", "student", "2000-01-01", teacher_email="m.stevens@gmail.com")
-            self.create_user("student5", "placeholder", "student", "2000-01-01", teacher_email="m.stevens@gmail.com")
-            self.create_user("student6", "placeholder", "student", "2000-01-01", teacher_email="m.stevens@gmail.com")
-            self.create_user("student7", "placeholder", "student", "2000-01-01", teacher_email="m.stevens@gmail.com")
+            self.create_user("student", "placeholder", "student1", "2000-01-01", teacher_email="m.stevens@gmail.com")
+            self.create_user("student1", "placeholder", "student2", "2000-01-01", teacher_email="m.stevens@gmail.com")
+            # self.create_user("student2", "placeholder", "student3", "2000-01-01", teacher_email="m.stevens@gmail.com")
+            # self.create_user("student3", "placeholder", "student4", "2000-01-01", teacher_email="m.stevens@gmail.com")
+            # self.create_user("student4", "placeholder", "student5", "2000-01-01", teacher_email="m.stevens@gmail.com")
+            # self.create_user("student5", "placeholder", "student6", "2000-01-01", teacher_email="m.stevens@gmail.com")
+            # self.create_user("student6", "placeholder", "student7", "2000-01-01", teacher_email="m.stevens@gmail.com")
+            # self.create_user("student7", "placeholder", "student8", "2000-01-01", teacher_email="m.stevens@gmail.com")
 
             self.__conn.fetchall()
 
@@ -176,7 +176,26 @@ class Database:
             return None
         return result[0]
 
-
+    def get_teachers_teacher_id(self, user_id):
+        self.__conn.execute("""
+        SELECT teachers.teacher_id 
+        FROM users, teachers 
+        WHERE users.user_id = %s AND users.user_id = teachers.user_id; 
+        """, (user_id,))
+        result = self.__conn.fetchone()
+        return result[0]
+    def get_projectile_rankings(self, teacher_id):
+        self.__conn.execute("""
+        SELECT full_name, projectile_score
+        FROM users, students, user_settings
+        WHERE users.user_id = students.user_id
+        AND users.user_id = user_settings.user_id
+        AND students.teacher_id = %s
+        ORDER BY projectile_score DESC;
+        """, (teacher_id,))
+        print("fetched rankings")
+        result = self.__conn.fetchall()
+        return result
 
     def get_teacher_names(self):
         self.__conn.execute("""
@@ -190,7 +209,7 @@ class Database:
         SELECT teacher_id FROM students WHERE user_id = %s;
         """, (user_id,))
         result = self.__conn.fetchone()
-        return result
+        return result[0]
 
     def get_students_by_teacher_id(self, teacher_id):
         self.__conn.execute("""
@@ -232,11 +251,9 @@ class Database:
         print(settings)
         print(settings[2:])
         self.__conn.execute("""
-        UPDATE user_settings SET pathfinder_rows = %s, pathfinder_cols = %s, wall_collision_damping = %s, pathfinding_velocity = %s, projectile_max_level = %s WHERE user_id = %s;
+        UPDATE user_settings SET pathfinder_rows = %s, pathfinder_cols = %s, pathfinding_velocity = %s, projectile_score = %s, projectile_max_level = %s WHERE user_id = %s;
         """, settings[2:])
         self.__conn.fetchall()
-
-
 
 
 
@@ -249,7 +266,7 @@ if __name__ == "__main__":
     try:
 
         # print all users
-        result = db.get_all_users()
+        result = db.get_user_settings(3)
         for row in result:
             print(row)
 
