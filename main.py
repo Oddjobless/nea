@@ -182,7 +182,7 @@ class MainWindow(QMainWindow):
 
         self.home_page.setAutoFillBackground(True)  #
         palette = self.home_page.palette()  #
-        palette.setColor(self.home_page.backgroundRole(), QColor(232, 179, 220))
+        palette.setColor(self.home_page.backgroundRole(), QColor(249, 247, 243))
         self.home_page.setPalette(palette)
 
         self.home_page.setStyleSheet("""
@@ -190,6 +190,7 @@ class MainWindow(QMainWindow):
             font-family: 'Comic Sans MS';
             font-size: 45px;
             padding: 20px;
+            border: 0px solid;
         }
         
         QPushButton {
