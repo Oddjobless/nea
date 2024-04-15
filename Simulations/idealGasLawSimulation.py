@@ -127,8 +127,8 @@ def run():
 #
 
 class GasParticle(Particle):
-    def __init__(self, mass, particle_radius, vector_field, _wall_damping, velocity=None, position=None, colour=(123, 12, 255)):
-        super().__init__(mass, particle_radius, vector_field, _wall_damping, velocity=velocity, position=position)
+    def __init__(self, mass, particle_radius, vector_field, velocity=None, position=None, colour=(123, 12, 255)):
+        super().__init__(mass, particle_radius, vector_field, velocity=velocity, position=position)
         self.colour = colour
     def update(self, screen, custom_dimensions=None, vector_field=False):
         super().update(screen, custom_dimensions=custom_dimensions, vector_field=vector_field)
@@ -271,7 +271,7 @@ class Container(SpatialMap):
         self.temperature = self.initial_temperature
 
         self.particles.clear()
-        self.particles.extend([GasParticle(0.1, 8, self, 1.00, position=np.array(
+        self.particles.extend([GasParticle(0.1, 8, self, position=np.array(
             [randint(dim[0], dim[2]), randint(dim[1], dim[3])]), velocity=np.array(
             [randint(-base_v, base_v), randint(-base_v, base_v)], dtype=float)) for _ in range(50)])  # eccentricity
         self.rms_velocity = self.calculate_rms_velocity()
@@ -282,11 +282,11 @@ class Container(SpatialMap):
 
     def add_particle(self, mouse_position):
         if self.particle_button.is_clicked:
-            obj = GasParticle(0.06, 5, self, 1.0, position=np.array(mouse_position, dtype=float))
+            obj = GasParticle(0.06, 5, self, position=np.array(mouse_position, dtype=float))
             obj.colour = np.array([255, 60, 60])
             print(obj.colour)
         else:
-            obj = GasParticle(0.1, 8, self, 1.0, position=np.array(mouse_position, dtype=float))
+            obj = GasParticle(0.1, 8, self, position=np.array(mouse_position, dtype=float))
 
         self.particles.append(obj)
         self.calculate_rms_velocity()

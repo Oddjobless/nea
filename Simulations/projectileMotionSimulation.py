@@ -130,7 +130,7 @@ def run(level_no, air_resistance=False):
 
     vector_field = Container(rows, columns, level_no, air_resistance)
 
-    vector_field.particles.extend([ProjectileParticle(1, 15, vector_field, wall_damping, floor_damping=0.7) for _ in range(6)])  # eccentricity
+    vector_field.particles.extend([ProjectileParticle(1, 15, vector_field) for _ in range(6)])  # eccentricity
     for particle in vector_field.particles:
         particle.position = np.array([randint(140,210), randint(780,980)])
     font = pygame.font.SysFont("comicsans", 20)
@@ -172,11 +172,11 @@ def run(level_no, air_resistance=False):
         for obstacle in vector_field.obstacles:
             obstacle.draw(screen)
         vector_field.draw_splatters(screen)
-        
+
         # kinematic info
         vector_field.update_kinematic_info()
         vector_field.draw_kinematic_info(screen)
-        # 
+        #
         completed = set()
         for ball_i, ball_j in vector_field.colliding_balls_pairs: # loop over all collision
             completed.add(ball_i)
@@ -252,11 +252,10 @@ def run(level_no, air_resistance=False):
 
 #
 class ProjectileParticle(Particle):
-    def __init__(self, mass, particle_radius, vector_field, _wall_damping, floor_damping):
-        super().__init__(mass, particle_radius, vector_field, _wall_damping)
+    def __init__(self, mass, particle_radius, vector_field):
+        super().__init__(mass, particle_radius, vector_field)
 
         self.acceleration = np.array([0, self.vector_field.g])
-        self.floor_damping = floor_damping
         self.colour = (184, 146, 255)
         self.hit_goal = False
     def draw(self, screen):
@@ -321,10 +320,10 @@ class ProjectileParticle(Particle):
         self.next_position = self.position + self.velocity * dt
         if self.next_position[0] > screen.get_width() - (self.radius) or self.next_position[
             0] < self.radius:  # or within blocked cell
-            self.velocity[0] *= -1 * self.damping
+            self.velocity[0] *= -1 * self.vector_field.wall_damping
 
         if self.next_position[1] > screen.get_height() - self.radius or self.next_position[1] < self.radius:
-            self.velocity[1] *= -1 * self.floor_damping
+            self.velocity[1] *= -1 * self.vector_field.wall_damping
             self.velocity[0] *= 0.99  # friction to slow if on ground
 
         self.next_position = np.clip(self.next_position, (self.radius, self.radius),
@@ -380,6 +379,7 @@ class Container(SpatialMap):
         self.particles = []
         self.selected_particle = None
         self.projected_particle_velocity_multiplier = 4
+        self.wall_damping = 0.7
 
         self.draw_line_to_mouse = False
         self.colliding_balls_pairs = []
@@ -387,7 +387,7 @@ class Container(SpatialMap):
 
         self.drag_coefficient = 0.000000001
 
-        
+
         self.air_resistance = air_resistance
         self.px_to_metres_factor = 2
         self.penetration_factor = 0.15
@@ -427,6 +427,7 @@ class Container(SpatialMap):
         self.initial_angle = np.arctan2(particle.velocity[1], particle.velocity[0]) * -180 / np.pi
         self.current_position = particle.position
 
+
     def stop_timer(self):
         self.initial_time = None
     def update_kinematic_info(self):
@@ -435,9 +436,9 @@ class Container(SpatialMap):
             self.final_velocity = self.get_magnitude(self.moving_particle.velocity)
             self.final_angle = np.arctan2(self.moving_particle.velocity[1], self.moving_particle.velocity[0]) * -180 / np.pi
             self.current_position = self.moving_particle.position
-        
-        
-        
+
+
+
     def draw_kinematic_info(self, screen):
         if self.show_kinematic_info:
             pygame.draw.rect(screen, (230,230,230,127), (1620, 65, 300, 330))

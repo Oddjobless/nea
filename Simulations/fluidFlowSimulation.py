@@ -7,9 +7,10 @@ def run():
     pygame.display.set_caption("Pygame Boilerplate")
     rows, columns = 18, 32
 
+
     vector_field = FluidSpatialMap(rows, columns)
 
-    particles = [FluidParticle(1, 3, vector_field, wall_damping) for _ in range(noOfParticles)]
+    particles = [FluidParticle(1, 3, vector_field) for _ in range(noOfParticles)]
     print("high")
     vector_field.calculate_rest_density(particles) # integrate into __init
 
@@ -66,14 +67,13 @@ def run():
 
 
 class FluidParticle(Particle):
-    def __init__(self, mass, radius, spatial_map, damping):
-        super().__init__(mass, radius, spatial_map, damping)
-        self.damping = damping
+    def __init__(self, mass, radius, spatial_map):
+        super().__init__(mass, radius, spatial_map)
         self.radius = radius  # visual only
         self.mass = mass
         self.spatial_map = spatial_map
         self.force = np.zeros(2, dtype=float)
-
+        self.stiffness_constant = 10
         # self.velocity = np.array([randrange(-200, 200), randrange(-200, 200)]) # poo
         self.velocity = np.zeros(2, dtype=float)
         self.position = np.array([randint(2 * self.radius, screen_width - 2 * self.radius),
@@ -151,7 +151,7 @@ class FluidParticle(Particle):
         return self.pressure
 
     def calculate_pressure(self):  # ideal gas law
-        self.pressure = stiffness_constant * (self.density - self.spatial_map.rest_density)
+        self.pressure = self.stiffness_constant * (self.density - self.spatial_map.rest_density)
 
     def calculate_property(self):
         property = 0
@@ -297,6 +297,7 @@ class FluidSpatialMap(SpatialMap):
         super().__init__(noOfRows, noOfCols)
         self.rest_density = 100  # A ROUGH ESTIMATE BASED ON INTIAL POS OF PARTICLES
         # USER SHOULD ADJUST AS PER NEEDED
+        self.wall_damping = 0.7
         self.smoothing_radius = self.box_width
         self.kernel = SmoothingKernel(self.smoothing_radius, cubic_spline=True)
         self.pressure_kernel = SmoothingKernel(self.smoothing_radius, spiky=True)

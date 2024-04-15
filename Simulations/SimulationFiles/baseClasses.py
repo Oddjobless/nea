@@ -3,8 +3,8 @@ import numpy as np
 from random import randint, randrange
 
 class Particle:
-    def __init__(self, mass, _radius, vector_field, damping, position=None, velocity=None):
-        self.damping = damping
+    def __init__(self, mass, _radius, vector_field, position=None, velocity=None):
+        self.damping = 0.7
         self.radius = _radius  # visual only
         self.mass = mass
         self.vector_field = vector_field
@@ -14,7 +14,7 @@ class Particle:
         if position is not None:
             self.position = position
         else:
-            self.position = np.array([randint(8 * self.radius, screen_width - 8 * self.radius), randint(8 * self.radius, screen_height - 8 * self.radius)], dtype=float)
+            self.position = np.array([randint(self.radius, screen_width - self.radius), randint(self.radius, screen_height - self.radius)], dtype=float)
         self.next_position = self.position.copy()
         # self.acceleration = np.array([0,9.8]) * self.mass # short term
         if self.vector_field:
@@ -129,11 +129,6 @@ class Particle:
         print(distance, self.radius)
         return distance < custom_radius##
 
-    def entirely_in_obstacle_check(self, pos, width, height): #
-        if self.next_position[0] - self.radius > pos[0] and self.next_position[0] + radius < pos[0] + width and self.next_position[1] - self.radius > pos[1] and self.next_position[1] + self.radius < pos[1] + height:
-            return True
-        return False
-
 
 
     def update(self, screen, custom_dimensions=None, vector_field=True):
@@ -164,12 +159,7 @@ class Particle:
 
 
 
-    def reverse_position(self, steps):
 
-        self.vector_field.remove_particle(self)
-        self.position = self.position - self.velocity * steps * dt
-        self.next_position = self.position
-        self.vector_field.insert_particle(self)
 
 
     def apply_air_resistance(self):
@@ -190,9 +180,8 @@ import time
 """
 class Cell:
     def __init__(self):
-        self.cellList = set()
+        self.cell_list = set()
         self.velocity = np.array([randint(-1,1), randint(-1,1)], dtype=float)
-
 
 
 class SpatialMap:
@@ -205,6 +194,7 @@ class SpatialMap:
 
         self.rows, self.cols = noOfRows, noOfCols
         self.box_width, self.box_height = screen_width / self.cols, screen_height / self.rows
+        self.damping = 0.7
         # I WANT TO MAKE SELF.HASH INTO A 1D ARRAY
         # self.grid = np.empty((noOfRows, noOfCols))
         # self.grid.fill(set()) # would like to test speed difference
@@ -277,7 +267,7 @@ class SpatialMap:
 
         neighbouring_particles = []
         for cell in neighbour_cells:
-            neighbouring_particles.extend(cell.cellList)
+            neighbouring_particles.extend(cell.cell_list)
 
         return neighbouring_particles
 
@@ -287,7 +277,7 @@ class SpatialMap:
 
     def remove_particle(self, particle):
         cell = self.hash_position(particle.position)
-        self.grid[cell].cellList.discard(particle)
+        self.grid[cell].cell_list.discard(particle)
         # np.delete(self.grid[int(cell[0]), int(cell[1])], particle)
 
     def insert_particle(self, particle):
@@ -302,7 +292,7 @@ class SpatialMap:
             particle.next_position = np.clip(particle.next_position, (r, r), (screen_width-r, screen_height-r))
             return self.insert_particle(particle) # return new instance
 
-        self.grid[new_cell].cellList.add(particle)
+        self.grid[new_cell].cell_list.add(particle)
 
 
 
@@ -363,10 +353,4 @@ frame_rate = 75  # frames per second
 dt = 1 / frame_rate  # time elapsed between frames
 radius = 5  # radius of particles, purely for visualisation
 noOfParticles = 30  # number of particles.
-wall_damping = 0.7  # what percentage of energy the particles keep on collision with boundary
-# draw the grid lines on the screen
-using_poly_6 = True  #
-using_cubic_spline_kernel = True
-# smoothing_radius = box_width # will integrate this into program.#
-stiffness_constant = 10
 draw_distances = True

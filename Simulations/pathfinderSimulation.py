@@ -28,7 +28,7 @@ def run(rows, columns, max_velocity):
     vector_field = VelocityField(rows, columns, max_velocity)
     box_width, box_height = vector_field.box_width, vector_field.box_height
 
-    vector_field.particles = [Pathfinder(radius//3, radius, vector_field, wall_damping) for _ in range(30)]
+    vector_field.particles = [Pathfinder(radius//3, radius, vector_field) for _ in range(30)]
     # vector_field.calculate_rest_density(particles) # integrate into __init
     font = pygame.font.SysFont("comicsans", int(box_width // 2.6))
 
@@ -97,7 +97,7 @@ def run(rows, columns, max_velocity):
         print(f"Time elapsed for collision resolution: {time.time() - start_time}")
 
         """for i in vector_field.grid:
-            print(i.cellList, end="")"""
+            print(i.cell_list, end="")"""
         vector_field.update()
         for particle in vector_field.particles:
             particle.update(screen)  # updates position of particles
@@ -160,8 +160,8 @@ if __name__ == "__main__":
 
 #
 class Pathfinder(Particle):
-    def __init__(self, mass, radius, vector_field, damping, position=None):
-        super().__init__(mass, radius, vector_field, damping, position)
+    def __init__(self, mass, radius, vector_field, position=None):
+        super().__init__(mass, radius, vector_field, position)
 
     def check_for_collision_X(self, obstacle_x, obstacle_width):
         if self.position[0] + self.radius > obstacle_x + obstacle_width or self.next_position[0] - self.radius < obstacle_x:
@@ -203,7 +203,7 @@ class Pathfinder(Particle):
     def collision_event_particles(self, track_collisions=False):
         try:
             cell_index = self.vector_field.hash_position(self.position)
-            particles_to_check = self.vector_field.grid[cell_index].cellList
+            particles_to_check = self.vector_field.grid[cell_index].cell_list
             for particle in particles_to_check:
                 if self.is_collision(particle, save_collisions=track_collisions):
                     self.resolve_static_collision(particle)
@@ -216,6 +216,7 @@ class VelocityField(SpatialMap):
     def __init__(self, noOfRows, noOfCols, max_velocity):
         super().__init__(noOfRows, noOfCols)
         self.cell_distances = np.zeros_like(self.grid)
+        self.wall_damping = 0.7
 
         self.obstacles = set()
         self.goal = np.array([0,0])
@@ -280,7 +281,7 @@ class VelocityField(SpatialMap):
                 self.obstacles.remove(coord)
 
     def add_particle(self, mouse_position):
-        obj = Pathfinder(self.particle_to_add_radius//3, self.particle_to_add_radius, self, wall_damping, np.array(mouse_position, dtype=float))
+        obj = Pathfinder(self.particle_to_add_radius//3, self.particle_to_add_radius, self, np.array(mouse_position, dtype=float))
 
         self.particles.append(obj)
 
@@ -447,7 +448,7 @@ class VelocityField(SpatialMap):
             if any(np.isnan(desired_velocity)) or any(np.isinf(desired_velocity)):
                 continue
 
-            for eachParticle in eachCell.cellList:
+            for eachParticle in eachCell.cell_list:
                 steering_force = desired_velocity - eachParticle.velocity
 
                 eachParticle.velocity += (steering_force * field_strength) # + self.calculate_collision_avoidance(eachParticle)
