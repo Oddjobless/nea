@@ -58,7 +58,7 @@ def run():
             particle.update_pressure()
             particle.calculate_pressure_force()
             particle.update(screen)
-            pygame.draw.circle(screen, (123, 12, 90), particle.position, radius)
+            pygame.draw.circle(screen, (123, 12, 90), particle.position, particle.radius)
 
         pygame.display.update()
 
