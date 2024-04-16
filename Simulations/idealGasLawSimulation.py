@@ -1,15 +1,16 @@
 from Simulations.SimulationFiles.baseClasses import *
+import pygame
 # ported from projectile sim. could make a ideal gas sim, with adjustable volume and more particles and higher temperature
 
 
 
 def run():
     pygame.init()
-
+    screen_width, screen_height = pygame.display.Info().current_w, pygame.display.Info().current_h
     screen = pygame.display.set_mode((screen_width, screen_height))
     pygame.display.set_caption("Pygame Boilerplate")
 
-    vector_field = Container(32, 18)
+    vector_field = Container(32, 18, (screen_width, screen_height))
     frame_rate = 30
 
 
@@ -127,8 +128,8 @@ def run():
 #
 
 class GasParticle(Particle):
-    def __init__(self, mass, particle_radius, vector_field, velocity=None, position=None, colour=(123, 12, 255)):
-        super().__init__(mass, particle_radius, vector_field, velocity=velocity, position=position)
+    def __init__(self, mass, particle_radius, container, velocity=None, position=None, colour=(123, 12, 255)):
+        super().__init__(mass, particle_radius, container, velocity=velocity, position=position)
         self.colour = colour
     def update(self, screen, custom_dimensions=None, vector_field=False):
         super().update(screen, custom_dimensions=custom_dimensions, vector_field=vector_field)
@@ -208,12 +209,10 @@ class Widget:
                 return True
         return False
 class Container(SpatialMap):
-    def __init__(self, rows, columns):
-        super().__init__(rows, columns)
+    def __init__(self, rows, columns, screen_size):
+        super().__init__(rows, columns, screen_size=screen_size)
         self.R = 8.3145
         self.px_to_metres = 0.1
-        self.particles = []
-        self.selected_particle = None
         self.projected_particle_velocity_multiplier = 80
         self.dimensions = np.array([200,200,900,600]) # left, top, right, bottom
         self.font = pygame.font.SysFont("comicsans", int(self.box_width // 2.6))
@@ -273,9 +272,9 @@ class Container(SpatialMap):
         self.particles.clear()
         self.particles.extend([GasParticle(0.1, 8, self, position=np.array(
             [randint(dim[0], dim[2]), randint(dim[1], dim[3])]), velocity=np.array(
-            [randint(-base_v, base_v), randint(-base_v, base_v)], dtype=float)) for _ in range(50)])  # eccentricity
+            [randint(-base_v, base_v), randint(-base_v, base_v)], dtype=float)) for _ in range(50)])
         self.rms_velocity = self.calculate_rms_velocity()
-        self.pressure_display.text = f"{self.calculate_pressure()*1000:<.2f} mPa".replace("e", " x10^")
+        self.pressure_display.text = f"{self.calculate_pressure()*1000:<.2f} mPa"
         print(self.calculate_pressure())
 
 
@@ -290,7 +289,7 @@ class Container(SpatialMap):
 
         self.particles.append(obj)
         self.calculate_rms_velocity()
-        self.pressure_display.text = f"{self.calculate_pressure()*1000:<.2f} mPa".replace("e", " x10^")
+        self.pressure_display.text = f"{self.calculate_pressure()*1000:<.2f} mPa"
     def temperature_change(self, new_temperature):
         change = new_temperature - self.temperature
         if abs(change) > 0.5:
@@ -298,13 +297,12 @@ class Container(SpatialMap):
             self.temperature = new_temperature
             temperature_ratio = new_temperature / old_temperature
             self.rms_velocity = self.calculate_rms_velocity()
-            self.pressure_display.text = f"{self.calculate_pressure()*1000:<.2f} mPa".replace("e", " x10^")
+            self.pressure_display.text = f"{self.calculate_pressure()*1000:<.2f} mPa"
             for index, particle in enumerate(self.particles):
                 particle.velocity *= temperature_ratio
 
     def calculate_rms_velocity(self):
-        # including a px to metres conversion factor
-        total_squared_velocity = sum(np.sum(80 * particle.velocity ** 2) * 0.5 * particle.mass for particle in self.particles)
+        total_squared_velocity = sum(0.5 * particle.mass * np.sum((80 * particle.velocity) ** 2) for particle in self.particles)
         rms_velocity = np.sqrt(total_squared_velocity / len(self.particles))
         return rms_velocity
 
@@ -326,6 +324,7 @@ class Container(SpatialMap):
         pass
 
     def draw_walls(self, screen):
+        screen_width, screen_height = screen.get_width(), screen.get_height()
         dim = self.dimensions
         radius = self.wall_radius
         width = dim[2] - dim[0]
@@ -405,11 +404,11 @@ class Container(SpatialMap):
             dim[index] += change[1]
         else:
             dim[index] += change[0]
-        if not dim[2] + self.wall_radius < screen_width * 0.75:
-            dim[2] = screen_width * 0.75 - self.wall_radius
+        if not dim[2] + self.wall_radius < self.screen_width * 0.75:
+            dim[2] = self.screen_width * 0.75 - self.wall_radius
         if 20 < dim[2] - dim[0] and dim[3] - dim[1] > 20:
             self.dimensions = dim
-        self.pressure_display.text = f"{self.calculate_pressure()*1000:<.2f} mPa".replace("e", " x10^")
+        self.pressure_display.text = f"{self.calculate_pressure()*1000:<.2f} mPa"
 
 
 

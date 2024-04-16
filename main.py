@@ -146,11 +146,7 @@ class MainWindow(QMainWindow):
                 padding: 10px;
                 width: 600px;
             }
-            
-            QTextEdit {
-                border: 2px dashed '#0000ff';
-                margin: 60px;
-            }
+
 
             QPushButton, QDateEdit, QComboBox {
                 font-size: 40px;
@@ -217,13 +213,13 @@ class MainWindow(QMainWindow):
             border: none;
         }
         """)
-        self.logoff_button = QPushButton("Log Off\nAnd Shutdown")
+        self.logoff_button = QPushButton("Log Out")
         self.logoff_button.setFixedSize(700, 300)
         self.logoff_button.released.connect(self.log_off)
 
-        self.home_page_layout.addWidget(self.logoff_button, 0, 0, 3, 1)
+        self.home_page_layout.addWidget(self.logoff_button, 1, 0, 1, 1)
 
-        self.projectile_leaderboard_label = QLabel("Projectile Motion Leaderboard")
+        self.projectile_leaderboard_label = QLabel("Projectile Motion\nWeekly Leaderboard")
         self.home_page_layout.addWidget(self.projectile_leaderboard_label, 0, 1)
 
         self.weeklyScore = 0
@@ -262,16 +258,14 @@ class MainWindow(QMainWindow):
                 border: 3px solid '#0000ff';
             }
 
-            QTextEdit {
-                border: 2px dashed '#0000ff';
-                margin: 30;
-            }
             
-            QLabel{
+            QLabel {
                 font-family: 'Comic Sans MS';
-                font-size: 30px;
+                font-size: 40px;
+                margin-bottom: 10px;
+                padding-bottom: 10px;
+                border: none;
             }
-
             QPushButton, QSpinBox {
                 font-family: 'Comic Sans MS';
                 font-size: 30px;
@@ -350,18 +344,14 @@ q: quit""")
         self.pathfinding.setPalette(palette)
 
         self.pathfinding.setStyleSheet("""
-            QLineEdit {
-                margin: 60;
-                border: 3px solid '#00ff00';
+            QLabel{
+                font-family: 'Comic Sans MS';
+                font-size: 30px;
+                color: '#000000';
+                align: left;
             }
-
-            QTextEdit {
-                border: 2px dashed '#00ff00';
-                margin: 30;
-            }
-            
-
-            QPushButton, QSpinBox, QLabel, QSlider{
+  
+            QPushButton, QSpinBox, QSlider{
                 background-color: '#aff8f0';
                 font-family: 'Comic Sans MS';
                 font-size: 30px;
@@ -389,30 +379,56 @@ q: quit""")
 
         self.pathfinding_rows = QSpinBox() # no of rows in simulation
         self.pathfinding_rows.setRange(4, 100)
-        self.pathfinding_layout.addWidget(self.pathfinding_rows, 0, 0, 1, 1)
+        self.pathfinding_rows.setMaximumWidth(300)
+        self.pathfinding_layout.addWidget(self.pathfinding_rows, 0, 1)
+        pathfinder_rows_label = QLabel("No. of Rows")
+        pathfinder_rows_label.setMaximumWidth(400)
+        self.pathfinding_layout.addWidget(pathfinder_rows_label, 0, 0)
 
         self.pathfinding_cols = QSpinBox() # no of cols
         self.pathfinding_cols.setRange(4, 100)
-        self.pathfinding_layout.addWidget(self.pathfinding_cols, 0, 2, 1, 1)
+        self.pathfinding_cols.setMaximumWidth(300)
+        self.pathfinding_layout.addWidget(self.pathfinding_cols, 1, 1)
+        pathfinder_columns_label = QLabel("No. of Columns")
+        pathfinder_columns_label.setMaximumWidth(400)
+        self.pathfinding_layout.addWidget(pathfinder_columns_label, 1, 0)
 
         self.pathfinding_speed = QSlider()  # desired velocity magnitude for steering behaviour
         self.pathfinding_speed.setOrientation(Qt.Orientation.Horizontal)
+        self.pathfinding_speed.setMaximumWidth(1300)
         self.pathfinding_speed.setRange(1, 100)
-
         self.pathfinding_speed.setTickPosition(QSlider.TickPosition.TicksBothSides)
-        self.pathfinding_layout.addWidget(self.pathfinding_speed, 2, 1, 1, 3)
+        self.pathfinding_layout.addWidget(self.pathfinding_speed, 2, 1, 1, 1)
 
         self.pathfinding_speed_label = QLabel(f"Particle speed = {self.pathfinding_speed.value()}")
+        self.pathfinding_speed_label.setFixedWidth(350)
         self.pathfinding_speed.valueChanged.connect(lambda: self.pathfinding_speed_label.setText(f"Particle speed = {self.pathfinding_speed.value()}"))
         self.pathfinding_layout.addWidget(self.pathfinding_speed_label, 2, 0, 1, 1)
 
-
-
         self.pathfinding_run = QPushButton("Run")
-        self.pathfinding_layout.addWidget(self.pathfinding_run, 5, 2, 1, 1)
+        self.pathfinding_run.setMinimumHeight(100)
+        self.pathfinding_layout.addWidget(self.pathfinding_run, 3, 1, 1, 3)
         self.pathfinding_run.released.connect(self.run_pathfinder)
 
+        self.pathfinder_instruction = QLabel()
+        self.pathfinder_instruction.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.pathfinder_instruction.setWordWrap(True)
+        self.pathfinder_instruction.setText("""Welcome to the
+        Vector Field Pathfinder!   
+        Build mazes, obstacles, and paths... 
+        The particles will find their way to the goal! 
 
+        Controls:   
+        LMB: Set the goal
+        a: Change between the obstacle toggle and adding particles
+        RMB: Change cells into obstacles, or vice versa
+        RMB|alternative: Add particles! Use the + and - key to change their size!
+        c: Enable collisions! Turn this off if the program is slow
+        g: Show grid information
+        h: Show distance heatmap
+        r: Clear the field off all obstacle
+        q: Quit""")
+        self.pathfinding_layout.addWidget(self.pathfinder_instruction, 0, 2, 2, 3)
 
         # self.noOfRows = Q
 
@@ -441,22 +457,17 @@ q: quit""")
                         border: 3px solid '#00ff00';
                     }
 
-                    QTextEdit {
-                        border: 2px dashed '#00ff00';
-                        margin: 30;
-                    }
-
 
                     QPushButton {
                         background-color: '#7AF0B7';
                         font-family: 'Comic Sans MS';
                         font-size: 30px;
                         padding: 20px;
+                        margin: 30px;
                         color: '#6B5E62';
                         border-radius: 6%;
                         display: inline-block;
                         position: fixed;
-                        margin: 0 0 0 0;
                         transition: 0.4s;
                         border: 3px solid;
                     }
@@ -466,20 +477,34 @@ q: quit""")
                         color: white;
                     }""")
 
-        self.runCool = QPushButton("Run ideal gas simulation")
-        self.ideal_gas_layout.addWidget(self.runCool, 0, 0, 1, 1)
-        self.runCool.released.connect(self.particleSim)
+        self.ideal_gas_run = QPushButton("Run ideal gas simulation")
+        self.ideal_gas_run.released.connect(self.particleSim)
+        self.ideal_gas_run.setMinimumHeight(150)
+        self.ideal_gas_layout.addWidget(self.ideal_gas_run, 3, 1, 1, 1)
 
-        self.runPoo = QPushButton(
-            "DO NOT CLICK THIS. DO NOT CLICK THIS. DO NOT CLICK THIS. DO NOT CLICK THIS. DO NOT CLICK THIS.")
-        self.ideal_gas_layout.addWidget(self.runPoo, 1, 1, 1, 3)
-        self.runPoo.released.connect(self.brokenSim)
+        self.ideal_gas_instruction = QLabel()
+        self.ideal_gas_instruction.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.ideal_gas_instruction.setWordWrap(True)
+        self.ideal_gas_instruction.setText("""Welcome to the
+Ideal Gas Simulation!   
+PV = nRT
+Change the conditions and watch how the pressure
+and the particles react!
+
+Controls:   
+Drag the walls to change the volume of the container!
+Click inside the container to add a particle!
+Use the buttons!
+q: Quit""")
+        self.ideal_gas_layout.addWidget(self.ideal_gas_instruction, 0, 0, 2, 3)
 
         ##################################################
         self.setStyleSheet("""
-            {
-            QPushButton {
-                cursor: pointer;
+            QLabel{
+                font-family: 'Comic Sans MS';
+                font-size: 30px;
+                color: '#000000';
+                align: left;
             }
 
         """)
@@ -495,16 +520,13 @@ q: quit""")
             print(self.user_info)
             self.user_settings = self.database.get_user_settings(self.user_info[0])
 
-            if not user_info[-1]: #if user isnt a teacher:
+            if not user_info[-1]: #if is_teacher field is False:
                 self.teacher_id = self.database.get_teacher_id_by_user_id(self.user_info[0])
             else:
                 self.teacher_id = None
-
-
             self.initialise_program()
-            self.show_toolbar()
+            self.show_toolbar() # User now has access to simulations
             self.changeIndex(1)
-
             print("Logged in successfully")
             return True
         else:
@@ -611,7 +633,6 @@ q: quit""")
     def run_projectile_motion_sim(self, level_no):
         print(level_no)
         try:
-            print(self.air_resistance_button.isChecked())
             if self.teacher_id is None:
                 projectileMotionSimulation.draw_mode(level_no, self.penetration_factor_button.value()/100)
 
@@ -700,7 +721,7 @@ q: quit""")
         self.penetration_factor_button.setValue(15)
 
 
-        if self.teacher_id is None:
+        if self.teacher_id is None: # no teacher_id means user is a teacher
             self.projectile_instruction.setText(
                 self.projectile_instruction.text() + "\nTeachers can use the spinbox to control the penetration factor!")
             self.weeklyButton.setMaximumWidth(350)
@@ -712,7 +733,7 @@ q: quit""")
             self.projectile_widget_layout.addWidget(self.weeklyButton, 2, 1, 1, 2)
             max_level = self.user_settings[-1]
 
-        print(self.user_settings, "line 700")
+        print(self.user_settings)
         self.pathfinding_rows.setValue(self.user_settings[2])
         self.pathfinding_cols.setValue(self.user_settings[3])
         self.pathfinding_speed.setValue(self.user_settings[4])
@@ -778,7 +799,6 @@ q: quit""")
         print(self.user_settings)
         self.user_settings = list(self.user_settings)
         print(self.user_settings.copy())
-        print("Poo")
         try:
             max_level = 1
             for index, button in enumerate(self.projectile_sim_buttons):
@@ -790,6 +810,7 @@ q: quit""")
             self.user_settings[3] = int(self.pathfinding_cols.value())
             self.user_settings[4] = int(self.pathfinding_speed.value())
             self.user_settings[5] = int(self.weeklyScore)
+            print(self.user_settings, "new ")
 
             self.database.save_and_shut_down(self.user_settings)
 

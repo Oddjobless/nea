@@ -1,85 +1,86 @@
-import pygame
+# These classes form the basis of all the simulations.
+
 import numpy as np
-from random import randint, randrange
+from random import randint
 
 class Particle:
-    def __init__(self, mass, _radius, vector_field, position=None, velocity=None):
-        self.damping = 0.7
-        self.radius = _radius  # visual only
-        self.mass = mass
-        self.vector_field = vector_field
+    def __init__(self, mass, _radius, container, position=None, velocity=None):
+        self.damping = 0.8 # energy loss factor after a collision
+        self.radius = _radius  # size of the particle
+        self.mass = mass # particle mass
+        self.container = container # the container which the particle is bound to
 
-        # self.velocity = np.array([randint(-100, 100), randint(-100, 100)], dtype=float)
         self.velocity = np.zeros(2, dtype=float) if velocity is None else velocity
         if position is not None:
             self.position = position
         else:
-            self.position = np.array([randint(self.radius, screen_width - self.radius), randint(self.radius, screen_height - self.radius)], dtype=float)
-        self.next_position = self.position.copy()
-        # self.acceleration = np.array([0,9.8]) * self.mass # short term
-        if self.vector_field:
-            self.vector_field.insert_particle(self)
+            width, height = self.container.screen_width, self.container.screen_height
+            self.position = np.array([randint(self.radius, width - self.radius), randint(self.radius, height - self.radius)], dtype=float)
+        self.next_position = self.position.copy() # typically used for collision detection
+        if self.container:
+            self.container.insert_particle(self) # into the spatial map
 
-
-
-        """self.spatial_map_update_frequency = 4  # 1 / 4 frames update the spatial map
-        self.spatial_map_update_counter = 0"""
-
-    def collision_event_obstacles(self):
-        for obstacle in self.vector_field.obstacles:
-            if self.check_obstacle_collision(obstacle.position, obstacle.width, obstacle.height):
-                self.resolve_obstacle_collision(obstacle)
+    def collision_event_obstacles(self): # Used for collision detection with Obstacle Object
+        for obstacle in self.container.obstacles:
+            if self.check_obstacle_collision(obstacle.position, obstacle.width, obstacle.height): # if collision
+                self.resolve_obstacle_collision(obstacle) # Put particle into a valid position
                 return True
         return False
-    def collision_event(self, save_collision=True):
-        for particle in self.vector_field.particles:
+    def collision_event(self, save_collision=True): # handles particle collisions
+        for particle in self.container.particles:
             if self.is_collision(particle, save_collisions=save_collision):
                 self.resolve_static_collision(particle)
 
-    def is_collision(self, next_particle, save_collisions=True):
-        distance = self.vector_field.get_square_magnitude(next_particle.next_position - self.next_position)
-        if self != next_particle:
+    def is_collision(self, next_particle, save_collisions=True): # checks for a particle collision
+        distance = self.container.get_square_magnitude(next_particle.next_position - self.next_position)
+        if self != next_particle: # A particle should collide with itself
+            # if distance between particles is less than the two radii, then there has been a collision
+            # note that if a > b, then a^2 > b^2. Sqrt is a complex function so we improve efficiency by using square distances
             if 0 < distance <= (self.radius + next_particle.radius) ** 2:
                 if save_collisions:
-                    self.vector_field.colliding_balls_pairs.append((self, next_particle))
-                return True
-        return False
+                    self.container.colliding_balls_pairs.append((self, next_particle))
+                return True # collision detected
+        return False # no collision detected
 
     def resolve_dynamic_collision(self, next_particle):
-        distance = self.vector_field.get_magnitude(next_particle.next_position - self.next_position)
-        normal = self.vector_field.normalise_vector(next_particle.next_position - self.next_position)
+        normal = self.container.normalise_vector(next_particle.next_position - self.next_position)
         tangent = np.array([-normal[1], normal[0]])
 
+        # oblique collisions in vector form
         tangential_vel_i = tangent * np.dot(self.velocity, tangent)
         tangential_vel_j = tangent * np.dot(next_particle.velocity, tangent)
 
+        # using formula
         normal_vel_i = normal * ((np.dot(self.velocity, normal) * (self.mass - next_particle.mass) + 2 * next_particle.mass * np.dot(next_particle.velocity, normal)) / (self.mass + next_particle.mass))
         normal_vel_j = normal * ((np.dot(next_particle.velocity, normal) * (next_particle.mass - self.mass) + 2 * self.mass * np.dot(self.velocity, normal)) / (self.mass + next_particle.mass))
 
-        self.velocity = tangential_vel_i + normal_vel_i
+        self.velocity = tangential_vel_i + normal_vel_i # Combining the two parallel and perpendicular components
         next_particle.velocity = tangential_vel_j + normal_vel_j
-    def resolve_static_collision(self, next_particle):
-        # finding magnitude of vector
-        distance = self.vector_field.get_magnitude(next_particle.next_position - self.next_position)
+    def resolve_static_collision(self, next_particle): # resolve particle position in collision event
+        # Finding magnitude of vector
+        distance = self.container.get_magnitude(next_particle.next_position - self.next_position)
         overlap = 0.5 * (distance - (self.radius + next_particle.radius))
 
-        # finding direction and applying final vector
+        # finding direction vector and applying final vector
         self.next_position -= overlap * (self.next_position - next_particle.next_position) / distance
         next_particle.next_position += overlap * (self.next_position - next_particle.next_position) / distance
 
+        # Bug fixing with dividing the velocity.
         if np.isclose(self.velocity, np.zeros_like(self.velocity), atol=1).all():
             self.velocity = np.zeros_like(self.velocity)
 
-    def resolve_obstacle_collision(self, obstacle, is_object=True):
-        if is_object:
+    def resolve_obstacle_collision(self, obstacle, is_object=True): # resolve particle position relative to obstacle
+        if is_object: # if obstacle is an object of class Obstacle
             position = obstacle.position
             width, height = obstacle.width, obstacle.height
             is_platform = obstacle.is_platform
-        else:
+        else: # if obstacle is a list of values, parse it
             is_platform = False
             position = obstacle[0]
             width, height = obstacle[1], obstacle[2]
+
         # calculating displacement vector from the rectangle to the circle
+        # unlike particle collisions, the vector must be either vertical or horizontal
         displacement = self.position - np.array([max(position[0], min(self.position[0], position[0] + width)),
                        max(position[1], min(self.position[1], position[1] + height))])
 
@@ -115,100 +116,81 @@ class Particle:
         if np.isclose(self.velocity[1], 0, atol=2):
             self.velocity[1] = 0
 
-
-
     def check_obstacle_collision(self, obstacle_pos, width, height, custom_radius=None):
 
         closest_x = max(obstacle_pos[0], min(self.next_position[0], obstacle_pos[0] + width))
         closest_y = max(obstacle_pos[1], min(self.next_position[1], obstacle_pos[1] + height))
 
-        distance = np.sqrt((self.next_position[0] - closest_x) ** 2 + (self.next_position[1] - closest_y) ** 2)
+        square_distance = (self.next_position[0] - closest_x) ** 2 + (self.next_position[1] - closest_y) ** 2
 
         if not custom_radius:
-            return distance < self.radius
-        print(distance, self.radius)
-        return distance < custom_radius##
+            return square_distance < self.radius ** 2
+        return square_distance < custom_radius ** 2
 
 
 
-    def update(self, screen, custom_dimensions=None, vector_field=True):
-        if custom_dimensions is None:
+    def update(self, screen, custom_dimensions=None, vector_field=True): # ran every time step
+        if custom_dimensions is None: # by default, the particles are bound the display size
             dim = np.array([0, 0, screen.get_width(), screen.get_height()])
-
         else:
             dim = custom_dimensions
-        if self.next_position[0] > dim[2] - (self.radius) or self.next_position[0] < dim[0] + self.radius:  # or within blocked cell
+
+        # checking position with the display dimensions
+        # If the particle's x position is above the screen height, then reverse vertical velocity
+        # and vice versa with y position
+        if self.next_position[0] > dim[2] - (self.radius) or self.next_position[0] < dim[0] + self.radius:
             self.velocity[0] *= -1 * self.damping
         if self.next_position[1] > dim[3] - (self.radius) or self.next_position[1] < dim[1] + self.radius:
             self.velocity[1] *= -1 * self.damping
 
-
+        # Put the particle back in bounds
         self.next_position = np.clip(self.next_position, (dim[0:2] + self.radius),
                                          (dim[2:4] - self.radius))
 
-        if vector_field:
-            self.vector_field.remove_particle(self)
+        if vector_field: # update the spatial map as needed
+            self.container.remove_particle(self)
         self.position = self.next_position
         if vector_field:
-            self.vector_field.insert_particle(self)
-
-        # print(self.vector_field.grid)
-
-        # self.velocity = self.velocity + self.acceleration * self.mass
+            self.container.insert_particle(self)
         self.next_position = self.position + (self.velocity * dt / self.mass)
 
-
-
-
-
-
     def apply_air_resistance(self):
-        vel = self.vector_field.get_magnitude(self.velocity)
-        vel_normalised = self.vector_field.normalise_vector(self.velocity)
-        drag_force = -self.vector_field.drag_coefficient * np.pi * self.radius ** 2 * vel ** 2
+        vel = self.container.get_magnitude(self.velocity)
+        vel_normalised = self.container.normalise_vector(self.velocity) # just want the direction vector
+        # applying formula to find resistive force
+        drag_force = -self.container.drag_coefficient * np.pi * self.radius ** 2 * vel ** 2
         self.velocity += (drag_force * vel_normalised) / self.mass
-
-
-
 
     def get_position(self):
         return int(self.position[0]), int(self.position[1])
-import time
-"""
 
-
-"""
-class Cell:
+class Cell: # The cells in the spatial map
     def __init__(self):
-        self.cell_list = set()
-        self.velocity = np.array([randint(-1,1), randint(-1,1)], dtype=float)
+        self.cell_list = set() # list of particles currently within this cell
+        self.velocity = np.array([randint(-1,1), randint(-1,1)], dtype=float) # cell velocity
 
 
 class SpatialMap:
-    def __init__(self, noOfRows, noOfCols):
+    def __init__(self, noOfRows, noOfCols, screen_size=(1920,1080)):
+        self.screen_width, self.screen_height = screen_size[0], screen_size[1]
+        self.selected_particle = None
         self.draw_grid = True
         self.grid = np.array([Cell() for _ in
-                     range(noOfRows * noOfCols)])
-        self.air_resistance = False
-        self.drag_coefficient = 0.000000001
+                     range(noOfRows * noOfCols)]) # Spatial map; used in pathfinder and fluid flow
+        self.air_resistance = False # dictates if air resistance should be considered
+        self.drag_coefficient = 0.000000001 # arbitrary constant that gave good results for air resistance
 
         self.rows, self.cols = noOfRows, noOfCols
-        self.box_width, self.box_height = screen_width / self.cols, screen_height / self.rows
-        self.damping = 0.7
-        # I WANT TO MAKE SELF.HASH INTO A 1D ARRAY
-        # self.grid = np.empty((noOfRows, noOfCols))
-        # self.grid.fill(set()) # would like to test speed difference
+        self.box_width, self.box_height = self.screen_width / self.cols, self.screen_height / self.rows # cell width and height
+        self.damping = 0.8 # The factor of energy the particles lose after a collision
+        self.particles = [] # used instead of the spatial map
 
-        ### creating vector field
-
-
-
-    def get_grid_coords(self, x=False, y=False):
-        xCoords = np.linspace(0, screen_width, self.cols, endpoint=False)
+    def get_grid_coords(self, x=False, y=False): # get coordinates for spatial map
+        xCoords = np.linspace(0, self.screen_width, self.cols, endpoint=False)
         if x:
             return xCoords
 
-        yCoords = np.linspace(0, screen_height, self.rows, endpoint=False)
+        yCoords = np.linspace(0, self.screen_height, self.rows, endpoint=False)
         if y:
             return yCoords
 
@@ -216,28 +198,29 @@ class SpatialMap:
         coords = np.column_stack((xValues.ravel(), yValues.ravel()))
         return coords
 
-    def hash_position(self, position):
+    def hash_position(self, position): # Find the cell the particle is on
         try:
             return self.coord_to_index((int(position[0] / self.box_width), int(position[1] / self.box_height)))
         except ValueError:
-            print(position)
+            print(f"Error hashing position for position {position}")
 
-    def undo_hash_position(self, position):
+    def undo_hash_position(self, position): # get the cartesian coordinates of the cell corner
         return np.array(position) // self.box_width
 
 
-    def coord_to_index(self, coord):
+    def coord_to_index(self, coord): # Convert a coordinate into an index suitable for 1d arrays
         return coord[0] + coord[1] * self.cols
 
-    def index_to_coord(self, index):
+    def index_to_coord(self, index): # Inverse operation of coord_to_index
         try:
             return (index % self.cols, index // self.cols)
         except TypeError:
             raise Exception("index_to_coord")
-    def get_square_magnitude(self, vector):
+    def get_square_magnitude(self, vector): #
         return (vector[0] ** 2 + vector[1] ** 2)
 
     def get_neighbouring_coords(self, coord, include_diagonal=False, include_self=False, placeholder_for_boundary=False):
+        # given a coord, find the neighbouring coords
         col, row = coord
         directions = [[1, 0], [-1, 0], [0, -1], [0, 1]] # right, left, up, down
         neighbouring_coords = []
@@ -252,101 +235,95 @@ class SpatialMap:
             if 0 <= neighbour_row < self.rows and 0 <= neighbour_col < self.cols:
                 neighbouring_coords.append((neighbour_col, neighbour_row))
             elif placeholder_for_boundary:
-                neighbouring_coords.append(None)
+                neighbouring_coords.append(None) # simulation will deal with this separately
         return neighbouring_coords
 
     def get_neighbouring_cells(self, cell_row, cell_col, diagonal=False, use_self=False):
         neighbouring_cells = []
+
         for coord in self.get_neighbouring_coords((cell_row, cell_col), include_diagonal=diagonal, include_self=use_self):
+            # Getting the cell objects at the requested coordinates
             neighbouring_cells.append(self.grid[self.coord_to_index(coord)])
         return neighbouring_cells
 
     def get_neighbouring_particles(self, particle):
         cell_row, cell_col = divmod(self.hash_position(particle.position), self.cols)
         neighbour_cells = self.get_neighbouring_cells(cell_row, cell_col, use_self=True, diagonal=True)
-
         neighbouring_particles = []
         for cell in neighbour_cells:
+            # Getting the particles which are currently with the cell according to the spatial map
             neighbouring_particles.extend(cell.cell_list)
-
         return neighbouring_particles
 
-        # feels inefficient, ought to compare with linear search.
 
 
-
-    def remove_particle(self, particle):
-        cell = self.hash_position(particle.position)
-        self.grid[cell].cell_list.discard(particle)
-        # np.delete(self.grid[int(cell[0]), int(cell[1])], particle)
-
+    def remove_particle(self, particle): # remove a particle from the spatial map
+        cell = self.hash_position(particle.position) # find the cell it is in
+        self.grid[cell].cell_list.discard(particle) # remove it from the spatial map
     def insert_particle(self, particle):
-        # print(particle, particle.position, particle.next_position)
-        new_cell = self.hash_position(particle.next_position)
+        new_cell = self.hash_position(particle.next_position) # find the cell it is in
         if new_cell == None:
-            print("Error in insert_particle method of Particle") # logging purposes
+            print("Error in insert_particle method of Particle")
             return
-        elif not 0 <= new_cell < self.rows * self.cols: # particle is outside screen.
+        elif not 0 <= new_cell < self.rows * self.cols: # particle is outside screen
             # resolving particle position
             r = self.radius
-            particle.next_position = np.clip(particle.next_position, (r, r), (screen_width-r, screen_height-r))
-            return self.insert_particle(particle) # return new instance
+            particle.next_position = np.clip(particle.next_position, (r, r), (self.screen_width-r, self.screen_height-r))
+            return self.insert_particle(particle) # return new instance with the updated position
 
+        # add the particle to the cell's particle list
         self.grid[new_cell].cell_list.add(particle)
-
-
 
     def get_magnitude(self, vector):
         try:
             return np.hypot(vector[0], vector[1])
-        except:
+        except: # in case of  error like zero magnitude or incorrect datatype, return zero vector
             return np.array([0,0])
 
     def normalise_vector(self, vector):
-        if vector[0] == 0 and vector[1] == 0:
-
-
-            # print("WARNING: DIVIDE BY ZERO!!!\n\n\nWHEN NORMALISING VELOCITY FIELD, THERE WAS A VECTOR WITH ZERO MAGNITUDE")
-            return vector
+        if vector[0] == 0 and vector[1] == 0: # if vector has zero magnitude
+            return vector # return the zero vector
         return vector / self.get_magnitude(vector)
 
-    def drag_particle(self, mouse_pos):
+    def drag_particle(self, mouse_pos): # moving a particle with the cursor
         for index, particle in enumerate(self.particles):
-            if not particle.radius < mouse_pos[0] < screen_width - particle.radius and particle.radius < mouse_pos[1] < screen_height - particle.radius:
+            if not particle.radius < mouse_pos[0] < self.screen_width - particle.radius and particle.radius < mouse_pos[1] < self.screen_height - particle.radius:
                 continue
-            distance = particle.vector_field.get_magnitude(np.array(mouse_pos) - particle.position)
-            if distance < particle.radius:
-                particle.velocity = particle.velocity * 0
+            distance = particle.container.get_magnitude(np.array(mouse_pos) - particle.position)
+            if distance < particle.radius: # if cursor is toucing particle
+                particle.velocity = particle.velocity * 0 # stop particle movement when particle first clicked on
                 self.selected_particle = index
-                return
-    def drop_particle(self):
+                return # as it has found the particle in question, no need to continue searching
+    def drop_particle(self): # when user has released the cursor
         self.particles[self.selected_particle].velocity *= 0
         self.selected_particle = None
 
     def move_selected_particle(self, mouse_position):
         self.particles[self.selected_particle].position = mouse_position
 
-    def project_particle(self, mouse_pos):
+    def project_particle(self, mouse_pos): # now only used for firing projectiles in projectile motion
+        # Finding which particle the user is interacting with
         for index, particle in enumerate(self.particles):
-            if not particle.radius < mouse_pos[0] < screen_width - particle.radius and particle.radius < mouse_pos[1] < screen_height - particle.radius:
+            if not particle.radius < mouse_pos[0] < self.screen_width - particle.radius and particle.radius < mouse_pos[1] < self.screen_height - particle.radius:
                 continue
-            distance = particle.vector_field.get_magnitude(particle.position - np.array(mouse_pos))
-            if distance < particle.radius:
-                particle.velocity = particle.velocity * 0
+                # if the cursor is not within the radius of the particle, skip
+            distance = particle.container.get_magnitude(particle.position - np.array(mouse_pos))
+            if distance < particle.radius: # if the cursor is within the radius of the particle
+                particle.velocity = particle.velocity * 0 # stop particle movement
                 self.draw_line_to_mouse = True
                 self.selected_particle = index
                 return
 
-    def release_projected_particle(self, mouse_pos): # put in projectile only
+    def release_projected_particle(self, mouse_pos): # now only used for firing projectiles in projectile motion
         particle = self.particles[self.selected_particle]
+        # update particle velocity with the new direction vector
         particle.velocity = (np.array(mouse_pos) - particle.position) * self.projected_particle_velocity_multiplier
         self.draw_line_to_mouse = False
-        self.selected_particle = None
+        self.selected_particle = None # stop tracking particle
 
 
-screen_width, screen_height = 1920, 1080 # 960, 960
 # columns, rows = 32,18
-# box_width, box_height = screen_width / columns, screen_height / rows
+# box_width, box_height = self.screen_width / columns, self.screen_height / rows
 
 
 frame_rate = 75  # frames per second

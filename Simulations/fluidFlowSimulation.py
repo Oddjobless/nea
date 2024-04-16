@@ -1,8 +1,9 @@
 from Simulations.SimulationFiles.baseClasses import *
-
+import pygame
 
 def run():
     pygame.init()
+    screen_width, screen_height = 1920, 1080
     screen = pygame.display.set_mode((screen_width, screen_height))
     pygame.display.set_caption("Pygame Boilerplate")
     rows, columns = 18, 32
@@ -39,7 +40,7 @@ def run():
                 pygame.draw.line(screen, "#353252", (0, y), (screen_width, y), 1)
 
 
-            """for coord, vector in zip(vector_field.get_grid_coords(), vector_field.get_normalised_grid()):
+            """for coord, vector in zip(container.get_grid_coords(), container.get_normalised_grid()):
                 boxCentre = (coord[0] + box_width/2, coord[1] + box_height/2)
                 lineRadius = vector
                 #pygame.draw.circle(screen, "#ff3542", (boxCentre), 4, 4)"""
@@ -76,8 +77,8 @@ class FluidParticle(Particle):
         self.stiffness_constant = 10
         # self.velocity = np.array([randrange(-200, 200), randrange(-200, 200)]) # poo
         self.velocity = np.zeros(2, dtype=float)
-        self.position = np.array([randint(2 * self.radius, screen_width - 2 * self.radius),
-                                  randint(2 * self.radius, screen_height - 2 * self.radius)], dtype=float)
+        self.position = np.array([randint(2 * self.radius, 1920 - 2 * self.radius),
+                                  randint(2 * self.radius, 1080 - 2 * self.radius)], dtype=float)
 
         self.pressure_force = np.zeros(2, dtype=float)
         self.density = None
@@ -294,10 +295,11 @@ class SmoothingKernel:
 
 class FluidSpatialMap(SpatialMap):
     def __init__(self, noOfRows, noOfCols):
-        super().__init__(noOfRows, noOfCols)
+        screen_size = (pygame.display.Info().current_w, pygame.display.Info().current_h)
+        super().__init__(noOfRows, noOfCols, screen_size=screen_size)
         self.rest_density = 100  # A ROUGH ESTIMATE BASED ON INTIAL POS OF PARTICLES
         # USER SHOULD ADJUST AS PER NEEDED
-        self.wall_damping = 0.7
+        self.wall_damping = 0.8
         self.smoothing_radius = self.box_width
         self.kernel = SmoothingKernel(self.smoothing_radius, cubic_spline=True)
         self.pressure_kernel = SmoothingKernel(self.smoothing_radius, spiky=True)

@@ -1,14 +1,5 @@
 import mysql.connector
-from PyQt6.QtCore import QDate
 
-"""db = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="2121",
-    database="employees"
-)
-
-conn = db.cursor()"""
 
 
 class Database:
@@ -187,7 +178,7 @@ class Database:
     def get_projectile_rankings(self, teacher_id):
         self.__conn.execute("""
         SELECT full_name, projectile_score
-        FROM users, students, user_settings
+        FROM users, user_settings, students
         WHERE users.user_id = students.user_id
         AND users.user_id = user_settings.user_id
         AND students.teacher_id = %s

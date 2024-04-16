@@ -30,9 +30,9 @@
 #     pygame.display.set_caption("Pygame Boilerplate")
 #     rows, columns = 18, 32
 #     box_width = screen_width // columns
-#     vector_field = Container(rows, columns)
+#     container = Container(rows, columns)
 #
-#     vector_field.particles.extend([ProjectileParticle(1, 30, vector_field, vector_field.wall_damping, floor_damping=1.00) for _ in range(100)])  # eccentricity
+#     container.particles.extend([ProjectileParticle(1, 30, container, container.wall_damping, floor_damping=1.00) for _ in range(100)])  # eccentricity
 #     font = pygame.font.SysFont("comicsans", int(box_width // 2.6))
 #     frame = 0
 #     mouse_rel_refresh = frame_rate * 0.5##
@@ -74,13 +74,13 @@
 #
 #         # logic goes here
 #
-#         """for index, particle in enumerate(vector_field.particles):
+#         """for index, particle in enumerate(container.particles):
 #
 #             particle.update(screen)
-#             if vector_field.air_resistance:
+#             if container.air_resistance:
 #                 particle.apply_air_resistance()
 #
-#         for particle in vector_field.particles:
+#         for particle in container.particles:
 #             particle.collision_event()
 #
 #             pygame.draw.circle(screen, (123, 12, 90), particle.position, particle.radius)
@@ -88,18 +88,18 @@
 #
 #
 #         completed = set()
-#         for ball_i, ball_j in vector_field.colliding_balls_pairs:
+#         for ball_i, ball_j in container.colliding_balls_pairs:
 #             completed.add(ball_i)
 #             if ball_j not in completed:
 #                 print("Ball", ball_i, "collides with", ball_j)
 #                 ball_i.resolve_dynamic_collision(ball_j)
 #                 pygame.draw.line(screen, (0, 255, 0), ball_i.position, ball_j.position)
-#         vector_field.colliding_balls_pairs.clear()
+#         container.colliding_balls_pairs.clear()
 #
-#         if vector_field.draw_line_to_mouse and vector_field.selected_particle != None:
-#             pygame.draw.line(screen, (255, 0, 0), vector_field.particles[vector_field.selected_particle].position, pygame.mouse.get_pos())
+#         if container.draw_line_to_mouse and container.selected_particle != None:
+#             pygame.draw.line(screen, (255, 0, 0), container.particles[container.selected_particle].position, pygame.mouse.get_pos())
 #         else:
-#             vector_field.draw_line_to_mouse = False"""
+#             container.draw_line_to_mouse = False"""
 #
 #         for event in pygame.event.get():
 #             if event.type == pygame.QUIT:
@@ -116,25 +116,25 @@
 #
 #
 #             """if event.type == pygame.MOUSEBUTTONDOWN:
-#                 if event.button == 1 and vector_field.selected_particle == None:
-#                     vector_field.drag_particle(event.pos)
+#                 if event.button == 1 and container.selected_particle == None:
+#                     container.drag_particle(event.pos)
 #                     print("adf")
 #
-#                 elif event.button == 3 and vector_field.selected_particle == None:
-#                     vector_field.project_particle(event.pos)
+#                 elif event.button == 3 and container.selected_particle == None:
+#                     container.project_particle(event.pos)
 #
 #
 #
 #
 #             elif event.type == pygame.MOUSEBUTTONUP:
-#                 if event.button == 1 and vector_field.selected_particle != None:
-#                     vector_field.drop_particle()
+#                 if event.button == 1 and container.selected_particle != None:
+#                     container.drop_particle()
 #
-#                 elif event.button == 3 and vector_field.selected_particle != None:
-#                     vector_field.release_projected_particle(event.pos)
+#                 elif event.button == 3 and container.selected_particle != None:
+#                     container.release_projected_particle(event.pos)
 #
-#             if vector_field.selected_particle != None and not vector_field.draw_line_to_mouse:
-#                 vector_field.move_selected_particle(event.pos)"""
+#             if container.selected_particle != None and not container.draw_line_to_mouse:
+#                 container.move_selected_particle(event.pos)"""
 #
 #
 #
@@ -147,8 +147,8 @@
 #
 # #
 # class ProjectileParticle(Particle):
-#     def __init__(self, mass, particle_radius, vector_field, _wall_damping, floor_damping):
-#         super().__init__(mass, particle_radius, vector_field, _wall_damping)
+#     def __init__(self, mass, particle_radius, container, _wall_damping, floor_damping):
+#         super().__init__(mass, particle_radius, container, _wall_damping)
 #         g = 0
 #         self.acceleration = np.array([0, g])
 #         self.floor_damping = floor_damping
@@ -171,8 +171,8 @@
 #
 #
 #
-#         # print(self.vector_field.grid)
-#         if self.vector_field.particles.index(self) != self.vector_field.selected_particle:
+#         # print(self.container.grid)
+#         if self.container.particles.index(self) != self.container.selected_particle:
 #             self.velocity = self.velocity + self.acceleration * self.mass
 #
 #

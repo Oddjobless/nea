@@ -1,27 +1,11 @@
-import time
-import numpy as np
+import pygame
 from Simulations.SimulationFiles.baseClasses import *
-
-# todo: , euclidean), , deal with fluid flow sim, back to this, kernel convolution, steering,
-
-# like to have blur where it split the grid further and do a kernel convolution.
-
-"""
-should I have a spatial map where each cell keeps track of the particles within its boundaries with a list and influence their velocities that way; or find which cell the particle resides and influence its velocity that way?
-
-WILL START WITH OPTION 1 COS I ALREADY HAVE IT SET UP FROM FLUID FLOW SIM
-OPTION 2 LIKELY BETTER THOUGH
-"""
-
-
-
-
 
 
 
 def run(rows, columns, max_velocity):
     pygame.init()
-    # todo:
+    screen_width, screen_height = pygame.display.Info().current_w, pygame.display.Info().current_h
     screen = pygame.display.set_mode((screen_width, screen_height))
     pygame.display.set_caption("Pygame Boilerplate")
 
@@ -29,7 +13,7 @@ def run(rows, columns, max_velocity):
     box_width, box_height = vector_field.box_width, vector_field.box_height
 
     vector_field.particles = [Pathfinder(radius//3, radius, vector_field) for _ in range(30)]
-    # vector_field.calculate_rest_density(particles) # integrate into __init
+    # container.calculate_rest_density(particles) # integrate into __init
     font = pygame.font.SysFont("comicsans", int(box_width // 2.6))
 
     clock = pygame.time.Clock()
@@ -90,13 +74,11 @@ def run(rows, columns, max_velocity):
         if vector_field.draw_heatmap:
             vector_field.display_heatmap(screen)
 
-        start_time = time.time()
         if vector_field.enable_collision_between_particles:
             for particle in vector_field.particles:
                 particle.collision_event_particles()
-        print(f"Time elapsed for collision resolution: {time.time() - start_time}")
 
-        """for i in vector_field.grid:
+        """for i in container.grid:
             print(i.cell_list, end="")"""
         vector_field.update()
         for particle in vector_field.particles:
@@ -160,8 +142,8 @@ if __name__ == "__main__":
 
 #
 class Pathfinder(Particle):
-    def __init__(self, mass, radius, vector_field, position=None):
-        super().__init__(mass, radius, vector_field, position)
+    def __init__(self, mass, radius, container, position=None):
+        super().__init__(mass, radius, container, position)
 
     def check_for_collision_X(self, obstacle_x, obstacle_width):
         if self.position[0] + self.radius > obstacle_x + obstacle_width or self.next_position[0] - self.radius < obstacle_x:
@@ -172,38 +154,28 @@ class Pathfinder(Particle):
             return False
         return True
 
-
-
-
-
-
-
-    def is_moving_horizontally(self):
-        if abs(self.velocity[0]) > abs(self.velocity[1]):
-            return True
-        return False
+    # def is_moving_horizontally(self):
+    #     if abs(self.velocity[0]) > abs(self.velocity[1]):
+    #         return True
+    #     return False
 
     def collision_event_obstacles(self, obstacle_pos, obstacle_width):
+        # overriding the parent method with this new idea instead
+        # runs much faster than the full collision resolution of the Particle Class
+        # I used the spatial map to check if the particle is currently in an obstacle
+        # Below I am checking if it has hit an obstacle from the sides, or from the top or bottom
         x_collision = self.check_for_collision_X(obstacle_pos[0], obstacle_width)
-        if x_collision:
+        if x_collision: # if collision in x direction
             self.velocity[0] *= -1
-
         else:
             self.velocity[1] *= -1
-
         self.next_position = self.position + self.velocity * -1 * dt
-        """coord = self.vector_field.index_to_coord(self.vector_field.hash_position(self.next_position))
 
-        if coord == obstacle_pos:
-            if x_collision:
-                self.next_position[0] -= self.vector_field.box_width
-            else:
-                self.next_position[1] -= self.vector_field.box_height"""
 
     def collision_event_particles(self, track_collisions=False):
         try:
-            cell_index = self.vector_field.hash_position(self.position)
-            particles_to_check = self.vector_field.grid[cell_index].cell_list
+            cell_index = self.container.hash_position(self.position)
+            particles_to_check = self.container.grid[cell_index].cell_list
             for particle in particles_to_check:
                 if self.is_collision(particle, save_collisions=track_collisions):
                     self.resolve_static_collision(particle)
@@ -214,9 +186,10 @@ class Pathfinder(Particle):
 
 class VelocityField(SpatialMap):
     def __init__(self, noOfRows, noOfCols, max_velocity):
-        super().__init__(noOfRows, noOfCols)
+        screen_size = (pygame.display.Info().current_w, pygame.display.Info().current_h)
+        super().__init__(noOfRows, noOfCols, screen_size=screen_size)
         self.cell_distances = np.zeros_like(self.grid)
-        self.wall_damping = 0.7
+        self.wall_damping = 0.8
 
         self.obstacles = set()
         self.goal = np.array([0,0])
@@ -383,17 +356,11 @@ class VelocityField(SpatialMap):
 
 
     def update_velocity_field(self, coords_of_goal):
-        print("\nUpdating Velocity Field")
-        start_time = time.time()
-        if not any(np.isnan(coords_of_goal)):#
+        if not any(np.isnan(coords_of_goal)):
             if not (self.goal[0] == coords_of_goal[0] and self.goal[1] == coords_of_goal[1]) and coords_of_goal not in self.obstacles:
                 self.goal = coords_of_goal
-                print("Generating distance field...")
                 self.generate_heatmap(coords_of_goal)
-                print("Distance field generated, now generating velocity field...")
                 self.calculate_vectors()
-                print("Velocity field generated")
-                print(f"Time elapsed: {time.time() - start_time}\n")
                 self.find_max_distance()
 
     def clear_obstacles(self):

@@ -1,7 +1,8 @@
 import numpy as np
-import pygame.draw
+import pygame
 import time
 from Simulations.SimulationFiles.baseClasses import *
+
 
 
 
@@ -10,7 +11,7 @@ def draw_mode(level_no, penetration_factor=0.15):
 
     pygame.init()
     file_name = "lvlTest"
-    screen_width, screen_height = 1920, 1080
+    screen_width, screen_height = pygame.display.Info().current_w, pygame.display.Info().current_h
     screen = pygame.display.set_mode((screen_width, screen_height))
     obstacles = []
     level_name = ""
@@ -120,8 +121,7 @@ def draw_mode(level_no, penetration_factor=0.15):
 def run(level_no, air_resistance=False):
 
     pygame.init()
-    screen_width, screen_height = 1920, 1080
-    display_width, display_height = 1920, 1000
+    screen_width, screen_height = pygame.display.Info().current_w, pygame.display.Info().current_h
     screen = pygame.display.set_mode((screen_width, screen_height))
     pygame.display.set_caption("Projectile Motion Simulation")
     background = pygame.image.load("./Simulations/SimulationFiles/Assets/images/background1.jpg")
@@ -154,7 +154,7 @@ def run(level_no, air_resistance=False):
             if vector_field.air_resistance:
                 particle.apply_air_resistance()
 
-        # pygame.draw.circle(screen, (169, 130, 85), vector_field.goal.position, vector_field.goal.radius)
+        # pygame.draw.circle(screen, (169, 130, 85), container.goal.position, container.goal.radius)
         vector_field.goal.draw(screen)
 
         for particle in vector_field.particles:
@@ -252,10 +252,10 @@ def run(level_no, air_resistance=False):
 
 #
 class ProjectileParticle(Particle):
-    def __init__(self, mass, particle_radius, vector_field):
-        super().__init__(mass, particle_radius, vector_field)
+    def __init__(self, mass, particle_radius, container):
+        super().__init__(mass, particle_radius, container)
 
-        self.acceleration = np.array([0, self.vector_field.g])
+        self.acceleration = np.array([0, self.container.g])
         self.colour = (184, 146, 255)
         self.hit_goal = False
     def draw(self, screen):
@@ -269,7 +269,7 @@ class ProjectileParticle(Particle):
         # acceleration downwards should be 9.8 m/s^2. so if i use 2 px/s^, it's a conversion to 9.8:
 
     def px_to_metres(self, pixel_val):
-        return pixel_val / self.vector_field.px_to_metres_factor
+        return pixel_val / self.container.px_to_metres_factor
 
     def get_real_acceleration(self):
         return self.px_to_metres(self.acceleration)
@@ -287,27 +287,27 @@ class ProjectileParticle(Particle):
 
 
     def collision_event_goal(self, screen):
-        goal = self.vector_field.goal
+        goal = self.container.goal
         if self.entirely_in_obstacle_check2(goal.position, goal.width):
-            self.vector_field.initial_time = None
-            self.velocity = self.velocity * (1 - self.vector_field.penetration_factor)
+            self.container.initial_time = None
+            self.velocity = self.velocity * (1 - self.container.penetration_factor)
             self.acceleration *= 0
             self.hit_goal = True
             if np.allclose(self.velocity, np.zeros_like(self.velocity), atol=2):
-                self.vector_field.selected_particle = None
+                self.container.selected_particle = None
                 try:
-                    self.vector_field.calculate_points(self)
-                    print(self.vector_field.score)
-                    self.vector_field.particles.remove(self)
-                    self.vector_field.splattered_particles.append(self)
+                    self.container.calculate_points(self)
+                    print(self.container.score)
+                    self.container.particles.remove(self)
+                    self.container.splattered_particles.append(self)
                 except:
                     return
         else:
             self.hit_goal = False
-            self.acceleration = np.array([0, self.vector_field.g])
+            self.acceleration = np.array([0, self.container.g])
 
     def entirely_in_obstacle_check2(self, pos, radius): # circle
-        square_distance = self.vector_field.get_square_magnitude(pos - self.position)
+        square_distance = self.container.get_square_magnitude(pos - self.position)
         if square_distance < radius ** 2:
             return True
         return False
@@ -320,10 +320,10 @@ class ProjectileParticle(Particle):
         self.next_position = self.position + self.velocity * dt
         if self.next_position[0] > screen.get_width() - (self.radius) or self.next_position[
             0] < self.radius:  # or within blocked cell
-            self.velocity[0] *= -1 * self.vector_field.wall_damping
+            self.velocity[0] *= -1 * self.container.wall_damping
 
         if self.next_position[1] > screen.get_height() - self.radius or self.next_position[1] < self.radius:
-            self.velocity[1] *= -1 * self.vector_field.wall_damping
+            self.velocity[1] *= -1 * self.container.wall_damping
             self.velocity[0] *= 0.99  # friction to slow if on ground
 
         self.next_position = np.clip(self.next_position, (self.radius, self.radius),
@@ -332,8 +332,8 @@ class ProjectileParticle(Particle):
         self.position = self.next_position
 
 
-        # print(self.vector_field.grid)
-        if self.vector_field.particles.index(self) != self.vector_field.selected_particle:
+        # print(self.container.grid)
+        if self.container.particles.index(self) != self.container.selected_particle:
             self.velocity = self.velocity + self.acceleration
 
 
@@ -375,10 +375,9 @@ class Obstacle:
 
 class Container(SpatialMap):
     def __init__(self, rows, columns, level_no, air_resistance):
-        super().__init__(rows, columns)
-        self.particles = []
-        self.selected_particle = None
-        self.projected_particle_velocity_multiplier = 4
+        screen_size = (pygame.display.Info().current_w, pygame.display.Info().current_h)
+        super().__init__(rows, columns, screen_size=screen_size)
+        self.projected_particle_velocity_multiplier = 5
         self.wall_damping = 0.7
 
         self.draw_line_to_mouse = False
