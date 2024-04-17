@@ -117,7 +117,7 @@ if __name__ == "__main__":
 class Pathfinder(Particle):
     def __init__(self, mass, radius, container, position=None):
         super().__init__(mass, radius, container, position)
-        self.damping = 0.75
+        self.damping = 0.7
 
     def check_for_collision_X(self, obstacle_x, obstacle_width):  # Alternative collision detection = efficient
         radius = self.radius
@@ -155,7 +155,7 @@ class VelocityField(SpatialMap):
         screen_size = (pygame.display.Info().current_w, pygame.display.Info().current_h)
         super().__init__(noOfRows, noOfCols, screen_size=screen_size)
         self.cell_distances = np.zeros_like(self.grid)  # Used in pathfinding algorithm
-        self.damping = 0.85  # Energy factor in particle collision with walls
+        self.damping = 0.80  # Energy factor in particle collision with walls
 
         self.obstacles = set()  # Stores obstacles
         self.goal = np.array([0, 0])
