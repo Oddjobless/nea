@@ -342,5 +342,3 @@ class SpatialMap:
         self.selected_particle = None  # stop tracking particle
 
 
-noOfParticles = 30  # number of particles.
-draw_distances = True

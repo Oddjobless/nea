@@ -11,7 +11,7 @@ def run():
 
     vector_field = FluidSpatialMap(rows, columns)
     frame_rate = vector_field.frame_rate
-    particles = [FluidParticle(1, 3, vector_field) for _ in range(noOfParticles)]
+    particles = [FluidParticle(1, 3, vector_field) for _ in range(vector_field.no_of_particles)]
     print("high")
     vector_field.calculate_rest_density(particles)
 
@@ -248,6 +248,7 @@ class FluidSpatialMap(SpatialMap):
     def __init__(self, noOfRows, noOfCols):
         screen_size = (pygame.display.Info().current_w, pygame.display.Info().current_h)
         super().__init__(noOfRows, noOfCols, screen_size=screen_size)
+        self.no_of_particles = 30
         self.rest_density = 100  # Tinker until reaching desired effect
         self.smoothing_radius = self.box_width  # To ensure that spatial grid can be used
         self.kernel = SmoothingKernel(self.smoothing_radius, cubic_spline=True)
@@ -259,7 +260,7 @@ class FluidSpatialMap(SpatialMap):
             total_density += particle.density
             print(total_density, "\n\n==")
 
-        self.set_rest_density(total_density / noOfParticles)  # rest density
+        self.set_rest_density(total_density / self.no_of_particles)  # rest density
 
     def set_rest_density(self, rest_density):
         self.rest_density = rest_density

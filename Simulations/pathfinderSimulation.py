@@ -100,7 +100,7 @@ def run(rows, columns, max_velocity):
                 line_radius = (box_width / 2.2) * cell.velocity
                 if not any(np.isnan(cell.velocity)):
                     pygame.draw.line(screen, "#ff3542", box_centre, box_centre + line_radius)
-                if draw_distances and distance > 0:
+                if distance > 0:
                     number = font.render(f"{distance:.1f}", True, (255, 255, 255))
                     screen.blit(number, box_centre - (box_width // 4))
 
@@ -117,7 +117,7 @@ if __name__ == "__main__":
 class Pathfinder(Particle):
     def __init__(self, mass, radius, container, position=None):
         super().__init__(mass, radius, container, position)
-        self.damping = 0.75
+        self.damping = 0.7
 
     def check_for_collision_X(self, obstacle_x, obstacle_width):  # Alternative collision detection = efficient
         radius = self.radius
@@ -155,7 +155,7 @@ class VelocityField(SpatialMap):
         screen_size = (pygame.display.Info().current_w, pygame.display.Info().current_h)
         super().__init__(noOfRows, noOfCols, screen_size=screen_size)
         self.cell_distances = np.zeros_like(self.grid)  # Used in pathfinding algorithm
-        self.damping = 0.85  # Energy factor in particle collision with walls
+        self.damping = 0.80  # Energy factor in particle collision with walls
 
         self.obstacles = set()  # Stores obstacles
         self.goal = np.array([0, 0])
