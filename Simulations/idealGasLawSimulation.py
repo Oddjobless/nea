@@ -58,7 +58,7 @@ def run():
                         container.wall_selected = container.selected_wall_index(event.pos)
 
                 elif event.button == 1: # LMB
-                    if container.reset_button.click_check(event.pos): # Reset button
+                    if container.reset_button.click_check(event.pos):  # Reset button
                         container.initialise_container()
 
                     if container.within_wall_check(event.pos): # Add particles
