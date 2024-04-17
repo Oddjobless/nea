@@ -1,6 +1,7 @@
 from Simulations.SimulationFiles.baseClasses import *
 import pygame
 
+
 def run():
     pygame.init()
     screen_width, screen_height = 1920, 1080
@@ -16,7 +17,6 @@ def run():
 
     clock = pygame.time.Clock()
 
-
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -26,7 +26,6 @@ def run():
                 if event.key == pygame.K_q:
                     pygame.quit()
                     return
-
 
         # drawing grid
         screen.fill((90, 69, 50))
@@ -38,16 +37,15 @@ def run():
             for y in vector_field.get_grid_coords(y=True):
                 pygame.draw.line(screen, "#353252", (0, y), (screen_width, y), 1)
 
-
             """for coord, vector in zip(container.get_grid_coords(), container.get_normalised_grid()):
                 boxCentre = (coord[0] + box_width/2, coord[1] + box_height/2)
                 lineRadius = vector
                 #pygame.draw.circle(screen, "#ff3542", (boxCentre), 4, 4)"""
 
-#
+        #
         # logic goes here
         for particle in particles:
-            particle.update_density() # must be done separately from pressure and viscosity calculations
+            particle.update_density()  # must be done separately from pressure and viscosity calculations
 
         for particle in particles:
             particle.update_pressure()
@@ -57,9 +55,7 @@ def run():
 
         pygame.display.update()
 
-
         clock.tick(frame_rate)
-
 
 
 class FluidParticle(Particle):
@@ -69,9 +65,9 @@ class FluidParticle(Particle):
         self.mass = mass
         self.spatial_map = spatial_map
         self.force = np.zeros(2, dtype=float)
-        self.stiffness_constant = 10 # used for pressure
+        self.stiffness_constant = 10  # used for pressure
         # self.velocity = np.array([randrange(-200, 200), randrange(-200, 200)]) # poo
-        self.velocity = np.zeros(2, dtype=float) # initially no velcity
+        self.velocity = np.zeros(2, dtype=float)  # Initially no velocity
         self.position = np.array([randint(2 * self.radius, 1920 - 2 * self.radius),
                                   randint(2 * self.radius, 1080 - 2 * self.radius)], dtype=float)
 
@@ -81,16 +77,13 @@ class FluidParticle(Particle):
         self.calculate_density()
         self.calculate_pressure()
 
-
-
-    def update(self, screen): # overriding parent method
+    def update(self, screen):  # overriding parent method
         self.next_position = self.position + self.velocity * self.container.dt
-        if self.next_position[0] > screen.get_width() - (self.radius) or self.next_position[
+        if self.next_position[0] > screen.get_width() - self.radius or self.next_position[
             0] < self.radius:  # or within blocked cell
             # out of bounds
             self.velocity[0] *= -1 * self.damping
         if self.next_position[1] > screen.get_height() - self.radius or self.next_position[1] < self.radius:
-
             self.velocity[1] *= -1 * self.damping
 
         self.next_position = np.clip(self.next_position, (self.radius, self.radius),
@@ -100,16 +93,13 @@ class FluidParticle(Particle):
         self.position = self.next_position
         self.spatial_map.insert_particle(self)
 
-
-
-
     def update_density(self):
         self.calculate_density()
 
     def update_pressure(self):
         self.calculate_pressure()
 
-    def apply_forces(self): # apply the navier-stokes equation to get delta velocity
+    def apply_forces(self):  # apply the navier-stokes equation to get delta velocity
         self.force = np.zeros_like(self.velocity)
         self.force = self.force + self.calculate_pressure_force()
 
@@ -120,10 +110,10 @@ class FluidParticle(Particle):
         neighbouring_particles = self.spatial_map.get_neighbouring_particles(self)
 
         for neighbour_particle in neighbouring_particles:
-            if neighbour_particle != self: # don't include self in density
+            if neighbour_particle != self:  # don't include self in density
                 distance = self.spatial_map.get_magnitude(neighbour_particle.position - self.position)
                 influence = self.spatial_map.kernel.calculate_density_contribution(distance)
-                density += influence * neighbour_particle.mass # scale by particle's mass
+                density += influence * neighbour_particle.mass  # scale by particle's mass
 
         self.density = density
 
@@ -133,7 +123,7 @@ class FluidParticle(Particle):
     def calculate_pressure(self):  # ideal gas law application
         self.pressure = self.stiffness_constant * (self.density - self.spatial_map.rest_density)
 
-    def calculate_property(self): # generic property finder, like for pressure
+    def calculate_property(self):  # generic property finder, like for pressure
         property = 0
         neighbouring_particles = self.spatial_map.get_neighbouring_particles(self)
 
@@ -144,21 +134,20 @@ class FluidParticle(Particle):
 
         return property
 
-
-
     def calculate_pressure_force(self):
         self.pressure_force = np.zeros(2, dtype=float)
         neighbouring_particles = self.spatial_map.get_neighbouring_particles(self)
-        for neighbour_particle in neighbouring_particles: # Use pressure of neighbouring particles
+        for neighbour_particle in neighbouring_particles:  # Use pressure of neighbouring particles
             if self != neighbour_particle:
                 distance = self.spatial_map.get_magnitude(self.position - neighbour_particle.position)
                 self.pressure_force -= self.calculate_pressure_contribution(self, neighbour_particle, distance)
         self.velocity += self.container.dt * self.pressure_force / self.mass
+
     def calculate_pressure_contribution(self, particle, neighbour_particle, dist):
         # similar function to self.calculate_pressure_force. Currently testing this implementation
         direction_vector = self.spatial_map.normalise_vector(particle.position - neighbour_particle.position)
         if particle.density == 0 or neighbour_particle.density == 0:
-            return np.array([0,0])
+            return np.array([0, 0])
         pressure = particle.pressure / (particle.density ** 2)
         neighbour_pressure = neighbour_particle.pressure / (neighbour_particle.density ** 2)
         smoothing_kernel_gradient = self.spatial_map.kernel.cubic_spline_kernel_gradient(dist)
@@ -221,12 +210,11 @@ class SmoothingKernel:
     def test_kernel(self, particle_radius):
         return ((max(0, particle_radius ** 2 - self.h ** 2)) ** 3) / (np.pi * self.h ** 2 / 4)
 
-    def cubic_spline_kernel(self,
-                            particle_radius):  # Article. Numerical Model of Oil Film Diffusion in Water Based on SPH Method
+    def cubic_spline_kernel(self, particle_radius):
         ratio = particle_radius / self.h
 
         if 0 <= ratio < 1:
-            return (1 - (1.5 * ratio ** 2) + (0.75 * ratio ** 3))
+            return 1 - (1.5 * ratio ** 2) + (0.75 * ratio ** 3)
         elif 1 <= ratio < 2:
             return 0.25 * ((2 - ratio) ** 3)
         else:
@@ -242,12 +230,12 @@ class SmoothingKernel:
             return 0
 
     def poly_6_kernel(self, particle_radius):
-        if particle_radius <= self.h: # if particle is within smoothing radius
+        if particle_radius <= self.h:  # if particle is within smoothing radius
             return self.normalisation_constant * ((self.h ** 2 - particle_radius ** 2) ** 3)
         return 0
 
     def gaussian_kernel(self, particle_radius):
-        return 0  # :(
+        return 0
 
     def spikey_kernel(self, particle_radius):
         if particle_radius <= self.h:
@@ -261,7 +249,7 @@ class FluidSpatialMap(SpatialMap):
         screen_size = (pygame.display.Info().current_w, pygame.display.Info().current_h)
         super().__init__(noOfRows, noOfCols, screen_size=screen_size)
         self.rest_density = 100  # Tinker until reaching desired effect
-        self.smoothing_radius = self.box_width # To ensure that spatial grid can be used
+        self.smoothing_radius = self.box_width  # To ensure that spatial grid can be used
         self.kernel = SmoothingKernel(self.smoothing_radius, cubic_spline=True)
         self.pressure_kernel = SmoothingKernel(self.smoothing_radius, spiky=True)
 

@@ -1,34 +1,34 @@
 import sys
 import traceback
-# add weekly score to database
 import numpy as np
 from PyQt6.QtWidgets import *
 from PyQt6.QtGui import *
 from PyQt6.QtCore import *
-from Simulations import pathfinderSimulation, projectileMotionSimulation, test, idealGasLawSimulation, fluidFlowSimulation
+from Simulations import pathfinderSimulation, projectileMotionSimulation, idealGasLawSimulation, fluidFlowSimulation
 from database import Database
 from hashlib import sha256
 import re
 
-# from matplotlib import pyplot
 
- #
+# noinspection PyArgumentList
 class MainWindow(QMainWindow):
+    # noinspection PyArgumentList
     def __init__(self):
         super().__init__()
+        self.user_info = None
+        self.user_settings = None
+        self.teacher_id = None
+
         self.database = Database("localhost", "root", "2121", "NEA")
 
-        # self.user_settings = [None, None, 18, 32, 40, 0, 1]
         self.setWindowTitle("Physics Simulator")
-
-        # self.showFullScreen()  # todo: fullscreen
 
         self.layout = QStackedLayout()
 
         self.index = QWidget()
         self.index.setLayout(self.layout)
         self.setCentralWidget(self.index)
-        self.toolbar = QToolBar("ahshsh")
+        self.toolbar = QToolBar()
         self.addToolBar(self.toolbar)
         self.toolbar.setMovable(False)
         self.toolbar.hide()
@@ -64,15 +64,12 @@ class MainWindow(QMainWindow):
         palette.setColor(self.login.backgroundRole(), QColor(255, 249, 196))
         self.login.setPalette(palette)
 
-
-        self.login_label = QLabel("Physics Simulator") # todo:
+        self.login_label = QLabel("Physics Simulator")  # todo:
         self.login_label.setStyleSheet("""
         font-family: 'Times New Roman';
         font-size: 100px;""")
         self.login_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.login_layout.addWidget(self.login_label, 0, 2, 1, 2)
-
-
 
         self.email = QLineEdit()
         self.email.setPlaceholderText("Enter email address")
@@ -103,8 +100,6 @@ class MainWindow(QMainWindow):
         self.login_layout.addWidget(self.full_name, 4, 1, 1, 4)
         self.full_name.hide()
 
-
-
         self.date_of_birth = QDateEdit()
         # self.date_of_birth.setStyleSheet("padding-right: 10px;")
         self.date_of_birth.setDisplayFormat("dd/MM/yyyy")
@@ -126,7 +121,6 @@ class MainWindow(QMainWindow):
 
         self.login_layout.addWidget(self.teacher_dropdown, 6, 3, 1, 2)
         self.teacher_dropdown.hide()
-
 
         self.layout.addWidget(self.login)
         self.login.setStyleSheet("""
@@ -173,8 +167,6 @@ class MainWindow(QMainWindow):
         self.home_page_layout = QGridLayout()
         self.home_page = QWidget()
         self.home_page.setLayout(self.home_page_layout)
-
-
 
         self.home_page.setAutoFillBackground(True)  #
         palette = self.home_page.palette()  #
@@ -234,8 +226,8 @@ class MainWindow(QMainWindow):
         self.projectile_leaderboard.setStyleSheet("background-color: transparent;")
 
         header = self.projectile_leaderboard.horizontalHeader()
-        header.setStyleSheet("QHeaderView::section { background-color: lightblue; color: white; font-weight: bold; font-size: 45px}")
-
+        header.setStyleSheet(
+            "QHeaderView::section { background-color: lightblue; color: white; font-weight: bold; font-size: 45px}")
 
         self.layout.addWidget(self.home_page)
         ##################################################
@@ -300,15 +292,12 @@ class MainWindow(QMainWindow):
         self.enable_projectile_button(self.weeklyButton)
         self.weeklyButton.released.connect(lambda: self.run_projectile_motion_sim("Weekly"))
 
-
         self.air_resistance_button = QPushButton("Air Resistance\nENABLED")
         self.toggle_air_resistance_button()
         self.air_resistance_button.setMaximumWidth(240)
         self.air_resistance_button.released.connect(self.toggle_air_resistance_button)
         self.air_resistance_button.setCheckable(True)
         self.projectile_widget_layout.addWidget(self.air_resistance_button, 2, 0, 1, 1)
-
-        
 
         self.projectile_instruction = QLabel()
         self.projectile_instruction.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -317,7 +306,7 @@ class MainWindow(QMainWindow):
 Projectile Motion Simulation!   
 The aim of the game is to fire the ball into the target. 
 The closer to the centre you are, the more score! 
-Use suvat equations to calculate the required velocity.    
+Use SUVAT equations to calculate the required velocity.    
 Get 100 score to unlock the next level. 
     
 Controls:   
@@ -377,7 +366,7 @@ q: quit""")
 
         """)
 
-        self.pathfinding_rows = QSpinBox() # no of rows in simulation
+        self.pathfinding_rows = QSpinBox()  # no of rows in simulation
         self.pathfinding_rows.setRange(4, 100)
         self.pathfinding_rows.setMaximumWidth(300)
         self.pathfinding_layout.addWidget(self.pathfinding_rows, 0, 1)
@@ -385,7 +374,8 @@ q: quit""")
         pathfinder_rows_label.setMaximumWidth(400)
         self.pathfinding_layout.addWidget(pathfinder_rows_label, 0, 0)
 
-        self.pathfinding_cols = QSpinBox() # no of cols
+        # noinspection PyArgumentList
+        self.pathfinding_cols = QSpinBox()  # no of cols
         self.pathfinding_cols.setRange(4, 100)
         self.pathfinding_cols.setMaximumWidth(300)
         self.pathfinding_layout.addWidget(self.pathfinding_cols, 1, 1)
@@ -402,7 +392,8 @@ q: quit""")
 
         self.pathfinding_speed_label = QLabel(f"Particle speed = {self.pathfinding_speed.value()}")
         self.pathfinding_speed_label.setFixedWidth(350)
-        self.pathfinding_speed.valueChanged.connect(lambda: self.pathfinding_speed_label.setText(f"Particle speed = {self.pathfinding_speed.value()}"))
+        self.pathfinding_speed.valueChanged.connect(
+            lambda: self.pathfinding_speed_label.setText(f"Particle speed = {self.pathfinding_speed.value()}"))
         self.pathfinding_layout.addWidget(self.pathfinding_speed_label, 2, 0, 1, 1)
 
         self.pathfinding_run = QPushButton("Run")
@@ -478,7 +469,7 @@ q: quit""")
                     }""")
 
         self.ideal_gas_run = QPushButton("Run ideal gas simulation")
-        self.ideal_gas_run.released.connect(self.particleSim)
+        self.ideal_gas_run.released.connect(self.run_ideal_gas_sim)
         self.ideal_gas_run.setMinimumHeight(150)
         self.ideal_gas_layout.addWidget(self.ideal_gas_run, 3, 1, 1, 1)
 
@@ -520,12 +511,12 @@ q: Quit""")
             print(self.user_info)
             self.user_settings = self.database.get_user_settings(self.user_info[0])
 
-            if not user_info[-1]: #if is_teacher field is False:
+            if not user_info[-1]:  # if is_teacher field is False:
                 self.teacher_id = self.database.get_teacher_id_by_user_id(self.user_info[0])
             else:
                 self.teacher_id = None
             self.initialise_program()
-            self.show_toolbar() # User now has access to simulations
+            self.show_toolbar()  # User now has access to simulations
             self.changeIndex(1)
             print("Logged in successfully")
             return True
@@ -569,13 +560,16 @@ q: Quit""")
                 detailed_text += "You must be at least 16 years old.\n"
                 valid = False
 
-            assert valid # send to database to create user
+            assert valid  # send to database to create user
             teacher = self.database.get_teacher_email_by_name(self.teacher_dropdown.currentText())
-            user_created = self.database.create_user(self.email.text(), sha256(self.password.text().encode()).hexdigest(),
-                                      self.full_name.text(), self.date_of_birth.date().toString("yyyy-MM-dd"), teacher_email=teacher)
+            user_created = self.database.create_user(self.email.text(),
+                                                     sha256(self.password.text().encode()).hexdigest(),
+                                                     self.full_name.text(),
+                                                     self.date_of_birth.date().toString("yyyy-MM-dd"),
+                                                     teacher_email=teacher)
             if not user_created:
                 raise AssertionError
-            self.toggle_login_register() # prompt user to login
+            self.toggle_login_register()  # prompt user to login
             return True
         except AssertionError:
             box = QMessageBox()
@@ -604,12 +598,13 @@ q: Quit""")
             self.date_of_birth.show()
             self.date_of_birth_label.show()
             self.teacher_dropdown.show()
+
     def show_toolbar(self):
         self.toolbar.setVisible(True)
 
     def hide_toolbar(self):
         self.toolbar.setVisible(False)
-    
+
     def toggle_air_resistance_button(self):
         text = self.air_resistance_button.text()
         if "DISABLED" in text:
@@ -629,12 +624,11 @@ q: Quit""")
             color: black;
             } """)
 
-
     def run_projectile_motion_sim(self, level_no):
         print(level_no)
         try:
             if self.teacher_id is None:
-                projectileMotionSimulation.draw_mode(level_no, self.penetration_factor_button.value()/100)
+                projectileMotionSimulation.draw_mode(level_no, self.penetration_factor_button.value() / 100)
 
             score = projectileMotionSimulation.run(level_no, self.air_resistance_button.isChecked())
             if score:
@@ -643,7 +637,7 @@ q: Quit""")
                     print(level_no)
                     button = self.projectile_sim_buttons[level_no]
                     self.enable_projectile_button(button, level_no)
-                else: 
+                else:
                     if score > self.weeklyScore:
                         self.weeklyScore = score
                         self.weeklyButton.setText(f"Level of the Week\nCurrent Score: {self.weeklyScore}")
@@ -652,24 +646,23 @@ q: Quit""")
         except Exception as e:
             traceback.print_exc()
 
-
     def run_pathfinder(self):
         try:
             row = self.pathfinding_rows.value()
             col = self.pathfinding_cols.value()
-            if row / col != self.height() / self.width(): # if rectangular cells
-                print(row/col, self.height() / self.width())
+            if row / col != self.height() / self.width():  # if rectangular cells
+                print(row / col, self.height() / self.width())
                 warning_box = QMessageBox()
                 warning_box.setWindowTitle("Rectangular cells")
                 warning_box.setIcon(QMessageBox.Icon.Question)
                 warning_box.addButton(QPushButton("Apply square grid"), QMessageBox.ButtonRole.ApplyRole)
                 warning_box.setStandardButtons(QMessageBox.StandardButton.No | QMessageBox.StandardButton.Yes)
-                warning_box.setText("With the current grid configuration, the cells in the grid will NOT be square.\nWould you like to continue anyway?")
-                user_input = warning_box.exec() # either continue
-                if user_input == QMessageBox.StandardButton.No: # dont run sim
+                warning_box.setText(
+                    "With the current grid configuration, the cells in the grid will NOT be square.\nWould you like to continue anyway?")
+                user_input = warning_box.exec()  # either continue
+                if user_input == QMessageBox.StandardButton.No:  # dont run sim
                     return
-                if user_input != QMessageBox.StandardButton.Yes: # apply correct ratio and don't run sim
-                    print("dsffdas")
+                if user_input != QMessageBox.StandardButton.Yes:  # apply correct ratio and don't run sim
                     self.correct_grid_ratio()
                     return
             speed = self.pathfinding_speed.value() * 20
@@ -679,9 +672,7 @@ q: Quit""")
             traceback.print_exc()
 
     def correct_grid_ratio(self):
-        print("asdffsad")
         width, height = self.width(), self.height()
-        row_field, col_field = self.pathfinding_rows, self.pathfinding_cols
         gcd = np.gcd(width, height)
 
         cols, rows = width // gcd, height // gcd
@@ -690,27 +681,21 @@ q: Quit""")
             rows *= 2
             cols *= 2
         if rows > 100 or cols > 100:
-            rows, cols = 18, 32 # default values as square grid can't be made
+            rows, cols = 18, 32  # default values as square grid can't be made
         self.pathfinding_rows.setValue(rows)
         self.pathfinding_cols.setValue(cols)
 
-
-
-
-    def particleSim(self):
+    def run_ideal_gas_sim(self):
         try:
             idealGasLawSimulation.run()
         except Exception as e:
             print(e)
 
-
-    def brokenSim(self):
+    def run_fluid_flow_sim(self):
         try:
             fluidFlowSimulation.run()
         except Exception as e:
             print(e)
-
-
 
     def initialise_program(self):
         self.penetration_factor_button = QSpinBox()
@@ -720,8 +705,7 @@ q: Quit""")
         self.penetration_factor_button.setRange(1, 100)
         self.penetration_factor_button.setValue(15)
 
-
-        if self.teacher_id is None: # no teacher_id means user is a teacher
+        if self.teacher_id is None:  # no teacher_id means user is a teacher
             self.projectile_instruction.setText(
                 self.projectile_instruction.text() + "\nTeachers can use the spinbox to control the penetration factor!")
             self.weeklyButton.setMaximumWidth(350)
@@ -746,16 +730,14 @@ q: Quit""")
         for index, button in enumerate(self.projectile_sim_buttons[:max_level]):
             self.enable_projectile_button(button, index)
 
-
     def fill_projectile_leaderboard(self):
         row_count = 10
         self.projectile_leaderboard.clear()
         teacher_id = self.teacher_id
         if self.teacher_id is None:
             teacher_id = self.database.get_teachers_teacher_id(self.user_info[0])
-            print("teacher_id: " , teacher_id)
+            print("teacher_id: ", teacher_id)
         fields = self.database.get_projectile_rankings(teacher_id)
-        print(self.teacher_id, "asdfsadf")
         self.projectile_leaderboard.setRowCount(row_count + 1)
         print(fields)
         for index, (name, score) in enumerate(fields[:row_count]):
@@ -767,7 +749,8 @@ q: Quit""")
                 # item.setBackground(QBrush(QColor(156, 50, 180)))
                 self.projectile_leaderboard.setItem(index, column, item)
         print(self.user_info)
-        user_record = (QTableWidgetItem("-"), QTableWidgetItem(self.user_info[3]), QTableWidgetItem(str(self.weeklyScore)))
+        user_record = (
+            QTableWidgetItem("-"), QTableWidgetItem(self.user_info[3]), QTableWidgetItem(str(self.weeklyScore)))
         print(self.weeklyScore)
 
         for column, item in enumerate(user_record):
@@ -777,6 +760,7 @@ q: Quit""")
             self.projectile_leaderboard.setItem(row_count, column, item)
 
         self.home_page_layout.addWidget(self.projectile_leaderboard, 1, 1, 2, 1)
+
     def enable_projectile_button(self, button, index=-1):
         button.setCheckable(True)
         if index >= 0:
@@ -787,9 +771,6 @@ q: Quit""")
             QPushButton:hover{
                 background-color: #83f28f;
             } """)
-
-    def nextSlide(self):
-        print()
 
     def log_off(self):
         self.save_to_database()
@@ -818,26 +799,8 @@ q: Quit""")
         except Exception as e:
             traceback.print_exc()
 
+
 app = QApplication(sys.argv)
 window = MainWindow()
 window.show()
 sys.exit(app.exec())
-
-##55D6C2, #64DAC8
-
-'''
-PLAN:
-make ciphers
-put into pyqt
- freequency analysis
-context menu for optional stuff
-
-from PyQt6 # cant install it
-
-
-# square multiply
-
-generator = 3 #######
-public1 = 235~
-
-'''

@@ -121,7 +121,7 @@ class Pathfinder(Particle):
 
     def check_for_collision_X(self, obstacle_x, obstacle_width):  # Alternative collision detection = efficient
         radius = self.radius
-        if self.position[0] + self.radius > obstacle_x + obstacle_width or next_position[0] - radius < obstacle_x:
+        if self.next_position[0] + self.radius > obstacle_x + obstacle_width or self.next_position[0] - radius < obstacle_x:
             return False
         return True
 
@@ -300,7 +300,7 @@ class VelocityField(SpatialMap):
                 self.goal = coords_of_goal
                 self.generate_heatmap(coords_of_goal)
                 self.calculate_vectors()
-                self.find_max_distance() # Time saving for displaying heatmap
+                self.find_max_distance()  # Time saving for displaying heatmap
 
     def clear_obstacles(self):
         self.obstacles.clear()
@@ -327,7 +327,7 @@ class VelocityField(SpatialMap):
                 return self.normalise_vector(distance_vector) * magnitude
         return 0
 
-    def zero_vel_for_obstacles(self, particle):  # Lose energy on wall colliion, now deprecated
+    def zero_vel_for_obstacles(self, particle):  # Lose energy on wall collision, now deprecated
         pos = particle.position
         current_cell = self.index_to_coord(self.hash_position(pos))
         if current_cell in self.obstacles:
@@ -343,7 +343,7 @@ class VelocityField(SpatialMap):
             desired_velocity = eachCell.velocity * self.particle_max_velocity
             if any(np.isnan(desired_velocity)) or any(np.isinf(desired_velocity)):  # Debugging
                 continue
-            for eachParticle in eachCell.cell_list: # Get particles within cell via spatial map
+            for eachParticle in eachCell.cell_list:  # Get particles within cell via spatial map
                 steering_force = desired_velocity - eachParticle.velocity  # Change
 
                 eachParticle.velocity += (steering_force * field_strength)  # Steadily apply desired velocity

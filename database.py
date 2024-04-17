@@ -1,7 +1,6 @@
 import mysql.connector
 
 
-
 class Database:
     def __init__(self, host_, user_, password_, database_):
         self.__db = mysql.connector.connect(
@@ -83,9 +82,12 @@ class Database:
             """)
             self.__conn.fetchall()
 
-            self.create_user("admin", "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8", "No class", "2000-01-01", is_teacher=True) # password
-            self.create_user("teacher@email.com", "1057a9604e04b274da5a4de0c8f4b4868d9b230989f8c8c6a28221143cc5a755", "Mr Smith", "2000-01-01", is_teacher=True) # teacher
-            self.create_user("m.stevens@gmail.com", "16a3a923a6143b7b1ebc73ea64ef23fc41ed7b26b883f51c8e90bb32a9cb3dc4", "Mr Stevens", "2000-01-01", is_teacher=True) # stevens
+            self.create_user("admin", "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8", "No class",
+                             "2000-01-01", is_teacher=True)  # password
+            self.create_user("teacher@email.com", "1057a9604e04b274da5a4de0c8f4b4868d9b230989f8c8c6a28221143cc5a755",
+                             "Mr Smith", "2000-01-01", is_teacher=True)  # teacher
+            self.create_user("m.stevens@gmail.com", "16a3a923a6143b7b1ebc73ea64ef23fc41ed7b26b883f51c8e90bb32a9cb3dc4",
+                             "Mr Stevens", "2000-01-01", is_teacher=True)  # stevens
             self.create_user("student", "placeholder", "student1", "2000-01-01", teacher_email="m.stevens@gmail.com")
             self.create_user("student1", "placeholder", "student2", "2000-01-01", teacher_email="m.stevens@gmail.com")
             # self.create_user("student2", "placeholder", "student3", "2000-01-01", teacher_email="m.stevens@gmail.com")
@@ -97,11 +99,9 @@ class Database:
 
             self.__conn.fetchall()
 
-
-
             print("Database initialised successfully.")
-        except Exception as e:
-            print("Error initialising database:", e)
+        except Exception as ex:
+            print("Error initialising database:", ex)
 
     def create_user(self, email, password_hash, full_name, date_of_birth, is_teacher=False, teacher_email=None):
         try:
@@ -113,7 +113,6 @@ class Database:
 
             if not is_teacher:
                 teacher_id = self.get_teacher_id(teacher_email)
-
 
             self.__conn.execute("""
             INSERT INTO users (email, password_hash, full_name, date_of_birth, is_teacher) VALUES (%s, %s, %s, %s, %s);
@@ -131,13 +130,11 @@ class Database:
                 INSERT INTO teachers (user_id) VALUES (%s);
                 """, (user_id,))
 
-            else: # is a student
+            else:  # is a student
 
                 self.__conn.execute("""
                 INSERT INTO students (user_id, teacher_id) VALUES (%s, %s);
                 """, (user_id, teacher_id))
-
-
 
             print("\n\nUser Created.", email, password_hash)
             return True
@@ -175,6 +172,7 @@ class Database:
         """, (user_id,))
         result = self.__conn.fetchone()
         return result[0]
+
     def get_projectile_rankings(self, teacher_id):
         self.__conn.execute("""
         SELECT full_name, projectile_score
@@ -208,6 +206,7 @@ class Database:
         """, (teacher_id,))
         result = self.__conn.fetchall()
         return result
+
     def verify_login(self, email, password_hash):
         try:
             self.__conn.execute("""
@@ -227,6 +226,7 @@ class Database:
         """)
         result = self.__conn.fetchall()
         return result
+
     def get_user_settings(self, user_id):
         self.__conn.execute("""
         SELECT * FROM user_settings WHERE user_id = %s;
@@ -245,9 +245,6 @@ class Database:
         UPDATE user_settings SET pathfinder_rows = %s, pathfinder_cols = %s, pathfinding_velocity = %s, projectile_score = %s, projectile_max_level = %s WHERE user_id = %s;
         """, settings[2:])
         self.__conn.fetchall()
-
-
-
 
 
 if __name__ == "__main__":

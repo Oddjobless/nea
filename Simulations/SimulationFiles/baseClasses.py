@@ -223,7 +223,7 @@ class SpatialMap:
         try:
             return index % self.cols, index // self.cols
         except TypeError:
-            raise Exception("index_to_coord") # logging
+            raise Exception("index_to_coord")  # logging
 
     @staticmethod
     def get_square_magnitude(vector):  #
@@ -340,7 +340,6 @@ class SpatialMap:
         particle.velocity = (np.array(mouse_pos) - particle.position) * self.projected_particle_velocity_multiplier
         self.draw_line_to_mouse = False
         self.selected_particle = None  # stop tracking particle
-
 
 
 noOfParticles = 30  # number of particles.
