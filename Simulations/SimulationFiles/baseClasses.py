@@ -36,8 +36,8 @@ class Particle:
     def is_collision(self, next_particle, save_collisions=True):  # checks for a particle collision
         distance = self.container.get_square_magnitude(next_particle.next_position - self.next_position)
         if self != next_particle:  # A particle should collide with itself
-            # if distance between particles is less than the two radii, then there has been a collision note that if
-            # a > b, then a^2 > b^2. Sqrt is a complex function so we improve efficiency by using square distances
+            # if distance between particles is less than the two radii, then there has been a collision. Note that if
+            # a > b, then a^2 > b^2. Sqrt is an expensive function, so we improve efficiency by using square distances
             if 0 < distance <= (self.radius + next_particle.radius) ** 2:
                 if save_collisions:
                     self.container.colliding_balls_pairs.append((self, next_particle))
@@ -104,7 +104,7 @@ class Particle:
         if is_platform:
             damping = 0.4
         else:
-            damping = self.damping
+            damping = self.container.damping  # todo:
 
         # determines if ball moves horizontally or vertically
         if penetration_x < penetration_y:
@@ -157,7 +157,7 @@ class Particle:
         self.position = self.next_position
         if vector_field:
             self.container.insert_particle(self)
-        self.next_position = self.position + (self.velocity * dt / self.mass)
+        self.next_position = self.position + (self.velocity * self.container.dt / self.mass)
 
     def apply_air_resistance(self):
         vel = self.container.get_magnitude(self.velocity)
@@ -178,6 +178,8 @@ class Cell:  # The cells in the spatial map
 
 class SpatialMap:
     def __init__(self, noOfRows, noOfCols, screen_size=(1920, 1080)):
+        self.frame_rate = 48
+        self.dt = 1 / self.frame_rate
         self.draw_line_to_mouse = None
         self.projected_particle_velocity_multiplier = None
         self.screen_width, self.screen_height = screen_size[0], screen_size[1]
@@ -187,7 +189,6 @@ class SpatialMap:
                               range(noOfRows * noOfCols)])  # Spatial map; used in pathfinder and fluid flow
         self.air_resistance = False  # dictates if air resistance should be considered
         self.drag_coefficient = 0.000000001  # arbitrary constant that gave good results for air resistance
-
         self.rows, self.cols = noOfRows, noOfCols
         self.box_width, self.box_height = self.screen_width / self.cols, self.screen_height / self.rows  # cell width and height
         self.damping = 0.8  # The factor of energy the particles lose after a collision
@@ -222,7 +223,7 @@ class SpatialMap:
         try:
             return index % self.cols, index // self.cols
         except TypeError:
-            raise Exception("index_to_coord")
+            raise Exception("index_to_coord") # logging
 
     @staticmethod
     def get_square_magnitude(vector):  #
@@ -292,8 +293,8 @@ class SpatialMap:
     @staticmethod
     def get_magnitude(vector):
         try:
-            return vector[0] ** 2 + vector[1] ** 2
-        except:  # in case of  error like zero magnitude or incorrect datatype, return zero vector
+            return np.sqrt(vector[0] ** 2 + vector[1] ** 2)
+        except:  # in case of ANY errors (zero magnitude, incorrect datatype, etc.), return zero vector
             return np.zeros_like(vector)
 
     def normalise_vector(self, vector):
@@ -307,7 +308,7 @@ class SpatialMap:
             if not rad < mouse_pos[0] < self.screen_width - rad and rad < mouse_pos[1] < self.screen_height - rad:
                 continue
             distance = particle.container.get_magnitude(np.array(mouse_pos) - particle.position)
-            if distance < rad:  # if cursor is toucing particle
+            if distance < rad:  # if cursor is within particle
                 particle.velocity = particle.velocity * 0  # stop particle movement when particle first clicked on
                 self.selected_particle = index
                 return  # as it has found the particle in question, no need to continue searching
@@ -341,11 +342,6 @@ class SpatialMap:
         self.selected_particle = None  # stop tracking particle
 
 
-# columns, rows = 32,18
-# box_width, box_height = self.screen_width / columns, self.screen_height / rows
 
-
-frame_rate = 75  # frames per second
-dt = 1 / frame_rate  # time elapsed between frames
 noOfParticles = 30  # number of particles.
 draw_distances = True

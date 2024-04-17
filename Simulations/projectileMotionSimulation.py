@@ -10,6 +10,7 @@ from Simulations.SimulationFiles.baseClasses import *
 def draw_mode(level_no, penetration_factor=0.15):
 
     pygame.init()
+    frame_rate = 30
     file_name = "lvlTest"
     screen_width, screen_height = pygame.display.Info().current_w, pygame.display.Info().current_h
     screen = pygame.display.set_mode((screen_width, screen_height))
@@ -128,10 +129,11 @@ def run(level_no, air_resistance=False):
     background = pygame.transform.scale(background, (screen_width, screen_height))
     rows, columns = 18, 32
 
-    vector_field = Container(rows, columns, level_no, air_resistance)
+    container = Container(rows, columns, level_no, air_resistance)
+    frame_rate = container.frame_rate
 
-    vector_field.particles.extend([ProjectileParticle(1, 15, vector_field) for _ in range(6)])  # eccentricity
-    for particle in vector_field.particles:
+    container.particles.extend([ProjectileParticle(1, 15, container) for _ in range(6)])  # eccentricity
+    for particle in container.particles:
         particle.position = np.array([randint(140,210), randint(780,980)])
     font = pygame.font.SysFont("comicsans", 20)
     font_30 = pygame.font.SysFont("comicsans", 30)
@@ -143,23 +145,23 @@ def run(level_no, air_resistance=False):
         screen.blit(background, (0, 0))
 
         # output score to screen
-        text = font.render("Score: " + str(vector_field.score), True, (255, 255, 255))
+        text = font.render("Score: " + str(container.score), True, (255, 255, 255))
         screen.blit(text, (10, 10))
 
 
-        for index, particle in enumerate(vector_field.particles):
+        for index, particle in enumerate(container.particles):
 
             particle.update(screen)
 
-            if vector_field.air_resistance:
+            if container.air_resistance:
                 particle.apply_air_resistance()
 
         # pygame.draw.circle(screen, (169, 130, 85), container.goal.position, container.goal.radius)
-        vector_field.goal.draw(screen)
+        container.goal.draw(screen)
 
-        for particle in vector_field.particles:
-            if particle.collision_event_obstacles() and vector_field.moving_particle is particle:
-                vector_field.initial_time = None
+        for particle in container.particles:
+            if particle.collision_event_obstacles() and container.moving_particle is particle:
+                container.initial_time = None
 
             particle.collision_event()
             particle.collision_event_goal(screen)
@@ -169,35 +171,35 @@ def run(level_no, air_resistance=False):
             # pygame.draw.circle(screen, (123, 12, 90), collide_x, self.radius)
 
 
-        for obstacle in vector_field.obstacles:
+        for obstacle in container.obstacles:
             obstacle.draw(screen)
-        vector_field.draw_splatters(screen)
+        container.draw_splatters(screen)
 
         # kinematic info
-        vector_field.update_kinematic_info()
-        vector_field.draw_kinematic_info(screen)
+        container.update_kinematic_info()
+        container.draw_kinematic_info(screen)
         #
         completed = set()
-        for ball_i, ball_j in vector_field.colliding_balls_pairs: # loop over all collision
+        for ball_i, ball_j in container.colliding_balls_pairs: # loop over all collision
             completed.add(ball_i)
             if ball_j not in completed: # ensure that the particle in question hasn't already been resolved
                 ball_i.resolve_dynamic_collision(ball_j)
-        vector_field.colliding_balls_pairs.clear() # reset the list for the next time step
+        container.colliding_balls_pairs.clear() # reset the list for the next time step
 
-        if vector_field.draw_line_to_mouse and vector_field.selected_particle != None:
-            particle = vector_field.particles[vector_field.selected_particle]
+        if container.draw_line_to_mouse and container.selected_particle != None:
+            particle = container.particles[container.selected_particle]
             pygame.draw.line(screen, (255, 0, 0), particle.position, pygame.mouse.get_pos(), width=4)
             pygame.mouse.set_cursor(pygame.cursors.broken_x)
-            projected_velocity = (np.array(pygame.mouse.get_pos()) - particle.position) * vector_field.projected_particle_velocity_multiplier
-            if vector_field.toggle_velocity_display:
+            projected_velocity = (np.array(pygame.mouse.get_pos()) - particle.position) * container.projected_particle_velocity_multiplier
+            if container.toggle_velocity_display:
                 display_params = f"{int(projected_velocity[0])}i\u0302 + {int(-projected_velocity[1])}j\u0302"
             else:
-                display_params = f"{vector_field.get_magnitude(projected_velocity).astype(int)} m/s | \u03B1 = {int(np.arctan2(projected_velocity[1], projected_velocity[0]) * -180 / np.pi)}\u00B0"
+                display_params = f"{container.get_magnitude(projected_velocity).astype(int)} m/s | \u03B1 = {int(np.arctan2(projected_velocity[1], projected_velocity[0]) * -180 / np.pi)}\u00B0"
             text = font.render(display_params, True, (255, 255, 255))
             screen.blit(text, particle.get_position() - np.array([80, 80]))
 
         else:
-            vector_field.draw_line_to_mouse = False
+            container.draw_line_to_mouse = False
 
         mouse_pos = pygame.mouse.get_pos()
         coordinates = np.array([mouse_pos[0], screen_height - mouse_pos[1]])
@@ -211,37 +213,37 @@ def run(level_no, air_resistance=False):
             elif event.type == pygame.KEYUP:
                 if event.key == pygame.K_q:
                     pygame.quit()
-                    return vector_field.score
+                    return container.score
                 elif event.key == pygame.K_v:
-                    vector_field.toggle_velocity_display = not vector_field.toggle_velocity_display
+                    container.toggle_velocity_display = not container.toggle_velocity_display
                 elif event.key == pygame.K_t:
-                    vector_field.show_kinematic_info = not vector_field.show_kinematic_info
+                    container.show_kinematic_info = not container.show_kinematic_info
 
             if event.type == pygame.MOUSEBUTTONDOWN:
-                particle_clicked = vector_field.selected_particle
+                particle_clicked = container.selected_particle
                 if event.button == 1:
-                    vector_field.show_coordinates = not vector_field.show_coordinates
+                    container.show_coordinates = not container.show_coordinates
                     if particle_clicked == None:
-                        vector_field.drag_particle(event.pos)
+                        container.drag_particle(event.pos)
 
                 elif event.button == 3 and particle_clicked == None:
-                    vector_field.project_particle(event.pos)
+                    container.project_particle(event.pos)
 
 
             elif event.type == pygame.MOUSEBUTTONUP:
-                if event.button == 1 and vector_field.selected_particle != None:
-                    vector_field.drop_particle()
+                if event.button == 1 and container.selected_particle != None:
+                    container.drop_particle()
                     pygame.mouse.set_cursor(pygame.cursors.Cursor())
 
-                elif event.button == 3 and vector_field.selected_particle != None:
-                    particle = vector_field.particles[vector_field.selected_particle]
-                    vector_field.release_projected_particle(event.pos)
+                elif event.button == 3 and container.selected_particle != None:
+                    particle = container.particles[container.selected_particle]
+                    container.release_projected_particle(event.pos)
                     pygame.mouse.set_cursor(pygame.cursors.Cursor())
-                    vector_field.start_timer(particle)
+                    container.start_timer(particle)
 
 
-            if vector_field.selected_particle != None and not vector_field.draw_line_to_mouse:
-                vector_field.move_selected_particle(event.pos)
+            if container.selected_particle != None and not container.draw_line_to_mouse:
+                container.move_selected_particle(event.pos)
 
 
 
@@ -258,6 +260,7 @@ class ProjectileParticle(Particle):
         self.acceleration = np.array([0, self.container.g])
         self.colour = (184, 146, 255)
         self.hit_goal = False
+        self.damping = 0.9
     def draw(self, screen):
         pygame.draw.circle(screen, self.colour, self.position, self.radius)
 
@@ -317,14 +320,14 @@ class ProjectileParticle(Particle):
 
     def update(self, screen):
 
-        self.next_position = self.position + self.velocity * dt
+        self.next_position = self.position + self.velocity * self.container.dt
         if self.next_position[0] > screen.get_width() - (self.radius) or self.next_position[
             0] < self.radius:  # or within blocked cell
-            self.velocity[0] *= -1 * self.container.wall_damping
+            self.velocity[0] *= -1 * self.container.damping
 
         if self.next_position[1] > screen.get_height() - self.radius or self.next_position[1] < self.radius:
-            self.velocity[1] *= -1 * self.container.wall_damping
-            self.velocity[0] *= 0.99  # friction to slow if on ground
+            self.velocity[1] *= -1 * self.container.damping
+            self.velocity[0] *= 0.99  # want to add a bit of energy loss. pretty much the coefficient of restitution
 
         self.next_position = np.clip(self.next_position, (self.radius, self.radius),
                                      (screen.get_width() - self.radius, screen.get_height() - self.radius))
@@ -378,7 +381,7 @@ class Container(SpatialMap):
         screen_size = (pygame.display.Info().current_w, pygame.display.Info().current_h)
         super().__init__(rows, columns, screen_size=screen_size)
         self.projected_particle_velocity_multiplier = 5
-        self.wall_damping = 0.7
+        self.damping = 0.8
 
         self.draw_line_to_mouse = False
         self.colliding_balls_pairs = []

@@ -261,7 +261,7 @@ class MainWindow(QMainWindow):
             
             QLabel {
                 font-family: 'Comic Sans MS';
-                font-size: 40px;
+                font-size: 29px;
                 margin-bottom: 10px;
                 padding-bottom: 10px;
                 border: none;
