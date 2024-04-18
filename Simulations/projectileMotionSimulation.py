@@ -3,17 +3,14 @@ import time
 from Simulations.SimulationFiles.baseClasses import *
 
 
-def draw_mode(level_no, penetration_factor=0.15):
+def draw_mode(level_no, penetration_factor=0.15):  # Level designer: for teachers only
     pygame.init()
-    frame_rate = 30
+    frame_rate = 75
     screen_width, screen_height = pygame.display.Info().current_w, pygame.display.Info().current_h
     screen = pygame.display.set_mode((screen_width, screen_height))
     obstacles = []
     goal_background_image = pygame.image.load("./Simulations/SimulationFiles/Assets/images/images.jpg")
     goal_background_image.convert_alpha()
-
-    # wall_image = pygame.image.load("./Simulations/SimulationFiles/Assets/images/wall.png")
-    print("Wall loaded")
 
     pygame.display.set_caption("Create Level")
     background = pygame.image.load("./Simulations/SimulationFiles/Assets/images/background1.jpg")
@@ -22,62 +19,59 @@ def draw_mode(level_no, penetration_factor=0.15):
     rect_origin = None
     rect_params = None
     mouse_hold = False
-
     clock = pygame.time.Clock()
-
     font = pygame.font.SysFont("Helvetica", 35)
+
     while True:
         screen.fill((169, 130, 40))
         screen.blit(background, (0, 0))
 
-        if rect_origin is not None and rect_params is not None:
+        if rect_origin is not None and rect_params is not None:  # If the user is currently drawing something
             rect_x = rect_origin[0] - abs(rect_params[0]) if rect_params[0] < 0 else rect_origin[0]
             rect_y = rect_origin[1] - abs(rect_params[1]) if rect_params[1] < 0 else rect_origin[1]
-            if obstacles:
-
+            if obstacles:  # If obstacles isn't empty, i.e. has a goal already
                 pygame.draw.rect(screen, (255, 0, 0), (rect_x, rect_y, abs(rect_params[0]), abs(rect_params[1])))
-            else:
+            else:  # Add a goal to the level
                 radius = int(np.sqrt(rect_params[0] ** 2 + rect_params[1] ** 2))
                 pygame.draw.circle(screen, (255, 255, 255), rect_origin, radius)
 
         for obstacle in obstacles:
             obstacle.draw(screen)
 
-        for event in pygame.event.get():
+        for event in pygame.event.get():  # Event handler
             if event.type == pygame.QUIT:
                 pygame.quit()
                 return
+
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_q:
                     pygame.quit()
                     return
 
-                elif event.key == pygame.K_s:
+                elif event.key == pygame.K_s:  # Save the level to a text file
                     if obstacles:  # checks if the user has added a goal
                         with open(("./Simulations/SimulationFiles/Assets/ProjectileLevels/lvl" + str(level_no)),
                                   "w") as file:
                             file.write(f"{penetration_factor}\n")
-                            goal = obstacles[0]
-                            file.write(
-                                f"{goal.position[0]},{goal.position[1]},{goal.width},{goal.height}")
-                            for obstacle in obstacles[1:]:
+                            goal = obstacles[0]  # Write goal to file
+                            file.write(f"{goal.position[0]},{goal.position[1]},{goal.width},{goal.height}")
+                            for obstacle in obstacles[1:]:  # Write obstacles to file
                                 file.write(
                                     f"\n{obstacle.position[0]},{obstacle.position[1]},{obstacle.width},{obstacle.height},{int(obstacle.is_platform)}")
                         print("Level saved")
-                    else:  # target not drawn
-                        print("Add a goal to save the level")
+                    else:  # Target not drawn, can't save
+                        print("No goal --> Not saved")
 
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1 or event.button == 3:
+                if event.button == 1 or event.button == 3:  # If user starts drawing
                     rect_origin = np.array(pygame.mouse.get_pos())
                     mouse_hold = True
 
-
-            elif event.type == pygame.MOUSEBUTTONUP:
+            elif event.type == pygame.MOUSEBUTTONUP:  # User has released cursor --> add obstacle to window
                 if rect_origin is not None:
                     rect_params = np.array(pygame.mouse.get_pos()) - rect_origin
 
-                    if not obstacles:
+                    if not obstacles:  # The first item should be the target
                         obstacles.append(Obstacle(rect_origin, radius, radius, goal=True))
                         obstacles[0].colour = (255, 255, 255)
                         min_width = min(obstacles[0].width, obstacles[0].height)
@@ -86,16 +80,17 @@ def draw_mode(level_no, penetration_factor=0.15):
 
                     else:
                         platform = True if event.button == 3 else False
-
                         obstacles.append(Obstacle(np.array([rect_x, rect_y]), abs(rect_params[0]), abs(rect_params[1]),
                                                   is_platform=platform))
 
+                    # Reset cursor tracking
                     rect_origin = None
                     rect_params = None
                     mouse_hold = False
 
             if mouse_hold:
                 rect_params = np.array(pygame.mouse.get_pos()) - rect_origin
+
         text = font.render("Level Designer", True, (255, 255, 255))
         screen.blit(text, (10, 10))
         pygame.display.update()
@@ -105,7 +100,7 @@ def draw_mode(level_no, penetration_factor=0.15):
 def run(level_no, air_resistance=False):
     pygame.init()
     screen_width, screen_height = pygame.display.Info().current_w, pygame.display.Info().current_h
-    screen = pygame.display.set_mode((screen_width, screen_height))
+    screen = pygame.display.set_mode((screen_width, screen_height))  # Ensure full screen
     pygame.display.set_caption("Projectile Motion Simulation")
     background = pygame.image.load("./Simulations/SimulationFiles/Assets/images/background1.jpg")
     background = pygame.transform.scale(background, (screen_width, screen_height))
@@ -114,56 +109,50 @@ def run(level_no, air_resistance=False):
     container = Container(rows, columns, level_no, air_resistance)
     frame_rate = container.frame_rate
 
-    container.particles.extend([ProjectileParticle(1, 15, container) for _ in range(6)])  # eccentricity
+    container.particles.extend([ProjectileParticle(1, 15, container) for _ in range(7)])  # eccentricity
     for particle in container.particles:
-        particle.position = np.array([randint(140, 210), randint(780, 980)])
+        particle.position = np.array([randint(140, 210), randint(780, 980)])  # Drop particles into box from a height
     font = pygame.font.SysFont("comicsans", 20)
     font_30 = pygame.font.SysFont("comicsans", 30)
-
     clock = pygame.time.Clock()
 
     while True:
         screen.fill((70, 69, 5))
         screen.blit(background, (0, 0))
 
-        # output score to screen
+        # Output score to screen
         text = font.render("Score: " + str(container.score), True, (255, 255, 255))
         screen.blit(text, (10, 10))
 
         for index, particle in enumerate(container.particles):
-
-            particle.update(screen)
-
+            particle.update(screen)  # Update particle properties
             if container.air_resistance:
                 particle.apply_air_resistance()
 
-        # pygame.draw.circle(screen, (169, 130, 85), container.goal.position, container.goal.radius)
         container.goal.draw(screen)
 
         for particle in container.particles:
             if particle.collision_event_obstacles() and container.moving_particle is particle:
-                container.initial_time = None
+                container.initial_time = None  # Reset timer
 
-            particle.collision_event()
-            particle.collision_event_goal()
+            particle.collision_event()  # Handle particle collisions
+            particle.collision_event_goal()  # Handle target collisions
             particle.draw(screen)
 
-            # pygame.draw.circle(screen, (123, 12, 90), collide_x, self.radius)
-
-        for obstacle in container.obstacles:
+        for obstacle in container.obstacles:  # Draw obstacles to screen
             obstacle.draw(screen)
         container.draw_splatters(screen)
 
         # kinematic info
         container.update_kinematic_info()
         container.draw_kinematic_info(screen)
-        #
+
         completed = set()
         for ball_i, ball_j in container.colliding_balls_pairs:  # loop over all collision
             completed.add(ball_i)
-            if ball_j not in completed:  # ensure that the particle in question hasn't already been resolved
+            if ball_j not in completed:  # Ensure that the particle in question hasn't already been resolved
                 ball_i.resolve_dynamic_collision(ball_j)
-        container.colliding_balls_pairs.clear()  # reset the list for the next time step
+        container.colliding_balls_pairs.clear()  # Reset the list for the next time step
 
         if container.draw_line_to_mouse and container.selected_particle is not None:
             particle = container.particles[container.selected_particle]
@@ -209,15 +198,14 @@ def run(level_no, air_resistance=False):
                 elif event.button == 3 and particle_clicked is None:
                     container.project_particle(event.pos)
 
-
             elif event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 1 and container.selected_particle is not None:
-                    container.drop_particle()
+                    container.drop_particle()  # User drops ball
                     pygame.mouse.set_cursor(pygame.cursors.Cursor())
 
                 elif event.button == 3 and container.selected_particle is not None:
                     particle = container.particles[container.selected_particle]
-                    container.release_projected_particle(event.pos)
+                    container.release_projected_particle(event.pos)  # Fire projectile
                     pygame.mouse.set_cursor(pygame.cursors.Cursor())
                     container.start_timer(particle)
 
@@ -225,15 +213,12 @@ def run(level_no, air_resistance=False):
                 container.move_selected_particle(event.pos)
 
         pygame.display.update()
-
         clock.tick(frame_rate)
-
 
 #
 class ProjectileParticle(Particle):
     def __init__(self, mass, particle_radius, container):
         super().__init__(mass, particle_radius, container)
-
         self.acceleration = np.array([0, self.container.g])
         self.colour = (184, 146, 255)
         self.hit_goal = False
@@ -242,45 +227,33 @@ class ProjectileParticle(Particle):
     def draw(self, screen):
         pygame.draw.circle(screen, self.colour, self.position, self.radius)
 
-    def px_to_metres(self, pixel_val):
+    def px_to_metres(self, pixel_val):  # Conversion factor
         return pixel_val / self.container.px_to_metres_factor
 
-    def get_real_acceleration(self):
-        return self.px_to_metres(self.acceleration)
-
-    def get_real_velocity(self):
-        return self.px_to_metres(self.velocity)
-
-    def get_real_distance(self, val):
-        return self.px_to_metres(val)
-
-    def collision_event_goal(self):
+    def collision_event_goal(self):  # Ball within target handler
         goal = self.container.goal
-        if self.entirely_in_obstacle_check2(goal.position, goal.width):
+        if self.entirely_in_obstacle_check(goal.position, goal.width):
             self.container.initial_time = None
             self.velocity = self.velocity * (1 - self.container.penetration_factor)
-            self.acceleration *= 0
+            self.acceleration *= 0  # Stop gravity whilst ball is in the target
             self.hit_goal = True
             if np.allclose(self.velocity, np.zeros_like(self.velocity), atol=2):
                 self.container.selected_particle = None
-
                 self.container.calculate_points(self)
-                print(self.container.score)
-                self.container.particles.remove(self)
-                self.container.splattered_particles.append(self)
+                self.container.particles.remove(self)  # Remove particle from the container
+                self.container.splattered_particles.append(self)  # Draw splat sprite
 
         else:
             self.hit_goal = False
             self.acceleration = np.array([0, self.container.g])
 
-    def entirely_in_obstacle_check2(self, pos, radius):  # circle
+    def entirely_in_obstacle_check(self, pos, radius):  # Alternative algorithm
         square_distance = self.container.get_square_magnitude(pos - self.position)
-        if square_distance < radius ** 2:
+        if square_distance < radius ** 2:  # a^2 < b^2 means that a < b
             return True
         return False
 
-    def update(self, screen):
-
+    def update(self, screen):  # Over riding parent method
         self.next_position = self.position + self.velocity * self.container.dt
         if self.next_position[0] > screen.get_width() - self.radius or self.next_position[
             0] < self.radius:  # or within blocked cell
@@ -292,10 +265,9 @@ class ProjectileParticle(Particle):
 
         self.next_position = np.clip(self.next_position, (self.radius, self.radius),
                                      (screen.get_width() - self.radius, screen.get_height() - self.radius))
-
         self.position = self.next_position
 
-        # print(self.container.grid)
+        # Only move balls that aren't being selected by the user
         if self.container.particles.index(self) != self.container.selected_particle:
             self.velocity = self.velocity + self.acceleration
 
@@ -306,24 +278,21 @@ class Container(SpatialMap):
         super().__init__(rows, columns, screen_size=screen_size)
         self.projected_particle_velocity_multiplier = 5
         self.damping = 0.75
-
         self.draw_line_to_mouse = False
         self.colliding_balls_pairs = []
-
         self.drag_coefficient = 0.000000001
-
         self.air_resistance = air_resistance
         self.px_to_metres_factor = 2
         self.penetration_factor = 0.15
-        self.toggle_velocity_display = False
-        self.show_coordinates = False
-
+        self.toggle_velocity_display = False  # Switch between velocity and vector formats
+        self.show_coordinates = False  # Shown in the top right of the screen
         self.score = 0
         self.goal = None
 
         self.obstacles = []
-
         self.g = 9.8
+
+        # Kinematic parameters
         self.moving_particle = None
         self.current_time = 0
         self.initial_time = None
@@ -341,7 +310,7 @@ class Container(SpatialMap):
         else:
             print("Level loaded successfully")
 
-    def start_timer(self, particle):
+    def start_timer(self, particle):  # Kinematic infor
         self.stop_timer()
         self.initial_time = time.time()
         self.moving_particle = particle
@@ -350,7 +319,7 @@ class Container(SpatialMap):
         self.initial_angle = np.arctan2(particle.velocity[1], particle.velocity[0]) * -180 / np.pi
         self.current_position = particle.position
 
-    def stop_timer(self):
+    def stop_timer(self):  # Kinematic info
         self.initial_time = None
 
     def update_kinematic_info(self):
@@ -361,7 +330,7 @@ class Container(SpatialMap):
                                           self.moving_particle.velocity[0]) * -180 / np.pi
             self.current_position = self.moving_particle.position
 
-    def draw_kinematic_info(self, screen):
+    def draw_kinematic_info(self, screen):  # Print out kinematic info to screen with a table
         if self.show_kinematic_info:
             pygame.draw.rect(screen, (230, 230, 230, 127), (1620, 65, 300, 330))
             font = pygame.font.SysFont("Arial", 25)
@@ -383,7 +352,7 @@ class Container(SpatialMap):
     def add_points(self, points):
         self.score += points
 
-    def calculate_points(self, particle):
+    def calculate_points(self, particle):  # Smoothing function to calculate points
         multiplier = abs((self.get_magnitude(self.goal.position - particle.position) / self.goal.width))
         points = int(100 * (1 - multiplier ** 2))
         self.add_points(points)
@@ -433,29 +402,19 @@ class Container(SpatialMap):
                     new_obstacle = Obstacle((int(line[0]), int(line[1])), int(line[2]), int(line[3]), image,
                                             is_platform=int(line[4]))
                     self.obstacles.append(new_obstacle)
-
             return True
 
         except FileNotFoundError:
-            print("File not found")
-            print(file_name)
-            return False  # and run level 1
-
-        except Exception as e:
-            print(e)
+            print("Invalid file name given")
+            return False  # and run level 1 instead
+        except:
             return False
 
     def initialise_goal(self, goal):
         image = pygame.image.load("./Simulations/SimulationFiles/Assets/images/target.png")
-        print(goal)
         image = pygame.transform.scale(image, (2 * int(goal[2]), 2 * int(goal[2])))
         self.goal = Obstacle((int(goal[0]), int(goal[1])), int(goal[2]), int(goal[2]), image, goal=True)
-        # self.goal.position = np.array([int(goal[1]), int(goal[2])])
         self.goal.colour = (255, 105, 180)  # pink color
-
-    def real_velocity(self):
-
-        pass
 
 
 class Obstacle:
@@ -470,7 +429,6 @@ class Obstacle:
             self.image = image.subsurface(pygame.Rect(0, 0, self.width, self.height))
 
     def draw(self, screen):
-
         if self.image:
             if self.goal:
                 screen.blit(self.image, self.position - self.width)
@@ -480,7 +438,3 @@ class Obstacle:
             pygame.draw.circle(screen, self.colour, self.position, self.width)
         else:
             pygame.draw.rect(screen, self.colour, (self.position[0], self.position[1], self.width, self.height))
-
-
-if __name__ == "__main__":
-    run(2)

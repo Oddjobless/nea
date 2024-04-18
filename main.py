@@ -569,6 +569,7 @@ q: Quit""")
                                                      teacher_email=teacher)
             if not user_created:
                 raise AssertionError
+
             self.toggle_login_register()  # prompt user to login
             return True
         except AssertionError:

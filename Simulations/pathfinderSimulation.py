@@ -5,29 +5,21 @@ from Simulations.SimulationFiles.baseClasses import *
 def run(rows, columns, max_velocity):
     pygame.init()
     screen_width, screen_height = pygame.display.Info().current_w, pygame.display.Info().current_h
-    screen = pygame.display.set_mode((screen_width, screen_height))
+    screen = pygame.display.set_mode((screen_width, screen_height))  # Full screen
     pygame.display.set_caption("Pygame Boilerplate")
 
     vector_field = VelocityField(rows, columns, max_velocity)
     frame_rate = vector_field.frame_rate
     box_width, box_height = vector_field.box_width, vector_field.box_height
+
     radius = vector_field.particle_to_add_radius
-
     vector_field.particles = [Pathfinder(radius // 3, radius, vector_field) for _ in range(30)]
-    # container.calculate_rest_density(particles) # integrate into __init
-    font = pygame.font.SysFont("comicsans", int(box_width // 2.6))
 
+    font = pygame.font.SysFont("comicsans", int(box_width // 2.6))
     clock = pygame.time.Clock()
 
-    """
-    LEFT CLICK: set new goal 
-    RIGHT CLICK: toggle blocked cells
-    Q: quit
-    
-    """
-
     while True:
-        for event in pygame.event.get():
+        for event in pygame.event.get():  # Event handler
             if event.type == pygame.QUIT:
                 pygame.quit()
                 return
@@ -35,7 +27,7 @@ def run(rows, columns, max_velocity):
                 if event.key == pygame.K_q:
                     pygame.quit()
                     return
-                elif event.key == pygame.K_a:  # switch between adding particles and changing goal
+                elif event.key == pygame.K_a:  # Switch between adding particles and changing goal
                     vector_field.is_adding_particles = not vector_field.is_adding_particles
                 elif event.key == pygame.K_c:  # Toggle collisions. Disable to reduce latency
                     vector_field.enable_collision_between_particles = not vector_field.enable_collision_between_particles
@@ -43,13 +35,12 @@ def run(rows, columns, max_velocity):
                     vector_field.particle_to_add_radius += 1
                 elif event.key == pygame.K_MINUS:  # Minus symbol --> decrease radius
                     vector_field.particle_to_add_radius = max(vector_field.particle_to_add_radius - 1, 3)
-                elif event.key == pygame.K_h:
+                elif event.key == pygame.K_h:  # Toggle distance field gradient
                     vector_field.draw_heatmap = not vector_field.draw_heatmap
-                elif event.key == pygame.K_g:
+                elif event.key == pygame.K_g:  # Toggle metadata
                     vector_field.draw_grid = not vector_field.draw_grid
                 elif event.key == pygame.K_r:
                     vector_field.clear_obstacles()
-
 
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 3:
@@ -74,7 +65,7 @@ def run(rows, columns, max_velocity):
 
         if vector_field.enable_collision_between_particles:  # Particle collisions
             for particle in vector_field.particles:
-                particle.collision_event_particles()
+                particle.collision_event()
 
         vector_field.update()
         for particle in vector_field.particles:
@@ -83,10 +74,10 @@ def run(rows, columns, max_velocity):
         for particle in vector_field.particles:
             pygame.draw.circle(screen, (130, 46, 129), particle.get_position(), particle.radius)
 
-        for cell in vector_field.obstacles:
+        for cell in vector_field.obstacles:  # Draw obstacles
             pygame.draw.rect(screen, (0, 0, 0, 0.5), (cell[0] * box_width, cell[1] * box_height, box_width, box_height))
 
-        if vector_field.draw_grid:  # Draw distances, gridlines, and direction vector
+        if vector_field.draw_grid:  # Draw grid metadata if user selected it
             for x in vector_field.get_grid_coords(x=True):
                 pygame.draw.line(screen, "#353252", (x, 0), (x, screen_height), 1)
 
@@ -105,15 +96,9 @@ def run(rows, columns, max_velocity):
                     screen.blit(number, box_centre - (box_width // 4))
 
         pygame.display.update()
-
         clock.tick(frame_rate)
 
 
-if __name__ == "__main__":
-    print("Hi")
-
-
-#
 class Pathfinder(Particle):
     def __init__(self, mass, radius, container, position=None):
         super().__init__(mass, radius, container, position)
@@ -133,11 +118,11 @@ class Pathfinder(Particle):
         x_collision = self.check_for_collision_X(obstacle_pos[0], obstacle_width)
         if x_collision:  # if collision in x direction
             self.velocity[0] *= -1
-        else:  # If not x collision, then is y collision
+        else:  # If not x collision, then it is in y collision
             self.velocity[1] *= -1
         self.next_position = self.position + self.velocity * -1 * self.container.dt
 
-    def collision_event_particles(self, track_collisions=False):  # Particle collision handler
+    def collision_event(self, track_collisions=False):  # Particle collision handler
         try:
             cell_index = self.container.hash_position(self.position)
             particles_to_check = self.container.grid[cell_index].cell_list
@@ -156,18 +141,14 @@ class VelocityField(SpatialMap):
         super().__init__(noOfRows, noOfCols, screen_size=screen_size)
         self.cell_distances = np.zeros_like(self.grid)  # Used in pathfinding algorithm
         self.damping = 0.80  # Energy factor in particle collision with walls
-
-        self.obstacles = set()  # Stores obstacles
+        self.obstacles = set()  # Stores obstacles.
         self.goal = np.array([0, 0])
         self.particle_max_velocity = max_velocity  # Desired velocity magnitude in steering behaviours
-
         self.is_adding_particles = False
         self.is_adding_cells = False
         self.enable_collision_between_particles = False
         self.draw_heatmap = True
-
         self.particle_to_add_radius = 5
-
         self.max_distance = 0
 
     def display_heatmap(self, screen):  # drawing a colour gradient depending on cell distance
@@ -184,7 +165,7 @@ class VelocityField(SpatialMap):
                         pygame.draw.rect(screen, colour,
                                          (i * self.box_width, j * self.box_height, self.box_width, self.box_height))
 
-    def find_max_distance(self):  # Time saving. Only find max_distance when new goal set
+    def find_max_distance(self):  # Time saving step. Only find max_distance once when new goal is set
         self.max_distance = np.max(list(filter(lambda x: np.isfinite(x), self.cell_distances)))
 
     def print_visited(self):  # Testing if algorithm is working
@@ -199,13 +180,16 @@ class VelocityField(SpatialMap):
         else:
             self.is_adding_cells = True
 
-    def toggle_blocked_cell(self, coord):  # Seamless obstacle toggling
+    def toggle_blocked_cell(self, coord):  # Easy to use obstacle toggling
         if self.is_adding_cells:
             if coord not in self.obstacles:
                 self.obstacles.add(coord)
         else:
             if coord in self.obstacles:
                 self.obstacles.remove(coord)
+
+    def clear_obstacles(self):
+        self.obstacles.clear()
 
     def add_particle(self, mouse_position):
         obj = Pathfinder(self.particle_to_add_radius // 3, self.particle_to_add_radius, self,
@@ -226,10 +210,9 @@ class VelocityField(SpatialMap):
         # Set distance to the goal cell to 0
         goal_coords = np.clip(np.array(goal_coords), np.zeros_like(goal_coords), np.array([self.cols, self.rows]) - 1)
         goal_index = self.coord_to_index(goal_coords)
-
         self.cell_distances[goal_index] = 0
 
-        # queue needed for breadth-first search
+        # Initialise queue for breadth-first search with coordinates of goal cell
         queue = [goal_coords]
 
         while queue:
@@ -254,7 +237,6 @@ class VelocityField(SpatialMap):
                 except IndexError:  # Invalid coordinate --> ignore
                     pass
 
-    #########################################################
     def calculate_vectors(self):  # Calculate velocity field from distance field
         for cell_coord in self.obstacles:
             self.cell_distances[self.coord_to_index(cell_coord)] = -1
@@ -262,7 +244,7 @@ class VelocityField(SpatialMap):
         for counter, (values) in enumerate(zip(self.cell_distances, self.grid)):  # Gather necessary values
             distance, cell = values
             if self.index_to_coord(counter) in self.obstacles:
-                cell.velocity = np.array([0, 0])
+                cell.velocity = np.array([0, 0])  # Set velocity of blocked cells to nothing
                 continue
             coords = self.get_neighbouring_coords(self.index_to_coord(counter), placeholder_for_boundary=True)
 
@@ -301,9 +283,6 @@ class VelocityField(SpatialMap):
                 self.generate_heatmap(coords_of_goal)
                 self.calculate_vectors()
                 self.find_max_distance()  # Time saving for displaying heatmap
-
-    def clear_obstacles(self):
-        self.obstacles.clear()
 
     def calculate_avoidance_force(self, position):  # Steering behaviour, now deprecated
         radius = 1 * self.box_width
