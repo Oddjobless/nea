@@ -8,9 +8,8 @@ def draw_mode(level_no, penetration_factor=0.15):  # Level designer: for teacher
     frame_rate = 75
     screen_width, screen_height = pygame.display.Info().current_w, pygame.display.Info().current_h
     screen = pygame.display.set_mode((screen_width, screen_height))
+
     obstacles = []
-    goal_background_image = pygame.image.load("./Simulations/SimulationFiles/Assets/images/images.jpg")
-    goal_background_image.convert_alpha()
 
     pygame.display.set_caption("Create Level")
     background = pygame.image.load("./Simulations/SimulationFiles/Assets/images/background1.jpg")
@@ -19,6 +18,7 @@ def draw_mode(level_no, penetration_factor=0.15):  # Level designer: for teacher
     rect_origin = None
     rect_params = None
     mouse_hold = False
+
     clock = pygame.time.Clock()
     font = pygame.font.SysFont("Helvetica", 35)
 
