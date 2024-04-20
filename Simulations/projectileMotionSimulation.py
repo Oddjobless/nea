@@ -109,7 +109,7 @@ def run(level_no, air_resistance=False):
     container = Container(rows, columns, level_no, air_resistance)
     frame_rate = container.frame_rate
 
-    container.particles.extend([ProjectileParticle(1, 15, container) for _ in range(7)])  # eccentricity
+    container.particles.extend([ProjectileParticle(1, 15, container) for _ in range(6)])  # eccentricity
     for particle in container.particles:
         particle.position = np.array([randint(140, 210), randint(780, 980)])  # Drop particles into box from a height
     font = pygame.font.SysFont("comicsans", 20)
@@ -398,16 +398,16 @@ class Container(SpatialMap):
                 self.initialise_goal(goal.split(","))  # handling goal separately
                 for line in file:
                     line = line.split(",")
-                    image = bounce_image if int(line[4]) else wall_image
+                    image = bounce_image.copy() if int(line[4]) else wall_image.copy()
                     new_obstacle = Obstacle((int(line[0]), int(line[1])), int(line[2]), int(line[3]), image,
                                             is_platform=int(line[4]))
                     self.obstacles.append(new_obstacle)
             return True
-
         except FileNotFoundError:
             print("Invalid file name given")
             return False  # and run level 1 instead
-        except:
+        except Exception as e:
+            print(e)
             return False
 
     def initialise_goal(self, goal):
@@ -426,7 +426,10 @@ class Obstacle:
         self.is_platform = is_platform
         self.image = image
         if image is not None and not goal:
-            self.image = image.subsurface(pygame.Rect(0, 0, self.width, self.height))
+            try:
+                self.image = image.subsurface(pygame.Rect(0, 0, self.width, self.height))
+            except:  # Subsurface rectangle outside surface area
+                self.image = pygame.transform.scale(self.image, (self.width, self.height))
 
     def draw(self, screen):
         if self.image:
