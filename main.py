@@ -1,50 +1,33 @@
 import sys
-import traceback
 import numpy as np
-from PyQt6.QtWidgets import *
-from PyQt6.QtGui import *
-from PyQt6.QtCore import *
+from PyQt6.QtWidgets import QMainWindow, QWidget, QStackedLayout, QToolBar, QGridLayout, QLabel, QLineEdit, QPushButton, \
+    QDateEdit, QComboBox, QTableWidget, QSizePolicy, QSpinBox, QSlider, QMessageBox, QApplication, QTableWidgetItem
+from PyQt6.QtGui import QFont, QColor, QAction, QCursor, QBrush
+from PyQt6.QtCore import Qt, QDate
 from Simulations import pathfinderSimulation, projectileMotionSimulation, idealGasLawSimulation, fluidFlowSimulation
 from database import Database
 from hashlib import sha256
 import re
 
 
-# noinspection PyArgumentList
 class MainWindow(QMainWindow):
-    # noinspection PyArgumentList
     def __init__(self):
         super().__init__()
         self.user_info = None
         self.user_settings = None
         self.teacher_id = None
-
         self.database = Database("localhost", "root", "2121", "NEA")
-
         self.setWindowTitle("Physics Simulator")
-
         self.layout = QStackedLayout()
-
         self.index = QWidget()
         self.index.setLayout(self.layout)
         self.setCentralWidget(self.index)
-        self.toolbar = QToolBar()
+        self.toolbar = QToolBar()  # How user navigates the UI
         self.addToolBar(self.toolbar)
         self.toolbar.setMovable(False)
         self.toolbar.hide()
-        self.showFullScreen()
-
+        self.showFullScreen()  # The program is the focus
         self.setFont(QFont("Helvetica", 15))
-        self.index.setStyleSheet("""
-            {
-                font-size: 60;
-                font_family: 'Helvetica';
-            }
-
-            .plaintext {
-                font-size:100
-            }
-        """)  # FIX
 
         #################################################
 
@@ -626,63 +609,55 @@ q: Quit""")
             } """)
 
     def run_projectile_motion_sim(self, level_no):
-        print(level_no)
-        try:
-            if self.teacher_id is None:
-                projectileMotionSimulation.draw_mode(level_no, self.penetration_factor_button.value() / 100)
 
-            score = projectileMotionSimulation.run(level_no, self.air_resistance_button.isChecked())
-            if score:
-                if score > 100 and level_no != "Weekly":
-                    print("Winner!")
-                    print(level_no)
-                    button = self.projectile_sim_buttons[level_no]
-                    self.enable_projectile_button(button, level_no)
-                else:
-                    if score > self.weeklyScore:
-                        self.weeklyScore = score
-                        self.weeklyButton.setText(f"Level of the Week\nCurrent Score: {self.weeklyScore}")
-                        self.save_to_database()
-                        self.fill_projectile_leaderboard()
-        except Exception as e:
-            traceback.print_exc()
+        if self.teacher_id is None:
+            projectileMotionSimulation.draw_mode(level_no, self.penetration_factor_button.value() / 100)
+
+        score = projectileMotionSimulation.run(level_no, self.air_resistance_button.isChecked())
+        if score:
+            if score > 100 and level_no != "Weekly":
+                print("Winner!")
+                print(level_no)
+                button = self.projectile_sim_buttons[level_no]
+                self.enable_projectile_button(button, level_no)
+            else:
+                if score > self.weeklyScore:
+                    self.weeklyScore = score
+                    self.weeklyButton.setText(f"Level of the Week\nCurrent Score: {self.weeklyScore}")
+                    self.save_to_database()
+                    self.fill_projectile_leaderboard()
+
 
     def run_pathfinder(self):
-        try:
-            row = self.pathfinding_rows.value()
-            col = self.pathfinding_cols.value()
-            if row / col != self.height() / self.width():  # if rectangular cells
-                print(row / col, self.height() / self.width())
-                warning_box = QMessageBox()
-                warning_box.setWindowTitle("Rectangular cells")
-                warning_box.setIcon(QMessageBox.Icon.Question)
-                warning_box.addButton(QPushButton("Apply square grid"), QMessageBox.ButtonRole.ApplyRole)
-                warning_box.setStandardButtons(QMessageBox.StandardButton.No | QMessageBox.StandardButton.Yes)
-                warning_box.setText(
-                    "With the current grid configuration, the cells in the grid will NOT be square.\nWould you like to continue anyway?")
-                user_input = warning_box.exec()  # either continue
-                if user_input == QMessageBox.StandardButton.No:  # dont run sim
-                    return
-                if user_input != QMessageBox.StandardButton.Yes:  # apply correct ratio and don't run sim
-                    self.correct_grid_ratio()
-                    return
-            speed = self.pathfinding_speed.value() * 20
-            pathfinderSimulation.run(row, col, speed)
+        row = self.pathfinding_rows.value()
+        col = self.pathfinding_cols.value()
+        if row / col != self.height() / self.width():  # If cells are rectangular
+            warning_box = QMessageBox()
+            warning_box.setWindowTitle("Rectangular cells")
+            warning_box.setIcon(QMessageBox.Icon.Question)
+            warning_box.addButton(QPushButton("Apply square grid"), QMessageBox.ButtonRole.ApplyRole)
+            warning_box.setStandardButtons(QMessageBox.StandardButton.No | QMessageBox.StandardButton.Yes)
+            warning_box.setText(
+                "With the current grid configuration, the cells in the grid will NOT be square.\nWould you like to continue anyway?")
+            user_input = warning_box.exec()  # Either Yes for continue, No, or No and implement square grid
+            if user_input == QMessageBox.StandardButton.No:  # Don't run sim
+                return
+            if user_input != QMessageBox.StandardButton.Yes:  # Apply square grid and don't run sim
+                self.correct_grid_ratio()
+                return
+        speed = self.pathfinding_speed.value() * 20
+        pathfinderSimulation.run(row, col, speed)
 
-        except Exception as e:
-            traceback.print_exc()
 
     def correct_grid_ratio(self):
         width, height = self.width(), self.height()
-        gcd = np.gcd(width, height)
-
+        gcd = np.gcd(width, height) # greatest common denominator
         cols, rows = width // gcd, height // gcd
-        print(rows, cols)
-        while rows < 15 or cols < 15:
+        while rows < 15 or cols < 15: # i.e. if the grid is too small as it is
             rows *= 2
             cols *= 2
-        if rows > 100 or cols > 100:
-            rows, cols = 18, 32  # default values as square grid can't be made
+        if rows > 100 or cols > 100: # If the screen size is such that the smallest grid size is impractical
+            rows, cols = 18, 32  # Simply apply a default grid size of 18x32
         self.pathfinding_rows.setValue(rows)
         self.pathfinding_cols.setValue(cols)
 
@@ -733,7 +708,8 @@ q: Quit""")
 
     def fill_projectile_leaderboard(self):
         row_count = 10
-        self.projectile_leaderboard.clear()
+        # self.projectile_leaderboard.clear()
+        self.projectile_leaderboard.clearContents()
         teacher_id = self.teacher_id
         if self.teacher_id is None:
             teacher_id = self.database.get_teachers_teacher_id(self.user_info[0])
@@ -780,25 +756,21 @@ q: Quit""")
     def save_to_database(self):
         print(self.user_settings)
         self.user_settings = list(self.user_settings)
-        print(self.user_settings.copy())
-        try:
-            max_level = 1
-            for index, button in enumerate(self.projectile_sim_buttons):
-                print(button.objectName())
-                if button.objectName() == "free_button":
-                    max_level = index + 1
-            self.user_settings[-1] = max_level
-            self.user_settings[2] = int(self.pathfinding_rows.value())
-            self.user_settings[3] = int(self.pathfinding_cols.value())
-            self.user_settings[4] = int(self.pathfinding_speed.value())
-            self.user_settings[5] = int(self.weeklyScore)
-            print(self.user_settings, "new ")
 
-            self.database.save_and_shut_down(self.user_settings)
+        max_level = 1
+        for index, button in enumerate(self.projectile_sim_buttons):
+            print(button.objectName())
+            if button.objectName() == "free_button":
+                max_level = index + 1
+        self.user_settings[-1] = max_level
+        self.user_settings[2] = int(self.pathfinding_rows.value())
+        self.user_settings[3] = int(self.pathfinding_cols.value())
+        self.user_settings[4] = int(self.pathfinding_speed.value())
+        self.user_settings[5] = int(self.weeklyScore)
+        print(self.user_settings, "new ")
 
+        self.database.save_and_shut_down(self.user_settings)
 
-        except Exception as e:
-            traceback.print_exc()
 
 
 app = QApplication(sys.argv)
