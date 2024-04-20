@@ -345,6 +345,7 @@ class Container(SpatialMap):
                 f"{round(self.current_position[0] - self.initial_position[0]):>8} m",
                 f"{round(self.final_velocity):>8} m/s at {round(self.final_angle):>3}\u00B0",
                 f"{self.current_time:>10.2f} seconds"]
+
             for index, text in enumerate(zip(labels, values)):
                 screen.blit(font.render(text[0], True, (50, 50, 50)), (1640, 20 + 60 * (index + 1)))
                 screen.blit(font.render(text[1], True, (50, 50, 50)), (1640, 45 + 60 * (index + 1)))
@@ -364,9 +365,7 @@ class Container(SpatialMap):
             screen.blit(splat, particle.position - (splat.get_width() // 2, splat.get_height() // 2))
 
     def initialise_level(self, file_name):
-        goal_background_image = pygame.image.load("./Simulations/SimulationFiles/Assets/images/images.jpg")
         ball_box_image = None
-        goal_background_image.convert_alpha()
 
         # creating ball box
         box_dimensions = [
@@ -383,6 +382,7 @@ class Container(SpatialMap):
         splat_width = 100
         self.collision_splatters = []
         self.splattered_particles = []
+
         for splat in splatters:
             img = pygame.image.load("./Simulations/SimulationFiles/Assets/images/" + splat)
             img.convert_alpha()
