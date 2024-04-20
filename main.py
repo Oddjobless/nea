@@ -37,25 +37,25 @@ class MainWindow(QMainWindow):
         palette.setColor(self.login.backgroundRole(), QColor(255, 249, 196))
         self.login.setPalette(palette)
 
-        self.login_label = QLabel("Physics Simulator")  # todo:
+        self.login_label = QLabel("Physics Simulator")
         self.login_label.setStyleSheet("""
         font-family: 'Times New Roman';
         font-size: 100px;""")
         self.login_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.login_layout.addWidget(self.login_label, 0, 2, 1, 2)
 
-        self.email = QLineEdit()
+        self.email = QLineEdit()  # Email field
         self.email.setPlaceholderText("Enter email address")
         self.email.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.login_layout.addWidget(self.email, 7, 0, 1, 6)
 
-        self.password = QLineEdit()
+        self.password = QLineEdit()  # Password field
         self.password.setPlaceholderText("Enter password")
         self.password.setEchoMode(QLineEdit.EchoMode.Password)
         self.password.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.login_layout.addWidget(self.password, 8, 0, 1, 6)
 
-        self.login_button = QPushButton("Log in")
+        self.login_button = QPushButton("Log in")  # Log in button
         self.login_button.released.connect(self.login_or_register)
         self.login_button.setMaximumWidth(350)
         self.login_layout.addWidget(self.login_button, 9, 3, 1, 1)
@@ -66,13 +66,13 @@ class MainWindow(QMainWindow):
         self.login_layout.addWidget(self.toggle_login, 9, 2, 1, 1)
 
         # Registration widgets
-        self.full_name = QLineEdit()
+        self.full_name = QLineEdit()  # Name field
         self.full_name.setPlaceholderText("Enter your full name")
         self.full_name.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.login_layout.addWidget(self.full_name, 4, 1, 1, 4)
         self.full_name.hide()
 
-        self.date_of_birth = QDateEdit()
+        self.date_of_birth = QDateEdit()  # Birth date field
         self.date_of_birth.setDisplayFormat("dd/MM/yyyy")
         self.date_of_birth.setAlignment(Qt.AlignmentFlag.AlignRight)
         self.date_of_birth.setCalendarPopup(True)
@@ -84,11 +84,10 @@ class MainWindow(QMainWindow):
         self.date_of_birth_label.hide()
 
         teachers = []
-        for record in self.database.get_teacher_names():
+        for record in self.database.get_teacher_names():  # Class selection
             teachers.append(f"{record[0]}")
         self.teacher_dropdown = QComboBox()
         self.teacher_dropdown.addItems(teachers)
-
         self.login_layout.addWidget(self.teacher_dropdown, 6, 3, 1, 2)
         self.teacher_dropdown.hide()
 
@@ -135,7 +134,7 @@ class MainWindow(QMainWindow):
         self.home_page = QWidget()
         self.home_page.setLayout(self.home_page_layout)
 
-        self.home_page.setAutoFillBackground(True)  # Setting Background colour
+        self.home_page.setAutoFillBackground(True)  # Setting background colour
         palette = self.home_page.palette()
         palette.setColor(self.home_page.backgroundRole(), QColor(249, 247, 243))
         self.home_page.setPalette(palette)
@@ -254,7 +253,7 @@ class MainWindow(QMainWindow):
         self.enable_projectile_button(self.weeklyButton)
         self.weeklyButton.released.connect(lambda: self.run_projectile_motion_sim("Weekly"))
 
-        self.air_resistance_button = QPushButton("Air Resistance\nENABLED")
+        self.air_resistance_button = QPushButton("Air Resistance\nENABLED")  # Air resistance button
         self.toggle_air_resistance_button()
         self.air_resistance_button.setMaximumWidth(240)
         self.air_resistance_button.released.connect(self.toggle_air_resistance_button)
@@ -452,13 +451,12 @@ q: Quit""")
         email, password = self.email.text().strip(), sha256(self.password.text().encode()).hexdigest()
         user_info = self.database.verify_login(email, password)
         if user_info:
-            self.user_info = user_info
-            print(self.user_info)
-            self.user_settings = self.database.get_user_settings(self.user_info[0])
+            self.user_info = user_info  # Get user information like email and name
+            self.user_settings = self.database.get_user_settings(self.user_info[0])  # Get user settings from user id
 
-            if not user_info[-1]:  # if is_teacher field is False:
+            if not user_info[-1]:  # If is_teacher field is False:
                 self.teacher_id = self.database.get_teacher_id_by_user_id(self.user_info[0])
-            else:
+            else:  # User is a teacher
                 self.teacher_id = None
 
             self.initialise_program()  # Prepare simulation with the user settings
@@ -655,7 +653,6 @@ q: Quit""")
                     self.save_to_database()
                     self.fill_projectile_leaderboard()
 
-
     def run_pathfinder(self):
         row = self.pathfinding_rows.value()
         col = self.pathfinding_cols.value()
@@ -676,15 +673,14 @@ q: Quit""")
         speed = self.pathfinding_speed.value() * 20
         pathfinderSimulation.run(row, col, speed)
 
-
     def correct_grid_ratio(self):
         width, height = self.width(), self.height()
-        gcd = np.gcd(width, height) # greatest common denominator
+        gcd = np.gcd(width, height)  # greatest common denominator
         cols, rows = width // gcd, height // gcd
-        while rows < 15 or cols < 15: # i.e. if the grid is too small as it is
+        while rows < 15 or cols < 15:  # i.e. if the grid is too small as it is
             rows *= 2
             cols *= 2
-        if rows > 100 or cols > 100: # If the screen size is such that the smallest grid size is impractical
+        if rows > 100 or cols > 100:  # If the screen size is such that the smallest grid size is impractical
             rows, cols = 18, 32  # Simply apply a default grid size of 18x32
         self.pathfinding_rows.setValue(rows)
         self.pathfinding_cols.setValue(cols)
@@ -700,8 +696,6 @@ q: Quit""")
             fluidFlowSimulation.run()
         except Exception as e:
             print(e)
-
-
 
     def log_off(self):
         self.save_to_database()
@@ -724,7 +718,6 @@ q: Quit""")
         print(self.user_settings, "new ")
 
         self.database.save_and_shut_down(self.user_settings)
-
 
 
 app = QApplication(sys.argv)

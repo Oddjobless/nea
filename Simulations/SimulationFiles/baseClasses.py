@@ -55,7 +55,7 @@ class Particle:
         if is_platform:
             damping = 0.4
         else:
-            damping = self.container.damping  # todo:
+            damping = self.container.damping
 
         # determines if ball moves horizontally or vertically
         if penetration_x < penetration_y:
