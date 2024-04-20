@@ -636,7 +636,7 @@ q: Quit""")
             }""")
 
     def run_projectile_motion_sim(self, level_no):
-        if self.teacher_id is None:
+        if self.teacher_id is None and str(level_no) == "Weekly":
             projectileMotionSimulation.draw_mode(level_no, self.penetration_factor_button.value() / 100)
 
         score = projectileMotionSimulation.run(level_no, self.air_resistance_button.isChecked())

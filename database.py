@@ -67,8 +67,10 @@ class Database:
                              "Mr Smith", "2000-01-01", is_teacher=True)  # teacher
             self.create_user("m.stevens@gmail.com", "16a3a923a6143b7b1ebc73ea64ef23fc41ed7b26b883f51c8e90bb32a9cb3dc4",
                              "Mr Stevens", "2000-01-01", is_teacher=True)  # stevens
-            self.create_user("student", "placeholder", "student1", "2000-01-01", teacher_email="m.stevens@gmail.com")
-            self.create_user("student1", "placeholder", "student2", "2000-01-01", teacher_email="m.stevens@gmail.com")
+            self.create_user("student1", "placeholder", "Student One", "2000-01-01", teacher_email="m.stevens@gmail.com")
+            self.create_user("student2", "placeholder", "Student Two", "2000-01-01", teacher_email="m.stevens@gmail.com")
+            self.create_user("student3", "placeholder", "Student Three", "2000-01-01", teacher_email="teacher@email.com")
+            self.create_user("student4", "placeholder", "Student Four", "2000-01-01", teacher_email="teacher@email.com")
             print("Database initialised successfully.")
 
         except Exception as e:
